@@ -2,36 +2,11 @@ function sub(...)
 	coroutine.wrap(...)()
 end
 local TweenService = game:GetService("TweenService")
+local ActionCheckModule = require(game.ServerScriptService.Modules.ActionCheck)
 function ActionCheck(Parent)
-	if Parent:FindFirstChild("Stun") then
-		return true
-	end
-	if Parent:FindFirstChild("ReturnStun") then
-		return true
-	end
-	if Parent:FindFirstChild("Action") then
-		return true
-	end
-	if Parent:FindFirstChild("Blocking") then
-		return true
-	end
-	if Parent:FindFirstChild("SpellBlocking") then
-		return true
-	end
-	if Parent:FindFirstChild("ActiveCast") then
-		return true
-	end
-	if Parent:FindFirstChild("Unconscious") then
-		return true
-	end
-	if Parent:FindFirstChild("Knocked") then
-		return true
-	end
-	if Parent:FindFirstChild("Immortal") then
-	else
-		return
-	end
-	return true
+	return ActionCheckModule(Parent, {
+		presentBlocks = {"Stun","ReturnStun","Action","Blocking","SpellBlocking","ActiveCast","Unconscious","Knocked","Immortal"},
+	})
 end
 local model = game.ServerStorage.Assets.Hood:Clone()
 model.TextureID = "rbxassetid://7775197735"

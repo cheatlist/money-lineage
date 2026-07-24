@@ -1,138 +1,26 @@
-local FindFirstChild,WaitForChild = game.FindFirstChild,game.WaitForChild
-local GetChildren,GetDescendants = game.GetChildren,game.GetDescendants
+local FindFirstChild = game.FindFirstChild
+local GetChildren = game.GetChildren
 local CollectionService = game:GetService("CollectionService")
 local commands = require(game.ServerScriptService.Modules.Commands)
 local TemperatureHandler = require(game.ServerScriptService.Modules.TemperatureHandler)
 local u4 = require(game.ServerScriptService.Modules.EffectModule)
 local combatanims = game.ReplicatedStorage.CombatAnims
 local TweenService = game:GetService("TweenService")
-local function create(name,deletetime,parent)
-	if (name == "Knocked" or name == "Unconscious") and (parent:FindFirstChild("WakingUp") or game.CollectionService:HasTag(parent, "GettingUp")) then
-		return
-	end
-	local i = Instance.new("Accessory")
-	i.Name = name
-	i.Parent = parent
-	if (name == "Knocked" and game.Players:FindFirstChild(parent.Name)) and game.ServerStorage.PlayerData[parent.Name].Injuries.Value:find("BrokenRib") then
-		if deletetime then
-			game.Debris:AddItem(i, deletetime * 1.25)
-		end
-		for i,v in pairs(parent:GetChildren()) do
-			if v.Name == "Knocked" then
-				if deletetime then
-					game.Debris:AddItem(v, deletetime * 1.25)
-				end
-			end
-		end
-	elseif name == "Knocked" then
-		if deletetime then
-			game.Debris:AddItem(i, deletetime)
-		end
-		for i,v in pairs(parent:GetChildren()) do
-			if v.Name == "Knocked" then
-				if deletetime then
-					game.Debris:AddItem(v, deletetime)
-				end
-			end
-		end
-	else
-		if deletetime then
-			game.Debris:AddItem(i, deletetime)
-		end
-	end
-	return i
-end
 
-local function changetransparency(enemy,transparency)
-	enemy.Torso.Transparency = transparency
-	for _,v in pairs(GetChildren(enemy.Torso))do
-		if v:IsA("Motor6D")then
-			v.Part1.Transparency = transparency
-		end
-	end
-	for i,v in pairs(enemy:GetDescendants()) do
-		if v.Name == "EnchantEffect" then
-			if transparency == 1 then
-				v.Enabled = false
-			else
-				v.Enabled = true
-			end
-		end
-	end
-end
-
-local function plantedcheck(v)
-	if FindFirstChild(v,"Planted")then
-		return true
-	else
-		return false
-	end
-end
-
-local function wrap(...)
-	coroutine.wrap(...)()
-end
-
-local function bodyvelocitycheck(c, checkit)
-	--[[local children = GetChildren(c.HumanoidRootPart)
-	for i = 1,#children do
-		local v = children[i]
-		if v.ClassName == "BodyVelocity"then
-			v:Destroy()
-		end
-	end]]
-
-end
-
-local function hitknockback(root,parent)
-	if not plantedcheck(parent.Parent)then
-		bodyvelocitycheck(parent.Parent)
-		if not parent:FindFirstChild("hitBV") then
-			local bv = Instance.new("BodyVelocity")
-			CollectionService:AddTag(bv,"AllowedBM")
-			bv.Name = "hitBV"
-		--[[local novel = Instance.new("Accessory")
-		novel.Name = "noveloc"
-		novel.Parent = parent.Parent
-		game.Debris:AddItem(novel,0.175)]]
-			bv.P = 1250
-			bv.MaxForce = Vector3.new(9e9,0,9e9)
-			bv.Velocity = root.CFrame.LookVector.unit*15
-			bv.Parent = parent
-			game.Debris:AddItem(bv,0.2)
-		end
-	end
-end
-
-local function soundplay(part,sound,pitch)
-	if FindFirstChild(part,sound)then
-		local sound = part[sound]
-		if pitch then
-			sound.Pitch = tonumber(pitch)
-		end
-		sound:Play()
-	end
-end
+local Helpers = require(script.Helpers)
+local create = Helpers.create
+local changetransparency = Helpers.changetransparency
+local plantedcheck = Helpers.plantedcheck
+local wrap = Helpers.wrap
+local bodyvelocitycheck = Helpers.bodyvelocitycheck
+local hitknockback = Helpers.hitknockback
+local soundplay = Helpers.soundplay
+local Send = Helpers.Send
+local getCurseCount = Helpers.getCurseCount
 
 local FlowingParry = game.ServerStorage.NPCAnims.FlowingParry
 
-local function Send(Title, Content, Color)
-	game.ServerStorage.Requests.SendWebhook:Fire(
-		Title,
-		Content,
-		Color
-	)
-end
-
-local function getCurseCount(Character)
-	local count = 0;
-	for i,v in pairs(Character.HumanoidRootPart:GetChildren()) do
-		if v.Name == "Cursey" and v.Enabled == true then
-			count += 1
-		end
-	end
-	return count
-end
+local DragonSlayerPaths = require(script.Procs.DragonSlayerPaths)
 
 function taghumanoid(character,enemy,info)
 	local stun = 0.35
@@ -2971,82 +2859,7 @@ function taghumanoid(character,enemy,info)
 	end
 	if info.damage then
 		if character ~= enemy then
-			if character.Cooldowns:FindFirstChild("The Storm Herald") and not character.Cooldowns:FindFirstChild("The Storm Herald CD") and info.spear and math.random(1,10) == 1 then
-				local CD = Instance.new("NumberValue")
-				CD.Name = "The Storm Herald CD"
-				CD.Value = 2
-				CD.Parent = character.Cooldowns
-				game.Debris:AddItem(CD, 10)
-				
-				local hitChars = {}
-				
-				local function recurse(depth,startp,endp,dam)
-					if depth > 2 then return end
-
-					u4.QuickLightning(startp,endp,0.2,8,"Lilac")
-
-					local targ = nil
-					local closestDist = nil
-					for _,ochar in next,game.Workspace.Live:GetChildren() do
-						if ochar ~= character and ochar:FindFirstChild("HumanoidRootPart") and not hitChars[ochar] then
-							local dist = (ochar.HumanoidRootPart.Position-endp).Magnitude
-							if dist < 100 and ((not targ) or dist < closestDist) then
-								targ = ochar
-								closestDist = dist
-							end
-						end
-					end
-
-					if targ then
-						hitChars[targ] = true
-						game.ServerStorage.Requests.TagHumanoid:Fire(character,targ,{mana=true,damage=dam,dexthunder=true,nodexsound=true,sigilthunder=true,move = "Chain Lightning"})
-
-						coroutine.wrap(function()
-							wait(0.15)
-
-							if depth == 0 then
-								u4.QuickLightning(character.HumanoidRootPart.Position,endp,0.2,8,"Lilac")
-							elseif targ and targ.Parent == workspace.Live and targ:FindFirstChild("HumanoidRootPart") then
-								u4.QuickLightning(endp,targ.HumanoidRootPart.Position,0.2,8,"Lilac")
-							end
-						end)()
-
-						recurse(depth+1,endp,targ.HumanoidRootPart.Position,dam+5)
-					end
-				end
-
-				recurse(0,character.HumanoidRootPart.Position,enemy.HumanoidRootPart.Position,10)
-			end
-			if character.Cooldowns:FindFirstChild("The Ember Wyrm") and not character.Cooldowns:FindFirstChild("The Ember Wyrm CD") and info.spear and math.random(1,10) == 1 then
-				local CD = Instance.new("NumberValue")
-				CD.Name = "The Ember Wyrm CD"
-				CD.Value = 2
-				CD.Parent = character.Cooldowns
-				game.Debris:AddItem(CD, 10)
-
-				u4.Explosion(CFrame.new(enemy.HumanoidRootPart.Position), 8, {
-					mana = true,
-					damage = 8,
-					burn = true,
-					burncolor = Color3.fromRGB(255, 90, 20),
-					noenchant = true,
-					move = "Ember Wyrm"
-				}, nil, Color3.fromRGB(255, 100, 20), character)
-			end
-			if character.Cooldowns:FindFirstChild("The Abyssal Wyrm") and not character.Cooldowns:FindFirstChild("The Abyssal Wyrm CD") and info.spear and math.random(1,10) == 1 then
-				local CD = Instance.new("NumberValue")
-				CD.Name = "The Abyssal Wyrm CD"
-				CD.Value = 2
-				CD.Parent = character.Cooldowns
-				game.Debris:AddItem(CD, 10)
-
-				local toheal = info.damage * 0.3
-				if humanoid.Health + toheal < humanoid.MaxHealth then
-					humanoid.Health += toheal
-				else
-					humanoid.Health = humanoid.MaxHealth
-				end
-			end
+			DragonSlayerPaths(character, enemy, info, humanoid)
 		end
 		if info.physical and FindFirstChild(character,"HaseldanDamageMultiplier")then
 			info.damage *= 1.25
@@ -3234,4 +3047,3 @@ end
 
 game.ServerStorage.Requests.TagHumanoid.Event:Connect(taghumanoid)
 
-_G.RemoteTag = taghumanoid -- for returning

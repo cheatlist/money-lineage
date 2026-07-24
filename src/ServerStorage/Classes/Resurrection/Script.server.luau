@@ -8,11 +8,11 @@ local TagHumanoid = ServerStorage:FindFirstChild("Requests"):WaitForChild("TagHu
 
 local Used: boolean = false
 
+local ActionCheckModule = require(game.ServerScriptService.Modules.ActionCheck)
 local function ActionCheck(aisar)
-	if aisar:FindFirstChild("Knocked") then
-		return false
-	end
-	return true
+	return ActionCheckModule(aisar, {
+		absentBlocks = {"Knocked"},
+	})
 end
 
 script.Parent.Activated:Connect(function()

@@ -1,42 +1,12 @@
 local module = {}
 local used
 
+local ActionCheckModule = require(game.ServerScriptService.Modules.ActionCheck)
 function ActionCheck(aisar)
-	if not aisar:FindFirstChild("Humanoid") then
-		return true
-	end
-	if aisar:FindFirstChild("Charge") then
-		return true
-	end
-	if aisar:FindFirstChild("Stun") then
-		return true
-	end
-	if aisar:FindFirstChild("ReturnStun") then
-		return true
-	end
-	if aisar:FindFirstChild("Action") then
-		return true
-	end
-	if aisar:FindFirstChild("Blocking") then
-		return true
-	end
-	if aisar:FindFirstChild("SpellBlocking") then
-		return true
-	end
-	if aisar:FindFirstChild("ActiveCast") then
-		return true
-	end
-	if aisar:FindFirstChild("Unconscious") then
-		return true
-	end
-	if aisar:FindFirstChild("Knocked") then
-		return true
-	end
-	if aisar:FindFirstChild("Immortal") then
-	else
-		return
-	end
-	return true
+	return ActionCheckModule(aisar, {
+		absentBlocks = {"Humanoid"},
+		presentBlocks = {"Charge","Stun","ReturnStun","Action","Blocking","SpellBlocking","ActiveCast","Unconscious","Knocked","Immortal"},
+	})
 end
 
 function Anchor(Target, Statement)

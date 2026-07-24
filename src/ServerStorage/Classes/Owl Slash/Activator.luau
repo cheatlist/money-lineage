@@ -1,43 +1,11 @@
 local v2 = {}
 local v3 = require(game.ServerScriptService.Modules.HitDetection)
+local ActionCheckModule = require(game.ServerScriptService.Modules.ActionCheck)
 local function ActionCheck(l__Parent__1)
-	if not l__Parent__1:FindFirstChild("Humanoid") then
-		return true
-	end
-	if l__Parent__1:FindFirstChild("Charge") then
-		return true
-	end
-	if l__Parent__1:FindFirstChild("Stun") then
-		return true
-	end
-	if l__Parent__1:FindFirstChild("ReturnStun") then
-		return true
-	end
-	if l__Parent__1:FindFirstChild("Action") then
-		return true
-	end
-	if l__Parent__1:FindFirstChild("Blocking") then
-		return true
-	end
-	if l__Parent__1:FindFirstChild("SpellBlocking") then
-		return true
-	end
-	if l__Parent__1:FindFirstChild("Unconscious") then
-		return true
-	end
-	if l__Parent__1:FindFirstChild("ActiveCast") then
-		return true
-	end
-	if l__Parent__1:FindFirstChild("Unconscious") then
-		return true
-	end
-	if l__Parent__1:FindFirstChild("Knocked") then
-		return true
-	end
-	if l__Parent__1:FindFirstChild("Immortal") then	
-		return true
-	end
-	return false
+	return ActionCheckModule(l__Parent__1, {
+		absentBlocks = {"Humanoid"},
+		presentBlocks = {"Charge","Stun","ReturnStun","Action","Blocking","SpellBlocking","Unconscious","ActiveCast","Unconscious","Knocked","Immortal"},
+	})
 end
 local v4 = tick()
 local u2 = true

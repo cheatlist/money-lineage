@@ -1,32 +1,10 @@
 local v1 = {}
 local l__Parent__2 = script.Parent
-function ActionCheck(p1)
-	if p1:FindFirstChild("Stun")then
-		return true
-	end
-	if p1:FindFirstChild("NoDam")then
-		return true
-	end
-	if p1:FindFirstChild("Action")then
-		return true
-	end
-	if p1:FindFirstChild("Knocked")then
-		return true
-	end
-	if p1:FindFirstChild("Unconscious")then
-		return true
-	end
-	if p1:FindFirstChild("SpellBlocking")then
-		return true
-	end
-	if p1:FindFirstChild("Blocking")then
-		return true
-	end
-	if p1:FindFirstChild("Immortal") then
-	else
-		return
-	end
-	return true
+local ActionCheckModule = require(game.ServerScriptService.Modules.ActionCheck)
+local function ActionCheck(p1)
+	return ActionCheckModule(p1, {
+		presentBlocks = {"Stun","NoDam","Action","Knocked","Unconscious","SpellBlocking","Blocking","Immortal"},
+	})
 end
 local taghumanoid = game.ServerStorage.Requests.TagHumanoid
 local u1 = false

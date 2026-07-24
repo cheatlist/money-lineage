@@ -1,35 +1,8 @@
+local ActionCheckModule = require(game.ServerScriptService.Modules.ActionCheck)
 function ActionCheck(Parent)
-	if Parent:FindFirstChild("Stun") then
-		return true
-	end
-	if Parent:FindFirstChild("NoDam") then
-		return true
-	end
-	if Parent:FindFirstChild("ReturnStun") then
-		return true
-	end
-	if Parent:FindFirstChild("Action") then
-		return true
-	end
-	if Parent:FindFirstChild("Blocking") then
-		return true
-	end
-	if Parent:FindFirstChild("Immortal") then
-		return true
-	end
-	if Parent:FindFirstChild("SpellBlocking") then
-		return true
-	end
-	if Parent:FindFirstChild("ActiveCast") then
-		return true
-	end
-	if Parent:FindFirstChild("Unconscious") then
-		return true
-	end
-	if Parent:FindFirstChild("Knocked") then
-		return true
-	end
-	return
+	return ActionCheckModule(Parent, {
+		presentBlocks = {"Stun","NoDam","ReturnStun","Action","Blocking","Immortal","SpellBlocking","ActiveCast","Unconscious","Knocked"},
+	})
 end
 
 local Tool = script.Parent

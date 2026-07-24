@@ -1,42 +1,12 @@
 local v2 = {}
 local l__TagHumanoid__3 = game.ServerStorage.Requests.TagHumanoid
 local l__Parent__1 = script.Parent.Parent
+local ActionCheckModule = require(game.ServerScriptService.Modules.ActionCheck)
 function ActionCheck()
-	if not l__Parent__1:FindFirstChild("Humanoid") then
-		return true
-	end
-	if l__Parent__1:FindFirstChild("Charge") then
-		return true
-	end
-	if l__Parent__1:FindFirstChild("Stun") then
-		return true
-	end
-	if l__Parent__1:FindFirstChild("ReturnStun") then
-		return true
-	end
-	if l__Parent__1:FindFirstChild("Action") then
-		return true
-	end
-	if l__Parent__1:FindFirstChild("Blocking") then
-		return true
-	end
-	if l__Parent__1:FindFirstChild("SpellBlocking") then
-		return true
-	end
-	if l__Parent__1:FindFirstChild("ActiveCast") then
-		return true
-	end
-	if l__Parent__1:FindFirstChild("Unconscious")then
-		return true
-	end
-	if l__Parent__1:FindFirstChild("Knocked")then
-		return true
-	end
-	if l__Parent__1:FindFirstChild("Immortal") then
-	else
-		return
-	end
-	return true
+	return ActionCheckModule(l__Parent__1, {
+		absentBlocks = {"Humanoid"},
+		presentBlocks = {"Charge","Stun","ReturnStun","Action","Blocking","SpellBlocking","ActiveCast","Unconscious","Knocked","Immortal"},
+	})
 end
 local v4 = tick()
 local l__TweenService__2 = game:GetService("TweenService")

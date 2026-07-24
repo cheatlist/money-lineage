@@ -6,45 +6,12 @@ v1.cost = 40;
 local function radrandom(p1, p2)
 	return math.rad(math.random(p1, p2));
 end;
+local ActionCheckModule = require(game.ServerScriptService.Modules.ActionCheck)
 function ActionCheck(Parent)
-	if Parent:FindFirstChild("EquipWarmup") then
-		return true
-	end
-	if Parent:FindFirstChild("Stun") then
-		return true
-	end
-	if Parent:FindFirstChild("NoDam") then
-		return true
-	end
-	if Parent:FindFirstChild("ReturnStun") then
-		return true
-	end
-	if Parent:FindFirstChild("Action") then
-		return true
-	end
-	if Parent:FindFirstChild("Blocking") then
-		return true
-	end
-	if Parent:FindFirstChild("SpellBlocking") then
-		return true
-	end
-	if Parent:FindFirstChild("ActiveCast") then
-		return true
-	end
-	if Parent:FindFirstChild("Unconscious") then
-		return true
-	end
-	if Parent:FindFirstChild("Knocked") then
-		return true
-	end
-	if Parent.Humanoid.Health<1 then
-		return true
-	end
-	if Parent:FindFirstChild("Immortal") then
-	else
-		return
-	end
-	return true
+	return ActionCheckModule(Parent, {
+		presentBlocks = {"EquipWarmup","Stun","NoDam","ReturnStun","Action","Blocking","SpellBlocking","ActiveCast","Unconscious","Knocked","Immortal"},
+		healthBelow = 1,
+	})
 end
 local function nowalkthrough(p3)
 	for Indx, Obj in ipairs(p3:GetDescendants())do

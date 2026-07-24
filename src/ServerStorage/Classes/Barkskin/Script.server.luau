@@ -3,45 +3,12 @@ function sub(...)
 end
 local u3 = require(game.ServerScriptService.Modules.HitDetection)
 local TweenService = game:GetService("TweenService")
-function ActionCheck(Parent)
-	if Parent:FindFirstChild("EquipWarmup") then
-		return true
-	end
-	if Parent:FindFirstChild("Stun") then
-		return true
-	end
-	if Parent:FindFirstChild("NoDam") then
-		return true
-	end
-	if Parent:FindFirstChild("ReturnStun") then
-		return true
-	end
-	if Parent:FindFirstChild("Action") then
-		return true
-	end
-	if Parent:FindFirstChild("Blocking") then
-		return true
-	end
-	if Parent:FindFirstChild("SpellBlocking") then
-		return true
-	end
-	if Parent:FindFirstChild("ActiveCast") then
-		return true
-	end
-	if Parent:FindFirstChild("Unconscious") then
-		return true
-	end
-	if Parent:FindFirstChild("Knocked") then
-		return true
-	end
-	if Parent.Humanoid.Health<5 then
-		return true
-	end
-	if Parent:FindFirstChild("Immortal") then
-	else
-		return
-	end
-	return true
+local ActionCheckModule = require(game.ServerScriptService.Modules.ActionCheck)
+local function ActionCheck(Parent)
+	return ActionCheckModule(Parent, {
+		presentBlocks = {"EquipWarmup","Stun","NoDam","ReturnStun","Action","Blocking","SpellBlocking","ActiveCast","Unconscious","Knocked","Immortal"},
+		healthBelow = 5,
+	})
 end
 local canuse = true
 local enabled = false

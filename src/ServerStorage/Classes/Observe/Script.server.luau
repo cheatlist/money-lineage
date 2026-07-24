@@ -3,36 +3,11 @@ local state = false
 local observestate = false
 local tweenService = game:GetService("TweenService")
 
+local ActionCheckModule = require(game.ServerScriptService.Modules.ActionCheck)
 function ActionCheck(Parent)
-	if Parent:FindFirstChild("Stun") then
-		return true
-	end
-	if Parent:FindFirstChild("NoDam") then
-		return true
-	end
-	if Parent:FindFirstChild("ReturnStun") then
-		return true
-	end
-	if Parent:FindFirstChild("Blocking") then
-		return true
-	end
-	if Parent:FindFirstChild("SpellBlocking") then
-		return true
-	end
-	if Parent:FindFirstChild("ActiveCast") then
-		return true
-	end
-	if Parent:FindFirstChild("Unconscious") then
-		return true
-	end
-	if Parent:FindFirstChild("Knocked") then
-		return true
-	end
-	if Parent:FindFirstChild("Immortal") then
-	else
-		return
-	end
-	return true
+	return ActionCheckModule(Parent, {
+		presentBlocks = {"Stun","NoDam","ReturnStun","Blocking","SpellBlocking","ActiveCast","Unconscious","Knocked","Immortal"},
+	})
 end
 
 script.Parent.Activated:Connect(function()

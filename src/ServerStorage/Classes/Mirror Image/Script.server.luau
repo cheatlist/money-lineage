@@ -6,33 +6,12 @@ local u8 = game.ServerStorage.Requests.TagHumanoid
 local Illusions = require(game.ServerScriptService.WorldHandler.MonsterControl.DecisionModules.Illusions)
 local IllusionModule = require(game.ServerScriptService.Modules.IllusionModule)
 local TweenService = game:GetService("TweenService")
+local ActionCheckModule = require(game.ServerScriptService.Modules.ActionCheck)
 function ActionCheck(Parent)
-	if Parent:FindFirstChild("NoDam") then
-		return true
-	end
-	if Parent:FindFirstChild("ReturnStun") then
-		return true
-	end
-	if Parent:FindFirstChild("SpellBlocking") then
-		return true
-	end
-	if Parent:FindFirstChild("ActiveCast") then
-		return true
-	end
-	if Parent:FindFirstChild("Unconscious") then
-		return true
-	end
-	if Parent:FindFirstChild("Knocked") then
-		return true
-	end
-	if Parent.Humanoid.Health<5 then
-		return true
-	end
-	if Parent:FindFirstChild("Immortal") then
-	else
-		return
-	end
-	return true
+	return ActionCheckModule(Parent, {
+		presentBlocks = {"NoDam","ReturnStun","SpellBlocking","ActiveCast","Unconscious","Knocked","Immortal"},
+		healthBelow = 5,
+	})
 end
 local canuse = true
 script.Parent.Activated:Connect(function()
