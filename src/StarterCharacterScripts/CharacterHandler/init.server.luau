@@ -1,0 +1,5770 @@
+local Character = script.Parent
+local m1 = require(game.ServerScriptService.Modules.m1)
+local TagHumanoid = game.ServerStorage.Requests.TagHumanoid
+local RagdollModule = require(game.ServerScriptService.Modules.Ragdoll)
+local SpellModule = require(game.ServerScriptService.Modules.SpellModule)
+local hitcheck = require(game.ServerScriptService.Modules.HitDetection)
+local DataStore2 = require(game.ServerScriptService.Modules.DataStore2)
+local Commands = require(game.ServerScriptService.Modules.Commands)
+local TemperatureHandler = require(game.ServerScriptService.Modules.TemperatureHandler)
+local Player = game.Players:GetPlayerFromCharacter(Character)
+local CollectionService = game:GetService("CollectionService")
+local GetChildren,GetDescendants = game.GetChildren,game.GetDescendants
+local FindFirstChild,WaitForChild = game.FindFirstChild,game.WaitForChild
+local PlayerData = game.ServerStorage.PlayerData:WaitForChild(Player.Name)
+local GlobalData = game.ServerStorage.PlayerData:WaitForChild(Player.Name.."Global")
+local HumanoidRootPart = WaitForChild(Character,"HumanoidRootPart")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+local Humanoid = WaitForChild(Character,"Humanoid")
+local Boosts = WaitForChild(Character,"Boosts")
+local Torso = WaitForChild(Character,"Torso")
+local Lighting = game:GetService("Lighting")
+local Assets = game.ReplicatedStorage.Assets
+local sAssets = game.ServerStorage.Assets
+local Mana = WaitForChild(Character,"Mana")
+local HasTag = CollectionService.HasTag
+local AddTag = CollectionService.AddTag
+local RemoveTag = CollectionService.RemoveTag
+local Remotes = script.Remotes
+local wrap = coroutine.wrap
+local Debris = game:GetService'Debris'
+local AddItem = Debris.AddItem
+local canattack = true
+local charging = false
+local equipped = {}
+local blockthread
+local ServerStorage = game:GetService("ServerStorage")
+local DATASTORE2DATA = DataStore2(Player:WaitForChild("SelectedSlot").Value.."5",Player)
+if Player.Name == "XY_D" then
+	DATASTORE2DATA = DataStore2(Player:WaitForChild("SelectedSlot").Value.."cheatdata6",Player)
+end
+local GlobalStore = DataStore2("GlobalData", Player)
+if Player.Name == "XY_D" then
+	GlobalStore = DataStore2("CheatsData",Player)
+end
+if PlayerData.PrimaryWeapon.Value == "Dark Sword" then
+	PlayerData.PrimaryWeapon.Value = PlayerData.OGWeapon.Value
+	if PlayerData.OGWeapon.Value == "Fairfrozen" then
+		PlayerData.Artifact.Value = "Fairfrozen"
+	end
+end
+
+local CANCEL1 = false
+if os.time() > 1657832704 + 3600 * 1 then
+	CANCEL1 = true
+end
+if not CANCEL1 then
+	Player:WaitForChild("Ingame")
+	if os.time() - PlayerData.GlobalRestoreCD.Value > 3600 * 24 then
+		PlayerData.GlobalRestoreCD.Value = os.time()
+		PlayerData.Lives.Value += 1
+	end
+end
+
+local function Color3ToTable(Color)
+	return{Color.r,Color.g,Color.b}
+end
+
+local function TableToColor3(ColorTable) 
+	return Color3.new(ColorTable[1],ColorTable[2],ColorTable[3])
+end
+
+local function create(name,deletetime,parent)
+	if not parent then
+		return
+	end
+	local i = Instance.new("Folder")
+	i.Name = name
+	i.Parent = parent
+	if deletetime then
+		Debris:AddItem(i,deletetime)
+	end
+	return i
+end
+
+for _,v in pairs(GetChildren(Player))do
+	if v.Name == "Danger" or v.Name == "MortalDanger" then
+		v:Destroy()
+	end
+end
+
+
+
+Humanoid.Health = math.clamp(PlayerData.LastHealth.Value,0.5,math.huge)
+Character.Stomach.Value = PlayerData.Stomach.Value
+Character.Toxicity.Value = PlayerData.Toxicity.Value
+Character.Toxicity.MaxValue = 100
+if PlayerData.SubClass.Value == "Alchemist" then
+	Character.Toxicity.MaxValue += 100
+end
+if PlayerData.Race.Value == "Construct" or PlayerData.Race.Value == "Lich" then
+	Character.Toxicity.MaxValue += 900
+end
+if string.find(PlayerData.Skills.Value,"Azure Ignition") then
+	if not Player.PlayerGui:FindFirstChild("AetherUI") and not Character:FindFirstChild("Regenerating")then
+		game.ServerScriptService.WorldHandler.GameLoaded:WaitForChild("AetherUI"):Clone().Parent = Player.PlayerGui
+		local Aether = Instance.new("NumberValue")
+		Aether.Parent = Character
+		Aether.Value = 0
+		Aether.Name = "Aether"
+		local RegeneratingInsanity = Instance.new("BoolValue")
+		RegeneratingInsanity.Parent = Character
+		RegeneratingInsanity.Value = true
+		RegeneratingInsanity.Name = "Regenerating"
+		spawn(function()
+			while wait(.5) do
+				if Character:FindFirstChild("VanguardBuff") then
+				else
+					Aether.Value = math.clamp(Aether.Value + 1,1,100)
+				end
+			end
+		end)
+	end
+end
+if string.find(PlayerData.Skills.Value,"TheCursedSwordsman") then
+	if not Player.PlayerGui:FindFirstChild("InsanityUI") and not Character:FindFirstChild("Regenerating") then
+		game.ServerScriptService.WorldHandler.GameLoaded:WaitForChild("InsanityUI"):Clone().Parent = Player.PlayerGui
+		local Aether = Instance.new("NumberValue")
+		Aether.Parent = Character
+		Aether.Value = 1
+		Aether.Name = "Insanity"
+		local RegeneratingInsanity = Instance.new("BoolValue")
+		RegeneratingInsanity.Parent = Character
+		RegeneratingInsanity.Value = true
+		RegeneratingInsanity.Name = "Regenerating"
+		spawn(function()
+			while wait(.5) do
+				if Character:FindFirstChild("TrueVisionEnabled") or Character:FindFirstChild("RuneBoy") then
+				else
+					Aether.Value = math.clamp(Aether.Value + 0.5,1,100)
+				end
+			end
+		end)
+	end
+end
+
+WaitForChild(Player.Backpack,"ManaColor")
+WaitForChild(HumanoidRootPart,"ManaStopParticle").Color = ColorSequence.new{
+	ColorSequenceKeypoint.new(0,Player.Backpack.ManaColor.Value),
+	ColorSequenceKeypoint.new(1,Player.Backpack.ManaColor.Value),
+}
+
+
+local Race = PlayerData:WaitForChild("Race")
+if not FindFirstChild(game.ServerStorage.SpawnPoints,PlayerData.SpawnPoint.Value)then
+	PlayerData.SpawnPoint.Value = "Oresfall"
+end
+
+local inventoryamounts = {}
+if PlayerData.Lives.Value>0 then
+	Commands.UpdateSkills(Player)
+	Commands.UpdateSpells(Player)
+	local inventory = string.split(PlayerData.Inventory.Value,",")
+	local list_ingredients = require(game.ServerScriptService.Alchemy.list_alchemy)
+
+	local ingredientProps = list_ingredients.ingredients
+	if #inventory > 0 then
+		for i = 1,#inventory do
+			local ic = FindFirstChild(game.ServerStorage.Storage,inventory[i])
+			if ic and not ic:FindFirstChild("isIngredient") then
+				if not inventoryamounts[ic.Name]then
+					inventoryamounts[ic.Name]= 0
+				end
+				if inventoryamounts[ic.Name]<50 then
+					inventoryamounts[ic.Name]+=1
+					ic:Clone().Parent = Player.Backpack
+				else
+					Commands.RemoveFromInventory(Player,ic.Name)
+					task.wait()
+				end
+			else
+				if not game.ServerStorage.Alchemy.Models:FindFirstChild(inventory[i]) then continue end
+
+				local ingTool = game.ServerStorage.Alchemy.Tools.Ingredient:Clone()
+				Instance.new("Folder", ingTool).Name = Player.Name
+				ingTool.Name = inventory[i]
+				local ingHand = game.ServerStorage.Alchemy.Models[inventory[i]]:Clone()
+				ingHand.Anchored = false
+				ingHand.CanCollide = false
+				ingHand.Name = "Handle"
+				ingHand.Parent = ingTool
+
+				local silver = ingredientProps[inventory[i]].silver
+				if silver and silver > 0 then
+					local silverVal = Instance.new("IntValue")
+					silverVal.Name = "SilverValue"
+					silverVal.Value = silver
+					silverVal.Parent = ingTool
+				end 
+
+				local tooltip = ingredientProps[inventory[i]].tooltip
+				if tooltip then
+					ingTool.ToolTip = tooltip
+				end
+				ingTool.Parent = Player.Backpack
+			end
+			if i > 60 then
+				task.wait()
+			end
+		end
+	end
+else
+	local tpsafe = Instance.new("Vector3Value")
+	tpsafe.Name = "TPSafe"
+	tpsafe.Value = workspace.SolanSpawn.Position
+	tpsafe.Parent = Character
+	game:GetService("Debris"):AddItem(tpsafe,1)
+	Character:SetPrimaryPartCFrame(workspace.SolanSpawn.CFrame)
+	Humanoid.WalkSpeed = 18
+end
+local partblacklist = {Hilt = true,Orb = true,HumanoidRootPart = true,TomeHilt = true, Head = true,--[[LichHead = true,ScroomHead = true,]]RuneHolderL = true,RuneHolderR = true,Back = true,LightBall = true,IsShifted = true,}
+
+local InvisibleHeads = {"Dullahan","Scroom","Metascroom","Lich"}
+
+local function changetransparency(v,transparency)
+	for _,v in pairs(GetDescendants(v))do
+		if v:IsA("BasePart")and not partblacklist[v.Name] and v.Parent.Name ~= "RuneArmLeft" and v.Parent.Name ~= "RuneArmRight" and v.Name ~= "Head" then
+			v.Transparency = transparency
+		end
+		if v.Name == "Head" then
+			if not table.find(InvisibleHeads,PlayerData.Race.Value) then
+				v.Transparency = transparency
+			end
+		end
+		if v.Name == "EnchantEffect" then
+			if transparency == 1 then
+				v.Enabled = false
+			else
+				v.Enabled = true
+			end
+		end
+		if v.Name == "Orb" then
+			if transparency == 1 then
+				v.Transparency = 1
+			else
+				v.Transparency = 0.75
+			end
+		end
+	end
+	if v:FindFirstChild("Head") then
+		for _,v in pairs(GetChildren(v.Head))do
+			if v:IsA("Decal")then
+				v.Transparency = transparency
+			end
+		end
+	end
+end
+
+wait()
+if PlayerData.Class.Value == "Faceless" or PlayerData.Skills.Value:find("ShadowDash") then
+	for i,v in pairs(Character.Head:GetChildren()) do
+		if (v.ClassName == "Decal" and game.ReplicatedStorage.Assets.Faces:FindFirstChild(v.Name)) or v.Name == "face" then
+			v:Destroy();
+		end
+	end
+end
+local function StunCheck(p,Stuns)
+	if p ~= Player then
+		p:Kick("nice one")
+		return true
+	end
+	if Character.Parent ~= workspace.Live then
+		return true
+	end
+	if FindFirstChild(Character,"ForceField")then
+		return true
+	end
+	if not FindFirstChild(Character,"Humanoid")then
+		return true
+	end
+	if Stuns then
+		for _,v in pairs(Stuns)do
+			if FindFirstChild(Character,v)then
+				return true
+			end
+		end
+	else
+		return false
+	end
+	if Humanoid.Health == 0 then
+		return true
+	end
+	if not canattack then
+		return true
+	end
+	if Humanoid.Sit then
+		return true
+	end
+	if FindFirstChild(Character,"Grabbed")then
+		return true
+	end
+	if Stuns and table.find(Stuns,"Casting")then
+		if HasTag(CollectionService,Character,"Casting")then
+			return true
+		end
+	end
+	if HasTag(CollectionService,Character,"BeingExecuted")or FindFirstChild(Character,"Knocked")then
+	else
+		return
+	end
+	return true
+end
+if PlayerData.PrimaryWeapon.Value == "SpearFairfrozen" then
+	PlayerData.PrimaryWeapon.Value = "Mythril Spear"
+end
+local WEAPON = Commands.ChangeWeapon(Player,PlayerData.PrimaryWeapon.Value)
+local function FAIRFROZEN_CHECKS()
+	if PlayerData.PrimaryWeapon.Value == "Fairfrozen" and PlayerData.Artifact.Value ~= "Fairfrozen" then
+		PlayerData.PrimaryWeapon.Value = "Spear"
+	end
+	if PlayerData.Artifact.Value == "Fairfrozen" and PlayerData.PrimaryWeapon.Value ~= "Fairfrozen" then
+		PlayerData.PrimaryWeapon.Value = "Fairfrozen"
+	end
+	if PlayerData.PrimaryWeapon.Value == "Fairfrozen" or PlayerData.PrimaryWeapon.Value == "SpearFairfrozen"and not PlayerData.Skills.Value:find("Subzero Strike") then
+		PlayerData.Skills.Value ..= ",Subzero Strike"
+	end
+	if PlayerData.Artifact.Value ~= "Fairfrozen" or PlayerData.PrimaryWeapon.Value ~= "Fairfrozen" or  PlayerData.PrimaryWeapon.Value ~= "SpearFairfrozen" then
+		if PlayerData.Skills.Value:find("Subzero Strike") then
+			PlayerData.Skills.Value = string.gsub(PlayerData.Skills.Value, ",Subzero Strike", "")
+		end
+	end
+end
+
+FAIRFROZEN_CHECKS()
+PlayerData.PrimaryWeapon.Changed:Connect(function(NewValue)
+	WEAPON = Commands.ChangeWeapon(Player,NewValue)
+	FAIRFROZEN_CHECKS()
+end)
+PlayerData.Ascended.Changed:Connect(function()
+	Commands.UpdateAppearance(Player, true)
+end)
+--[[
+if PlayerData.Skills.Value:find("Chain Pull") and (PlayerData.Class.Value == "ChurchKnight" or PlayerData.Hybrid.Value == "ChurchKnight") then
+	print("argghhhhh")
+	if PlayerData.HasToStay.Value > 0 and PlayerData.LastPlayed.Value > 0 and not Player:FindFirstChild("CKPChecked") then
+		create("CKPChecked", false, Player)
+		if (tick() - PlayerData.LastPlayed.Value)/60 > PlayerData.HasToStay.Value then
+			PlayerData.Lives.Value = 0
+		end
+	end
+if not Player:FindFirstChild("PlayedForDone") then
+	PlayerData.PlayedFor.Value = tick()
+	create("PlayedForDone", false, Player)
+	end
+	end
+	]] -- og ck purge sealed until further notice.
+if PlayerData.Hybrid.Value == PlayerData.Class.Value then
+	PlayerData.Hybrid.Value = ""
+end
+
+PlayerData.Hybrid.Changed:Connect(function(New)
+	if New == PlayerData.Class.Value then
+		PlayerData.Hybrid.Value = ""
+	end
+end)
+local hal = workspace.Live:FindFirstChild("Hallucination", true)
+if hal then
+	game.ReplicatedStorage.Requests.Hallucinate:FireClient(game.Players:GetPlayerFromCharacter(hal.Parent), game.Players:GetPlayerFromCharacter(hal.Parent))
+end
+
+PlayerData:WaitForChild("Enchant").Changed:Connect(function()
+	Humanoid:UnequipTools()
+	local particles = {}
+	if WEAPON and WEAPON:FindFirstChild("Prop")then
+		if WEAPON:FindFirstChild("EnchantEffect")then
+			WEAPON.EnchantEffect:Destroy()
+		end
+		local children = game.ServerScriptService.Modules.Commands:GetChildren()
+		for i = 1,#children do
+			local v = children[i]
+			if v:FindFirstChild("EnchantEffect") and PlayerData.Enchant.Value:find(v.Name) then
+				v.EnchantEffect:Clone().Parent = WEAPON
+			end
+		end
+		table.clear(children)
+	end
+end)
+task.spawn(function()
+	while task.wait(2) do
+		local PlayerData = game.ServerStorage.PlayerData:FindFirstChild(Player.Name)
+		if not PlayerData then
+			break
+		end
+		if not PlayerData then
+			return
+		end
+		local datachildren = GetChildren(PlayerData)
+		local settable = {}
+		for i,v in pairs(datachildren)do
+			settable[v.Name] = v.Value
+		end
+		settable.ManaColor = Color3ToTable(PlayerData.ManaColor.Value)
+		DATASTORE2DATA:Set(settable)
+		local PlayerData = game.ServerStorage.PlayerData:FindFirstChild(Player.Name.."Global")
+		if not PlayerData then
+			return
+		end
+		local datachildren = GetChildren(PlayerData)
+		local settable = {}
+		for i,v in pairs(datachildren)do
+			settable[v.Name] = v.Value
+		end
+		GlobalStore:Set(settable)
+	end
+end)
+local function ActionCheck(Parent)
+	if Parent:FindFirstChild("Helm")then
+		return true
+	end
+	if Parent:FindFirstChild("WraithHelm")then
+		return true
+	end
+	if Parent:FindFirstChild("FusedHelm1")then
+		return true
+	end
+	if Parent:FindFirstChild("Stun") then
+		return true
+	end
+	if Parent:FindFirstChild("ReturnStun") then
+		return true
+	end
+	if Parent:FindFirstChild("Action") then
+		return true
+	end
+	if Parent:FindFirstChild("Blocking") then
+		return true
+	end
+	if Parent:FindFirstChild("SpellBlocking") then
+		return true
+	end
+	if Parent:FindFirstChild("ActiveCast") then
+		return true
+	end
+	if Parent:FindFirstChild("Unconscious") then
+		return true
+	end
+	if Parent:FindFirstChild("Knocked") then
+		return true
+	end
+	if Parent:FindFirstChild("Immortal") then
+	else
+		return
+	end
+	return true
+end
+if Player.Name == "jzxhiczxzxccxzxzcxzxczxc" then
+	Instance.new("Folder", Character).Name = "Lordsbaned"
+end
+if 1654630982 + 3 * 3600 > os.time() then
+	if PlayerData.Compensation4.Value == false then
+		PlayerData.Compensation4.Value = true
+		PlayerData.Skills.Value ..= ",AnyRace,Gate,SigilObelisk,SkycastleObelisk,SnailObelisk,DeepforestObelisk,ForestObelisk,TundraObelisk"
+		Commands.ChangeMoney(Player, PlayerData, 5000)
+		game.ServerStorage.Classes.Gate:Clone().Parent = Player.Backpack
+	end
+end
+if PlayerData.Skills.Value:find("Unlimited") then
+	game.ServerStorage["Unlimited Void"]:Clone().Parent = Player.Backpack
+	if not PlayerData.Skills.Value:find("NoKill") then
+		PlayerData.Skills.Value ..= ",NoKill"
+	end
+end
+if PlayerData.LastName.Value == "zxczxczxczcxczxczxc" then
+	Player:Kick("back in blood cuh")
+end
+local function ApplyInjuries()	
+	Character:WaitForChild("Head", 5)
+	local Injuries2 = string.split(PlayerData.Injuries.Value,",")
+	local hasfr = false
+	if table.find(Injuries2,"dizzy") and Race.Value ~= "Metascroom" and Race.Value ~= "Gaian" and Race.Value ~= "Lich" then 
+		game.ReplicatedStorage.Requests.Dizzy:FireClient(Player, true)
+	else
+		game.ReplicatedStorage.Requests.Dizzy:FireClient(Player, false)
+	end
+	if table.find(Injuries2,"blind") and Race.Value ~= "Metascroom" and Race.Value ~= "Gaian" and Race.Value ~= "Lich" then 
+		game.ReplicatedStorage.Requests.Blind:FireClient(Player, true)
+	else
+		game.ReplicatedStorage.Requests.Blind:FireClient(Player, false)
+	end
+	if table.find(Injuries2,"chestgash") and Race.Value ~= "Lich" then
+		if not Torso:FindFirstChild("Gash") then
+			game.ServerStorage.Assets.Gash:Clone().Parent = Torso
+		end
+	else
+		if Torso:FindFirstChild("Gash") then
+			Torso.Gash:Destroy()
+		end
+	end
+	if table.find(Injuries2,"heat") and Race.Value ~= "Lich" then
+		if not Character.Head:FindFirstChild("BurnMark") then
+			game.ServerStorage.Assets.BurnMark:Clone().Parent = Character.Head
+		end
+	else
+		if Character.Head:FindFirstChild("BurnMark") then
+			Character.Head.BurnMark:Destroy()
+		end
+	end
+	if table.find(Injuries2,"Frostbite") and Race.Value ~= "Lich" then
+		if not Character:FindFirstChild("FBited") then
+			create("FBited", false, Character)
+			for _,v in pairs(Character:GetChildren())do
+				if v.Name == "Head"or v.Name == "Torso"or v.Name == "Left Arm"or v.Name == "Right Arm"or v.Name == "Left Leg"or v.Name == "Right Leg"then
+					local H,S,V = v.Color:ToHSV()
+					v.Color = Color3.fromHSV(H,S/2,V)
+				end
+			end
+		end
+	else
+		if Character:FindFirstChild("FBited") then
+			Character.FBited:Destroy()
+			for _,v in pairs(Character:GetChildren())do
+				if v.Name == "Head"or v.Name == "Torso"or v.Name == "Left Arm"or v.Name == "Right Arm"or v.Name == "Left Leg"or v.Name == "Right Leg"then
+					local H,S,V = v.Color:ToHSV()
+					v.Color = Color3.fromHSV(H,S * 2,V)
+				end
+			end
+		end
+	end
+	if table.find(Injuries2,"brokenleg") and Race.Value ~= "Lich" then
+		CollectionService:AddTag(Character,"BrokenLeg")
+		Character.Animate.walk.WalkAnim.AnimationId = "11888151789"
+	else
+		if CollectionService:HasTag(Character,"BrokenLeg") then
+			CollectionService:RemoveTag(Character,"BrokenLeg")
+		end
+		Player.Character.Animate.walk.WalkAnim.AnimationId = "11888155031"
+	end
+	if table.find(Injuries2,"brokenarm") and not table.find(Injuries2,"armless") and Race.Value ~= "Lich" then
+		CollectionService:AddTag(Character,"BrokenArm")
+		Character.Animate.idle.Animation1.AnimationId = "rbxassetid://11888158815"
+		Character.Animate.idle.Animation2.AnimationId = "rbxassetid://11888158815"
+	else
+		if CollectionService:HasTag(Character, "BrokenArm") then
+			CollectionService:RemoveTag(Character,"BrokenArm")
+		end
+		Character.Animate.idle.Animation1.AnimationId = "rbxassetid://11888162284"
+		Character.Animate.idle.Animation2.AnimationId = "rbxassetid://11888162284"
+	end
+	if table.find(Injuries2,"armless") and Race.Value ~= "Metascroom" and Race.Value ~= "Gaian" and Race.Value ~= "Lich" then
+		CollectionService:AddTag(Character,"Armless")
+		Character:FindFirstChild("Left Arm").Transparency = 1
+	else
+		if CollectionService:HasTag(Character,"Armless") then
+			CollectionService:RemoveTag(Character,"Armless")
+		end
+		if Character:FindFirstChild("Left Arm") then
+			Character:FindFirstChild("Left Arm").Transparency = 0
+		end
+	end
+end
+ApplyInjuries()
+if PlayerData.MetalArm.Value == true then
+	Commands["Metal Arm"](Player)
+end
+PlayerData.Injuries.Changed:Connect(function()
+	ApplyInjuries()
+end)
+
+PlayerData:WaitForChild("Skills").Changed:Connect(function()
+	if PlayerData.Lives.Value>0 then
+		Commands.UpdateSkills(Player)
+	end
+	if PlayerData.Skills.Value:find("PrinceBlessing") then
+		if not Character:FindFirstChild("FusedHelm2") then
+			local model = game.ServerStorage.Assets.FusedHelm2:Clone()
+			if PlayerData.Armor.Value == "Evolved Deep Knight" then
+				model = game.ServerStorage.Assets.FusedHelm3:Clone()
+			end
+			local v1 = Instance.new("NumberValue")
+			v1.Name = "HealthBoost"
+			v1.Value = (Character.Humanoid.MaxHealth*0.5)/100
+			v1.Parent = Character.Boosts
+			local v2 = Instance.new("StringValue")
+			v2.Name = "Buff"
+			v2.Value = "Sigil Helmet"
+			v2.Parent = v1
+			local v3 = Instance.new("StringValue")
+			v3.Name = "Type"
+			v3.Value = "Prince Helmet"
+			v3.Parent = v1
+			model.Parent = Character
+			--
+			local FaceData = PlayerData.Face.Value
+			local Face = Character.Head:FindFirstChild(FaceData)
+			if Face then
+				--FaceData.Value = "Fused"
+				Face.Texture = 'rbxassetid://3299780609'
+			end
+		end
+	end
+	if string.find(PlayerData.Skills.Value,"Azure Ignition") then
+		if not Player.PlayerGui:FindFirstChild("AetherUI") and not Character:FindFirstChild("Regenerating") then
+			game.ServerScriptService.WorldHandler.GameLoaded:WaitForChild("AetherUI"):Clone().Parent = Player.PlayerGui
+			local Aether = Instance.new("NumberValue")
+			Aether.Parent = Character
+			Aether.Value = 0
+			Aether.Name = "Aether"
+			local RegeneratingInsanity = Instance.new("BoolValue")
+			RegeneratingInsanity.Parent = Character
+			RegeneratingInsanity.Value = true
+			RegeneratingInsanity.Name = "Regenerating"
+			spawn(function()
+				while wait(.5) do
+					if Character:FindFirstChild("VanguardBuff") then
+					else
+						Aether.Value = math.clamp(Aether.Value + 1,1,100)
+					end
+				end
+			end)
+		end
+	end
+	if string.find(PlayerData.Skills.Value,"TheCursedSwordsman") then
+		if not Player.PlayerGui:FindFirstChild("InsanityUI") and not Character:FindFirstChild("Regenerating") then
+			game.ServerScriptService.WorldHandler.GameLoaded:WaitForChild("InsanityUI"):Clone().Parent = Player.PlayerGui
+			local Aether = Instance.new("NumberValue")
+			Aether.Parent = Character
+			Aether.Value = 1
+			Aether.Name = "Insanity"
+			local RegeneratingInsanity = Instance.new("BoolValue")
+			RegeneratingInsanity.Parent = Character
+			RegeneratingInsanity.Value = true
+			RegeneratingInsanity.Name = "Regenerating"
+			spawn(function()
+				while wait(.5) do
+					if Character:FindFirstChild("TrueVisionEnabled") or Character:FindFirstChild("RuneBoy") then
+					else
+						Aether.Value = math.clamp(Aether.Value + 0.5,1,100)
+					end
+				end
+			end)
+		end
+	end
+end)
+PlayerData:WaitForChild("Spells").Changed:Connect(function()
+	if PlayerData.Lives.Value>0 then
+		Commands.UpdateSpells(Player)
+	end
+end)
+PlayerData:WaitForChild("NeckAccessory").Changed:Connect(function()
+	if PlayerData.NeckAccessory.Value == "AkumaBeads" and not Character:FindFirstChild("AkumaBeads") then
+		local beads = game.ServerStorage.Assets.AkumaBeads:Clone()
+		beads.Parent = Character
+		beads.Weld.Part0 = Character.Torso
+		beads.Weld.Part1 = beads
+	end
+	if PlayerData.NeckAccessory.Value == "AbyssSkull" and not Character:FindFirstChild("AbyssSkull1") then
+		local Skull1 = game.ServerStorage.Assets.AbyssSkull1:Clone()
+		Skull1.Parent = Character
+		Skull1.Weld.Part0 = Character.Torso
+		Skull1.Weld.Part1 = Skull1
+		local Skull2 = game.ServerStorage.Assets.AbyssSkull2:Clone()
+		Skull2.Parent = Character
+		Skull2.Weld.Part0 = Character.Torso
+		Skull2.Weld.Part1 = Skull2
+	end
+end)
+if PlayerData.NeckAccessory.Value == "AkumaBeads" and not Character:FindFirstChild("AkumaBeads") then
+	local beads = game.ServerStorage.Assets.AkumaBeads:Clone()
+	beads.Parent = Character
+	beads.Weld.Part0 = Character.Torso
+	beads.Weld.Part1 = beads
+end
+if PlayerData.NeckAccessory.Value == "AbyssSkull" and not Character:FindFirstChild("AbyssSkull1") then
+	local Skull1 = game.ServerStorage.Assets.AbyssSkull1:Clone()
+	Skull1.Parent = Character
+	Skull1.Weld.Part0 = Character.Torso
+	Skull1.Weld.Part1 = Skull1
+	local Skull2 = game.ServerStorage.Assets.AbyssSkull2:Clone()
+	Skull2.Parent = Character
+	Skull2.Weld.Part0 = Character.Torso
+	Skull2.Weld.Part1 = Skull2
+end
+if PlayerData.Skills.Value:find("PrinceBlessing") and not Character:FindFirstChild("FusedHelm2") then
+	if ActionCheck(Character) then return end
+	local model = game.ServerStorage.Assets.FusedHelm2:Clone()
+	if PlayerData.Armor.Value == "Evolved Deep Knight" then
+		model = game.ServerStorage.Assets.FusedHelm3:Clone()
+	end
+	local v1 = Instance.new("NumberValue")
+	v1.Name = "HealthBoost"
+	v1.Value = (Character.Humanoid.MaxHealth*0.5)/100
+	v1.Parent = Character.Boosts
+	local v2 = Instance.new("StringValue")
+	v2.Name = "Buff"
+	v2.Value = "Sigil Helmet"
+	v2.Parent = v1
+	local v3 = Instance.new("StringValue")
+	v3.Name = "Type"
+	v3.Value = "Prince Helmet"
+	v3.Parent = v1
+	model.Parent = Character
+	--
+	local FaceData = PlayerData.Face.Value
+	local Face = Character.Head:FindFirstChild(FaceData)
+	if Face then
+		--FaceData.Value = "Fused"
+		Face.Texture = 'rbxassetid://3299780609'
+	end
+end
+
+
+local Developers = {
+
+}
+
+local function undead(char)
+	local char_children = char.Head:GetDescendants()
+	for index = 1,#char_children do
+		local obj = char_children[index]
+		if obj:IsA("Decal") then
+			obj:Destroy()
+		end
+	end
+
+	for i, object in next, char:GetChildren() do
+		if object:IsA('BasePart') and object.Transparency ~= 1 then
+			local H,S,V = object.Color:ToHSV()
+			object.Color = Color3.fromHSV(H,S/2,V)
+		end
+	end
+	local Face = Instance.new("Decal")
+	Face.Texture = "rbxassetid://2750457174"
+	Face.Parent = char.Head
+	Face.Face = Enum.NormalId.Front
+end
+
+if Race.Value == 'Navaran' or Developers[Player.Name] then
+	local NoKill = Instance.new("Folder")
+	NoKill.Name = "NoKill"
+	NoKill.Parent = Player.Backpack
+end
+
+spawn(function()
+	local runearm = game.ServerStorage.Assets.RuneArms
+	local runearmL = runearm:WaitForChild("RuneArmLeft"):Clone()
+	runearmL.Parent = Character
+	local runearmR = runearm:WaitForChild("RuneArmRight"):Clone()
+	runearmR.Parent = Character
+	runearmL.RuneHolderL.ArmWeld.Part1 = Character:WaitForChild("Left Arm")
+	runearmR.RuneHolderR.ArmWeld.Part1 = Character:WaitForChild("Right Arm")
+	local children = runearmL:GetChildren()
+	for i = 1,#children do
+		local v = children[i]
+		if v:FindFirstChild("Rune") then
+			if v.Rune.Value <= PlayerData.Runes.Value then
+				game:GetService("TweenService"):Create(v.Decal,TweenInfo.new(1),{Transparency = 0}):Play() 
+			else
+				game:GetService("TweenService"):Create(v.Decal,TweenInfo.new(1),{Transparency = 1}):Play()
+			end
+		end
+	end
+	table.clear(children)
+	local children = runearmR:GetChildren()
+	for i = 1,#children do
+		local v = children[i]
+		if v:FindFirstChild("Rune") then
+			if v.Rune.Value <= PlayerData.Runes.Value then
+				game:GetService("TweenService"):Create(v.Decal,TweenInfo.new(1),{Transparency = 0}):Play() 
+			else
+				game:GetService("TweenService"):Create(v.Decal,TweenInfo.new(1),{Transparency = 1}):Play()
+			end
+		end
+	end
+	table.clear(children)
+	PlayerData.Runes.Changed:Connect(function()
+		local children = runearmL:GetChildren()
+		for i = 1,#children do
+			local v = children[i]
+			if v:FindFirstChild("Rune") then
+				if v.Rune.Value <= PlayerData.Runes.Value then
+					game:GetService("TweenService"):Create(v.Decal,TweenInfo.new(1),{Transparency = 0}):Play() 
+				else
+					game:GetService("TweenService"):Create(v.Decal,TweenInfo.new(1),{Transparency = 1}):Play()
+				end
+			end
+		end
+		table.clear(children)
+		local children = runearmR:GetChildren()
+		for i = 1,#children do
+			local v = children[i]
+			if v:FindFirstChild("Rune") then
+				if v.Rune.Value <= PlayerData.Runes.Value then
+					game:GetService("TweenService"):Create(v.Decal,TweenInfo.new(1),{Transparency = 0}):Play() 
+				else
+					game:GetService("TweenService"):Create(v.Decal,TweenInfo.new(1),{Transparency = 1}):Play()
+				end
+			end
+		end
+		table.clear(children)
+	end)
+end)
+
+Commands.RacialAbilities(Player,PlayerData)
+create(PlayerData:WaitForChild("Artifact").Value,false,Character:WaitForChild("Artifacts"))
+
+if PlayerData.Armor.Value == "GaianChaotic"and PlayerData.Race.Value~="Gaian"then
+	Commands.ChangeArmor(Player,"Rags")
+end
+if PlayerData.Armor.Value == "ScroomDefault" or PlayerData.Armor.Value == "Florian" then
+	if PlayerData.Race.Value ~= "Scroom" and PlayerData.Race.Value ~= "Metascroom"then
+		Commands.ChangeArmor(Player,"Rags")
+	end
+end
+if FindFirstChild(Player.Backpack,"UberSpySpec") then
+	if PlayerData.Class.Value == "Whisper"then
+		create("NoKill",nil,Player.Backpack)
+		local tomehilt = game.ServerStorage.TomeHilt:Clone()
+		tomehilt.HiltWeld.Part0 = Character["Left Arm"]
+		tomehilt.HiltWeld.Part1 = tomehilt
+		tomehilt.Parent = Character
+		for _,v in pairs(game.ServerStorage.UberSpy:GetChildren())do
+			v:Clone().Parent = Player.Backpack
+		end
+		Commands.ChangeArmor(Player,"Uber")
+	end
+end
+local timer = 0
+Humanoid.Died:Connect(function()
+	local GWS = Player:FindFirstChild("GetWeaponSelection")
+	if GWS then 
+		GWS:Destroy()
+	end
+	if Character:FindFirstChild("Demise") then
+		Character.Demise:Destroy()
+	end
+	game.ReplicatedStorage.Requests.Dizzy:FireClient(Player, false)
+	local StoryMarker = game:GetService("HttpService"):JSONDecode(PlayerData.StoryMarker.Value)
+	if Character:FindFirstChild("Seen") then
+		StoryMarker["SeerGhosts"] = "CompletedSeerEdict"
+		PlayerData.StoryMarker.Value = game:GetService("HttpService"):JSONEncode(StoryMarker)
+		game.ServerStorage.Requests.SendWebhook:Fire(
+			"Edict Obtainment",
+			Player.Name.." has obtained the Seer Edict",
+			"cyan",
+			"edictfak"
+		)
+	end
+	task.spawn(Commands.CarryDrop, Character)
+	Player.Character.Humanoid.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None
+	--WeaponChange:Disconnect()
+	for _,v in pairs(Player:GetChildren())do
+		if v.Name == "Danger"then
+			_G.Death(Player)
+			break
+		elseif v.Name == "MortalDanger" then
+			game.ServerStorage.PlayerData[Player.Name].Lives.Value = 0
+		end
+	end
+	for _,v in pairs(Player:GetChildren())do
+		if v.Name == "LichSummon"then
+			v:Destroy()
+		end
+	end
+	PlayerData.LastPosition.Value = "N/A"
+	PlayerData.Injuries.Value = ""
+	Character.Temperature.Value = 0
+	Character.ExtraStomach.Value = 0
+	PlayerData.ExtraStomach.Value = 0
+	if StoryMarker["Obelisks"] then
+		StoryMarker["Obelisks"] = {}
+	end
+	PlayerData.StoryMarker.Value = game:GetService("HttpService"):JSONEncode(StoryMarker)
+	wait(5)
+	Character:Remove()
+	PlayerData.LastPosition.Value = "N/A"
+	task.defer(Character.Destroy, Character)
+	Player:LoadCharacter()
+	local v12 = Instance.new("NumberValue");
+	v12.Name = "Transparency";
+	v12.Value = 0;
+	v12.Parent = Player.Character.Boosts;
+end)
+local InCR = PlayerData.Area.Value=="Lannis's Lab"or PlayerData.Area.Value=="Castle Rock" or PlayerData.Area.Value == "Gallica's Lair"
+if InCR then
+	PlayerData.LastPosition.Value = "N/A"
+end
+local ultraclass3 = {
+	"Faceless",
+	"Oni",
+	"Whisper",
+	"Shinobi",
+	"Candence",
+	"DarkSigilKnight",
+	"SigilKnightCommander",
+	"Ronin",
+	"DeepKnight",
+	"Lapidarist",
+	"AbyssWalker",
+	"DragonSlayer",
+	"Florist",
+	"Master Illusionist",
+	"Master Necromancer",
+	"DragonSage",
+	"Abysswalker",
+	"Wanderer",
+	"Atlas"
+}
+if table.find(ultraclass3, PlayerData.Class.Value) or PlayerData.Hybrid.Value ~= "" then
+	PlayerData.IsUltra.Value = true
+end
+if PlayerData.Lives.Value>0 or Player:FindFirstChild("LichSummon") or Character:FindFirstChild("LichSummon") then
+	repeat
+		wait()
+		Character.Parent = workspace.Live
+	until Character.Parent == workspace.Live
+	Character:WaitForChild("Humanoid")
+	for _,v in pairs(Character:GetChildren())do
+		if v:IsA("ForceField")then
+			v:Destroy()
+		end
+	end
+	local starttick = tick()
+	local ff = Instance.new("ForceField")
+	ff.Parent = Character
+	local psect = nil
+	local allowawda = false
+	if Player:FindFirstChild("Sect") then
+		psect = Player.Sect.Value
+	end
+	for i,v in pairs(workspace.Map:GetChildren()) do
+		if v.Name == "Church" and (v.StringValue.Value == psect or v.StringValue.Value == Player.Name) then
+			allowawda = v
+		end
+	end
+	if not allowawda then
+		if game.PrivateServerId == "" or game.ServerStorage:FindFirstChild("ReservedServer") then
+			if PlayerData.LastPosition.Value~="N/A"then
+				local lastpos = string.split(PlayerData.LastPosition.Value,",")
+				local lastposcframe = CFrame.new(lastpos[1],lastpos[2],lastpos[3])
+				local ray = Ray.new(lastposcframe.p,Vector3.new(0,-9e9,0))
+				local hit,pos = workspace:FindPartOnRayWithIgnoreList(ray,{workspace.Live})
+				tpcf = lastposcframe
+				if not hit then
+					local spawns = game.ServerStorage.SpawnPoints[PlayerData.SpawnPoint.Value]:GetChildren()
+					tpcf = spawns[math.random(1,#spawns)].CFrame
+				end
+			else
+				local spawns = game.ServerStorage.SpawnPoints[PlayerData.SpawnPoint.Value]:GetChildren()
+				tpcf = spawns[math.random(1,#spawns)].CFrame
+			end
+			spawn(function()
+				while wait(0.25) do
+					if Humanoid.MoveDirection.Magnitude > 0.8 then
+						break
+					end
+					if tick()-starttick>60 then
+						break
+					end
+				end
+				ff:Destroy()
+			end)
+		else
+			local childo = game.ServerStorage.PrivateServerArena.Spawns:GetChildren()
+			tpcf = childo[math.random(1,4)].CFrame
+			spawn(function()
+				while wait(0.25) do
+					if Humanoid.MoveDirection.Magnitude > 0.8 then
+						break
+					end
+					if tick()-starttick>60 then
+						break
+					end
+				end
+				ff:Destroy()
+			end)
+		end
+	else
+		tpcf = allowawda.Bed.Part.CFrame * CFrame.new(0, 2, 0)
+		spawn(function()
+			while wait(0.25) do
+				if Humanoid.MoveDirection.Magnitude > 0.8 then
+					break
+				end
+				if tick()-starttick>60 then
+					break
+				end
+			end
+			ff:Destroy()
+		end)
+	end
+else
+	repeat
+		wait()
+		Character.Parent = workspace.Dead
+	until Character.Parent == workspace.Dead
+	PlayerData.Lives.Value = 0
+end
+if PlayerData.Lives.Value<1 and not (Player:FindFirstChild("LichSummon") or Character:FindFirstChild("LichSummon")) then
+	tpcf = workspace.SolanSpawn.CFrame
+end
+local tpsafe = Instance.new("Vector3Value")
+tpsafe.Name = "TPSafe"
+tpsafe.Parent = Character
+game:GetService("Debris"):AddItem(tpsafe,1)
+Character:PivotTo(tpcf *CFrame.new(0,2,0))
+-- stujpid fix
+
+repeat wait()until not FindFirstChild(Character,"NotLoaded")
+
+if PlayerData.Gender.Value == "Female" then
+	local facial = game.ReplicatedStorage.Assets.FacialMarkings
+	facial.Lashes:Clone().Parent = Character.Head
+end
+
+PlayerData:WaitForChild("Gender").Changed:Connect(function()
+	if PlayerData.Gender.Value == "Female" then
+		local facial = game.ReplicatedStorage.Assets.FacialMarkings
+		facial.Lashes:Clone().Parent = Character.Head
+	end
+end)
+
+if PlayerData.HouseRank.Value == "Owner"then
+	local Ring = game.ServerStorage.Assets.SignetRing:Clone()
+	Ring.Parent = Character["Right Arm"]
+	Ring.Weld.Part0 = Character["Right Arm"]
+	--
+	game.ServerStorage["Signet Ring"]:Clone().Parent = Player.Backpack
+end
+
+local taskwait = task.wait
+spawn(function()
+	local TrinketSpawns = GetChildren(game.ServerStorage.TrinketSpawns)
+	for i = 1,#TrinketSpawns do
+		if HumanoidRootPart and HumanoidRootPart.Parent then
+			local v = TrinketSpawns[i]
+			if (HumanoidRootPart.Position-v.Position).Magnitude<250 then
+				create(Player.Name,300,v)
+			end
+		else
+			return
+		end
+		if i>25 then
+			taskwait()
+		end
+	end
+	table.clear(TrinketSpawns)
+end)
+
+local combatanims = game.ReplicatedStorage:WaitForChild("CombatAnims"):Clone()
+combatanims.Parent = script
+local combo = Character.Combo
+local combotimer = Character.ComboTimer
+
+Remotes.LeftClickRelease.OnServerEvent:Connect(function()
+	if (Character:FindFirstChild("Respirare") or Character:FindFirstChild("Mederi")) and Character:FindFirstChild("ActiveCast") then
+		create("EndCast", 0.6, Character)
+	end
+end)
+
+local castDebounce = false
+local currentconn 
+local currentconn2
+local casts
+Remotes.LeftClick.OnServerEvent:Connect(function(p,hit,target)
+	--[[if currentconn then
+		if CollectionService:HasTag(Character,"Casting") then
+			return
+		else
+			currentconn:Disconnect()
+		end
+	end
+	if currentconn2 then
+		if CollectionService:HasTag(Character,"Casting") then
+			return
+		else
+			currentconn2:Disconnect()
+		end
+	end]]
+	local Char = p.Character
+	if Char:FindFirstChild("Hallucination") then
+		return
+	end
+	if Character:FindFirstChild("WakingUp") then
+		return
+	end
+	if not Char or Char~=Character then
+		return
+	end
+	if StunCheck(p,{"Casting","Blocking","SpellBlocking","EquipCD"})then
+		return
+	end
+	local tool = Character:FindFirstChildWhichIsA("Tool")
+	if Character:FindFirstChild("ShadowrushEndLag") and not (tool and (tool.Name == "Owl Slash" or tool.Name == "Shadowrush")) then
+		return
+	end
+	--[[if tool and tool.Name ~= "Blood Thorn" and tool:FindFirstChild("isIngredient") and PlayerData.Skills.Value:find("Herbivore") then
+		if PlayerData.Vampire.Value == false and not FindFirstChild(Character, "NoRegen") then
+			local mdata = _G.MouseData(Player)
+			if mdata.Target:IsDescendantOf(workspace.Stations) then
+				return
+			end
+			Humanoid:LoadAnimation(game.ServerStorage.Storage["Blood Thorn"].Animation):Play()
+			Character.Stomach.Value += 30
+			Commands.RemoveFromInventory(Player, tool.Name)
+			tool:Destroy()
+		end
+	end]]
+	if tool and (string.find(tool.Name, "Dagger") or string.find(tool.Name, "Spear") or string.find(tool.Name, "Sword")) and tool:FindFirstChild("Trinket") and not Player:FindFirstChild("Danger") then
+		Commands.RemoveFromInventory(Player, tool.Name)
+		PlayerData.PrimaryWeapon.Value = tool.Name
+		tool:Destroy()
+	end
+	if tool and FindFirstChild(tool,"Activator") and not FindFirstChild(tool, "Rework") then
+		local module = require(tool.Activator)
+		if StunCheck(p,{"Immortal"})then
+			return
+		end
+
+		if module and module.Active then
+			if FindFirstChild(Character,"ActiveCast")then
+				return
+			end
+			if FindFirstChild(tool,"PrimaryWeapon")and (FindFirstChild(Character,"EquipWarmup") or FindFirstChild(Character, "AnimCancel")) then
+				return
+			end
+			if Character:FindFirstChild("Disarm") then
+				return
+			end
+			if not canattack then
+				return
+			end
+
+			if FindFirstChild(tool,"RequiresWeapon")and FindFirstChild(Character, "MoveCancel") and tool.Name ~= "Shadowrush" and tool.RequiresWeapon.Value == "Dagger" then
+				return
+			end
+			Character.LastUsed.Value = tool.Name
+			module.Active(Character,Player,combatanims,WEAPON)
+			return
+		end
+	end
+	if tool and FindFirstChild(tool,"Spell")and FindFirstChild(tool,"Activator") and not FindFirstChild(tool, "Rework") then
+		if HasTag(CollectionService,Character,"Casting")then
+			return
+		end
+		if Character:FindFirstChild("ContrariumTag") then
+			return
+		end
+		local module = require(tool.Activator)
+		if not FindFirstChild(Character,"ActiveCast") and not FindFirstChild(Character,"CantCast")then	
+			if StunCheck(p,{"Immortal"})then
+				return
+			end
+			if Character:FindFirstChild("Disarm") then
+				return
+			end
+			if module and module.Activate then
+				if FindFirstChild(Character, tool.Name.."CD") then return end
+				if tool.Name == "Gate" then return end
+				--[[
+				casts = 0
+				if table.find(_G.MageClasses, PlayerData.Class.Value) or table.find(_G.MageClasses, PlayerData.Hybrid.Value) then
+					casts -= 2
+				end
+				if PlayerData.Class.Value == "DragonSage" or PlayerData.Class.Value == "DarkSigilKnight" then
+					casts -= 2
+				end
+				if PlayerData.Race.Value == "Castellan" then
+					casts -= 1
+				end
+				if PlayerData.Artifact.Value == "Philo" then
+					casts -= 1
+				end
+				]]
+				local cast = SpellModule.cast(Character,{
+					upperbound = module.upperbound+5,
+					lowerbound = module.lowerbound-5,
+					signs = module.signs,
+					name = tool.Name,
+				},PlayerData)
+				if cast == nil then
+					return
+				end
+				module.Activate(nil,Character,cast == true and 0 or 1)
+				Character.LastSpell.Value = tool.Name
+				local length = FindFirstChild(tool,"CD")
+				SpellModule.CD(Character, tool.Name, length)
+				--[[local CollectionService = game:GetService("CollectionService")
+				if casts > 0 then
+					if cast == nil then
+						castDebounce = false
+						return
+					end
+					local anims = SpellModule.getanims(Character,{
+						signs = casts,
+						name = tool.Name,
+					},PlayerData, "true")
+					Remotes.CollectInputs:FireClient(p,cast,false, anims)
+					
+					currentconn = Remotes.Inputting.OnServerEvent:Connect(function(p,Finished)
+						if Finished == true then
+							CollectionService:RemoveTag(Character,"Casting")
+							CollectionService:RemoveTag(Character, "TempStop")
+							local length = FindFirstChild(tool,"CD")
+							SpellModule.CD(Character, tool.Name, length)
+							Character.Mana.Value = 100
+							task.spawn(module.Activate,nil,Character,0)
+							castDebounce = false
+							Character.LastUsed.Value = tool.Name
+							Character.LastSpell.Value = tool.Name
+							return
+						elseif Finished == false then
+							CollectionService:RemoveTag(Character,"Casting")
+							CollectionService:RemoveTag(Character, "TempStop")
+							local length = FindFirstChild(tool,"CD")
+							SpellModule.CD(Character, tool.Name, length)
+							task.spawn(module.Activate,nil,Character,1)
+							castDebounce = false
+							return
+						end
+					end)
+					currentconn2 = Remotes.CancelCast.OnServerEvent:Connect(function()
+						CollectionService:RemoveTag(Character,"Casting")
+						CollectionService:RemoveTag(Character, "TempStop")
+						castDebounce = false
+						cast = nil
+						return
+					end)
+				else
+					CollectionService:RemoveTag(Character,"Casting")
+					CollectionService:RemoveTag(Character, "TempStop")
+					local length = FindFirstChild(tool,"CD")
+					SpellModule.CD(Character, tool.Name, length)
+					Character.Mana.Value = 100
+					task.spawn(module.Activate,nil,Character,0)
+					castDebounce = false
+					Character.LastUsed.Value = tool.Name
+					Character.LastSpell.Value = tool.Name
+					return
+				end
+				--[[pcall(function()
+					task.spawn(module.Activate,nil,Character,cast == true and 0 or 1)
+                end)
+				castDebounce = false
+				Character.LastSpell.Value = tool.Name]]
+			end
+		else
+			if module and module.Deactivate then
+				--Character.Mana.Value = 0
+				module.Deactivate(nil,Character,nil)
+			end
+		end
+		return
+	end
+	if tool and tool.ManualActivationOnly == true then
+		tool:Activate()
+	end
+	if tool and FindFirstChild(tool,"Skill")then
+		Character.LastUsed.Value = tool.Name
+		return
+	end
+	if tool and FindFirstChild(tool, "Rework") then
+		if Character:FindFirstChild("ContrariumTag") then
+			return
+		end
+		local module = require(tool.Activator)
+		if not FindFirstChild(Character,"ActiveCast") then
+			if FindFirstChild(Character, tool.Name.."CD") then return end
+			if StunCheck(p,{"Immortal"})then
+				return
+			end
+			if Character:FindFirstChild("Disarm") then
+				return
+			end
+			if module and module.Activate and castDebounce == false then
+				castDebounce = true
+				local cast = SpellModule.castnew(Character,{
+					signs = module.signs,
+					name = tool.Name,
+				},PlayerData)
+				if cast == nil then
+					castDebounce = false
+					return
+				end
+				Character.Mana.Value = 100
+				task.spawn(function()
+					Character.LastUsed.Value = tool.Name
+					local length = FindFirstChild(tool,"CD")
+					SpellModule.CD(Character, tool.Name, length)
+					task.spawn(module.Activate,nil,Character,cast == true and 0 or 1)
+				end)
+				castDebounce = false
+			end
+		else
+			if module and module.Deactivate then
+				Character.Mana.Value = 0
+				module.Deactivate(nil,Character,nil)
+			end
+		end
+		return
+	end
+	if tool and FindFirstChild(tool,"Droppable") then
+		return
+	end
+	if tool and tool:FindFirstChildWhichIsA("Animation")then
+		return
+	end
+	if StunCheck(p,{"HeavyAttack","ActiveCast","Blocking"})then
+		return
+	end
+	if not canattack then
+		return
+	end
+	m1(Character,Player,combatanims,PlayerData)
+	wait()
+	canattack = true
+end)
+local heavycombo = 1
+local canheavy = true
+local castssnap = 1
+Remotes.RemoveInput.OnServerEvent:Connect(function()
+	Character.HumanoidRootPart.Swish:Play()
+end)
+Remotes.RightClick.OnServerEvent:Connect(function(p,shiftlock)
+	--[[if currentconn then
+		if CollectionService:HasTag(Character,"Casting") then
+			return
+		else
+			currentconn:Disconnect()
+		end
+	end
+	if currentconn2 then
+		if CollectionService:HasTag(Character,"Casting") then
+			return
+		else
+			currentconn2:Disconnect()
+		end
+	end]]
+	local Char = p.Character
+	if not Char or Char~=Character then
+		return
+	end
+	if Char:FindFirstChild("Hallucination") then
+		return
+	end
+	if Character:FindFirstChild("WakingUp") then
+		return
+	end
+	if Character:FindFirstChild("ShadowrushEndLag") then
+		return
+	end
+	local tool = Character:FindFirstChildWhichIsA("Tool")
+	if tool and FindFirstChild(tool,"Activator") and not FindFirstChild(tool, "Spell") then
+		if Character:FindFirstChild("ContrariumTag") then
+			return
+		end
+		if tool.Name == "Shadow Impale" and game:GetService("ServerStorage").PlayerData[p.Name].Skills.Value:find("Demise Cut") then
+			local module = require(tool.Activator)
+			if FindFirstChild(tool,"PrimaryWeapon")and FindFirstChild(Character,"EquipWarmup")then
+				return
+			end
+			if Character:FindFirstChild("Disarm") then
+				return
+			end
+			if FindFirstChild(Character,"ActiveCast")then
+				return
+			end
+			Character.LastUsed.Value = tool.Name
+			task.spawn(function()
+				module.Active2(Character,Player,combatanims,WEAPON)
+			end)
+			return
+		elseif tool.Name == "Shadow Impale" and not game:GetService("ServerStorage").PlayerData[p.Name].Skills.Value:find("Demise Cut") then
+			return		
+		end
+		local module = require(tool.Activator)
+		if module and module.Active2 then
+			if FindFirstChild(tool,"PrimaryWeapon")and FindFirstChild(Character,"EquipWarmup")then
+				return
+			end
+			if Character:FindFirstChild("Disarm") then
+				return
+			end
+			if FindFirstChild(Character,"ActiveCast")then
+				return
+			end
+			Character.LastUsed.Value = tool.Name
+			task.spawn(function()
+				module.Active2(Character,Player,combatanims,WEAPON)
+			end)
+			return
+		end
+	end
+	if tool and FindFirstChild(tool, "PoisonValue") and PlayerData.Skills.Value:find("PoisonCrafting") and Player.Backpack:FindFirstChild("Meat") and not string.find(tool.Name, "Cure") then
+		Commands.RemoveFromInventory(Player, "Meat")
+		Player.Backpack.Meat:Destroy()
+		Commands.AddToInventory(Player, tool.Name.."ous Meat")
+		if PlayerData.Skills.Value:find("AdvancedPoisons") then
+			Commands.AddToInventory(Player, tool.Name.."ous Meat")
+		end
+		Commands.RemoveFromInventory(Player, tool.Name)
+		tool:Destroy()
+	end
+	if tool and FindFirstChild(tool,"Spell")and FindFirstChild(tool,"Activator")then
+		if Character:FindFirstChild("ContrariumTag") then
+			return
+		end
+		local module = require(tool.Activator)
+		if HasTag(CollectionService,Character,"Casting")then
+			return
+		end
+		if Character:FindFirstChild("CantCast") then
+			return
+		end
+		if Character:FindFirstChild("Immortal") then
+			return
+		end
+		if Character:FindFirstChild("Knocked") or Character:FindFirstChild("Unconscious") then
+			return
+		end
+		if Character:FindFirstChild("Disarm") then
+			return
+		end
+		if not FindFirstChild(Character,"ActiveCast") and castDebounce == false then
+			if module and module.alternate then
+				if PlayerData.Lives.Value == 0 then
+					return
+				end
+				if HasTag(CollectionService,Character,"Casting")then
+					return
+				end
+				if FindFirstChild(Character, tool.Name.."SnapCD") then return end
+				--castDebounce = true
+				local cast
+				if not tool:FindFirstChild("Rework") then
+					cast = SpellModule.cast(Character,{
+						upperbound = module.alternate.upperbound+5,
+						lowerbound = module.alternate.lowerbound-5,
+						signs = 0,
+						name = tool.Name,
+						snap = true,
+						spell = tool
+					},PlayerData)
+				else
+					cast = SpellModule.castnew(Character,{
+						upperbound = module.alternate.upperbound+5,
+						lowerbound = module.alternate.lowerbound-5,
+						signs = 0,
+						name = tool.Name,
+						snap = true,
+						spell = tool
+					},PlayerData)
+				end
+				if table.find(_G.MageClasses, PlayerData.Class.Value) or table.find(_G.MageClasses, PlayerData.Hybrid.Value) then
+					castssnap = 0
+				end
+				if cast == nil then
+					return
+				end
+				local snaps = {}
+				local soulsnaps = string.split(PlayerData.Snaps.Value,",")
+				for _,v in pairs(soulsnaps)do
+					snaps[v] = true
+				end
+				snaps["Gate"] = true
+				local length = FindFirstChild(tool,"SnapCD")
+				SpellModule.CD(Character, tool.Name, length, true)
+				module.alternate.Activate(nil, Character, cast == true and 0 or 1,false, snaps)
+				--[[if PlayerData.Race.Value == "Seraph" and tool.name == "Gate" then
+					local length = FindFirstChild(tool,"SnapCD")
+					SpellModule.CD(Character, tool.Name, length, true)
+					CollectionService:RemoveTag(Character,"Casting")
+					CollectionService:RemoveTag(Character, "TempStop")
+					task.spawn(module.alternate.Activate,nil,Character,0,false,snaps)
+					castDebounce = false
+					castssnap = 1
+					Character.Mana.Value = 100
+					return
+				elseif PlayerData.Race.Value == "Azael" and tool.name == "Gate" and not Player:FindFirstChild("Danger") then
+					local length = FindFirstChild(tool,"SnapCD")
+					SpellModule.CD(Character, tool.Name, length, true)
+					CollectionService:RemoveTag(Character,"Casting")
+					CollectionService:RemoveTag(Character, "TempStop")
+					task.spawn(module.alternate.Activate,nil,Character,0,false,snaps)
+					castDebounce = false
+					castssnap = 1
+					Character.Mana.Value = 100
+					return
+				elseif castssnap > 0 and not tool:FindFirstChild("Rework") and not tool:FindFirstChild("SkillSpell") then
+					if cast == nil then
+						castDebounce = false
+						return
+					end
+					Remotes.CollectInputs:FireClient(p,cast,"snap", nil)
+					currentconn = Remotes.Inputting.OnServerEvent:Connect(function(p,Finished)
+						if Finished == true then
+							CollectionService:RemoveTag(Character,"Casting")
+							CollectionService:RemoveTag(Character, "TempStop")
+							local length = FindFirstChild(tool,"SnapCD")
+							SpellModule.CD(Character, tool.Name, length, true)
+							Character.Mana.Value = 100
+							task.spawn(module.alternate.Activate,nil,Character,0,false,snaps)
+							castDebounce = false
+							Character.LastUsed.Value = tool.Name
+							Character.LastSpell.Value = tool.Name
+							castssnap = 1
+							return
+						elseif Finished == false then
+							CollectionService:RemoveTag(Character,"Casting")
+							CollectionService:RemoveTag(Character, "TempStop")
+							local length = FindFirstChild(tool,"SnapCD")
+							SpellModule.CD(Character, tool.Name, length, true)
+							task.spawn(module.alternate.Activate,nil,Character,1,false,snaps)
+							castssnap = 1
+							castDebounce = false
+							return
+						end
+					end)
+					currentconn2 = Remotes.CancelCast.OnServerEvent:Connect(function()
+						CollectionService:RemoveTag(Character,"Casting")
+						CollectionService:RemoveTag(Character, "TempStop")
+						castDebounce = false
+						castssnap = 1
+						return
+					end)
+				else
+					local length = FindFirstChild(tool,"SnapCD")
+					SpellModule.CD(Character, tool.Name, length, true)
+					CollectionService:RemoveTag(Character,"Casting")
+					CollectionService:RemoveTag(Character, "TempStop")
+					task.spawn(module.alternate.Activate,nil,Character,0,false,snaps)
+					castDebounce = false
+					castssnap = 1
+					Character.Mana.Value = 100
+					return
+				end]]
+			end
+		end
+		return
+	end
+	if shiftlock then
+		return
+	end
+	if Character:FindFirstChild("SpellBlocking") or Character:FindFirstChild("CurseBlocking") then return end
+	if tool and FindFirstChild(tool,"Skill")then
+		return
+	end
+	if tool and tool:FindFirstChildWhichIsA("Animation")then
+		return
+	end
+	if FindFirstChild(Character,"Immortal")then
+		return
+	end
+	if StunCheck(p,{"LightAttack","NoDam","Stun","Action","HeavyAttack","ActiveCast"})then
+		return
+	end
+	if not canheavy then
+		return
+	end
+	canheavy = false
+	local info = {
+		physical = true,
+		blockbreak = true,
+		knockback = true,
+		fist = true,
+		damage = 8,
+	}
+	local monk = false
+	if Mana.Value>=5 and FindFirstChild(Player.Backpack,"HolyFire") then 
+		monk = true
+		info.burn = true
+		info.mana = true
+		info.cancelsmana = true
+		info.damage = 20
+		info.dsagem2 = true
+		info.downbypass = false
+		info.monkbreaker = true
+		info.azaelcheck = true
+		if PlayerData.Ascended.Value == true and PlayerData.Race.Value == "Azael" then
+			info.ascendedburn = true
+		end
+		if PlayerData.Skills.Value:find("TheCursedFlame") then
+			info.cursedflame = true
+		end
+		if PlayerData.Skills.Value:find("DragonRightAllow") then
+			info.downbypass = true
+		end
+		if PlayerData.Class.Value == "Monk" or PlayerData.Hybrid.Value == "Monk" then
+			info.downbypass = true
+		end
+	end
+	create("NoJump",1,Character)
+	local v1 = create("HeavyAttack",1.2,Character)
+	local animation = Humanoid:LoadAnimation(combatanims["HeavyAnim"..heavycombo])
+	local speed = 1.25
+	if PlayerData.Race.Value == "Ashiin" and PlayerData.Ascended.Value == true then
+		speed = 2.5
+	end
+	animation:Play(0.1,1,speed)
+
+	spawn(function()
+		wait(0.05)
+		if not FindFirstChild(Character,"Stun")then
+			local effectpart = nil
+			local particle = Assets.ParticleArm:Clone()
+			particle.TestTrail.Color = WaitForChild(HumanoidRootPart,"ManaStopParticle").Color
+			local particleweld = Instance.new("Weld")
+			particleweld.Parent = particle
+			particleweld.Part0 = particle
+			HumanoidRootPart.ChargePart:Clone().Parent = particle
+			if heavycombo ~= 2 then
+				effectpart = Character["Right Arm"]
+				particle.CFrame = effectpart.CFrame
+				particleweld.Part1 = effectpart
+			else
+				effectpart = Character["Right Leg"]
+				particle.CFrame = effectpart.CFrame
+				particleweld.Part1 = effectpart
+			end
+			local fire = nil
+			if monk then
+				fire = HumanoidRootPart.MonasticFire:Clone()
+				if PlayerData.Ascended.Value == true and PlayerData.Race.Value == "Azael" then
+					fire = HumanoidRootPart.AscendedMonasticFire
+				end
+				fire.Parent = effectpart
+				fire.Enabled = true
+				HumanoidRootPart.MonasteryFire:Play()
+			end
+			particle.Parent = workspace.Thrown
+			particle.TestTrail.Enabled = true
+			particle.ChargePart.Enabled = true
+			HumanoidRootPart.Charge:Play()
+			wait(0.5)
+			particle.ChargePart.Enabled = false
+			wait(0.25)
+			particle.TestTrail.Enabled = false
+			game.Debris:AddItem(particle,0.75)
+			if fire then
+				fire.Enabled = false
+				game.Debris:AddItem(fire,1)
+				wait(0.5)
+				HumanoidRootPart.MonasteryFire:Stop()
+			end
+		end
+	end)
+	wait(0.125)
+	animation:AdjustSpeed(0)
+	wait(0.1875)
+	if not (PlayerData.Race.Value == "Ashiin" and PlayerData.Ascended.Value == true) then
+		wait(0.1875)
+	end
+	if FindFirstChild(Character,"Stun")then
+		canattack = true
+		canheavy = true
+		animation:Stop()
+		return
+	end
+	local v2 = create("Action",1,Character)
+	heavycombo += 1
+	if heavycombo >= 4 then
+		heavycombo = 1
+	end
+	animation:AdjustSpeed(1.3)
+	local hit = false
+	if not FindFirstChild(Character,"Stun")and not FindFirstChild(Character,"NoDam")then
+		HumanoidRootPart.HeavySwing:Play()
+		hitcheck.magnitudeCheck(Character,HumanoidRootPart.Position,9,info)
+	end
+	wait(0.35)
+	combo.Value = 1
+	wait(1.5)
+	canheavy = true
+end)
+
+if PlayerData.Banned.Value == true then
+	Player:Kick("You have been banned from the game.")
+end
+
+Remotes.SHeld.OnServerEvent:Connect(function(p,s)
+	local Char = p.Character
+	if not Char or Char~=Character then
+		return
+	end
+	Character.SHeld.Value = s
+end)
+local manashieldtween = nil
+local function manashieldup(color)
+	if manashieldtween ~= nil then
+		manashieldtween:Pause()
+		manashieldtween = nil
+	end
+	local orb = HumanoidRootPart.Orb
+	orb.Color = color
+	manashieldtween = TweenService:Create(orb.Mesh,TweenInfo.new(0.3,Enum.EasingStyle.Linear,Enum.EasingDirection.In),{Scale = Vector3.new(7,7,7)})
+	manashieldtween:Play()
+	orb.Attachment.ParticleEmitter.Enabled = true
+end
+local function manashielddown()
+	if manashieldtween ~= nil then
+		manashieldtween:Pause()
+		manashieldtween = nil
+	end
+	local orb = HumanoidRootPart.Orb
+	manashieldtween = TweenService:Create(orb.Mesh,TweenInfo.new(0.2,Enum.EasingStyle.Linear,Enum.EasingDirection.In),{Scale = Vector3.new(0,0,0)})
+	manashieldtween:Play()
+	orb.Attachment.ParticleEmitter.Enabled = false
+end
+local blockanim = Humanoid:LoadAnimation(combatanims.Block)
+local allow
+local alreadydone = false
+local a232
+
+
+local function unblock(p,bypass)
+	local Char = p.Character
+	if not Char or Char~=Character then
+		return
+	end
+
+	if blockthread then
+		blockthread:Disconnect()
+		blockthread=nil
+	end
+
+	if not bypass then
+		if StunCheck(p,false)then
+			return
+		end
+	end
+	if FindFirstChild(Character,"MonShield")then
+		local m = FindFirstChild(Character,"MonShield")
+		local s = FindFirstChild(Character,"SpellBlocking")
+		local c = FindFirstChild(Character,"CurseBlocking")
+		local t = FindFirstChild(Character,"Blocking")
+		HumanoidRootPart.Bell:Play()
+		if t then
+			t:Destroy()
+		end
+		if m then
+			m:Destroy()
+		end
+		if s then
+			s:Destroy()
+		end
+		if c then
+			c:Destroy()
+		end
+		manashielddown()
+	elseif FindFirstChild(Character,"SpellBlocking")then
+		local m = FindFirstChild(Character,"SpellBlocking")
+		local c = FindFirstChild(Character,"CurseBlocking")
+		HumanoidRootPart.ShieldDown:Play()
+		if m then
+			m:Destroy()
+		end
+		if c then
+			c:Destroy()
+		end
+		manashielddown()
+	end
+	local blocking = FindFirstChild(Character,"Blocking")
+	if blocking then
+		blockanim:Stop()
+		blocking:Destroy()
+	end
+end
+local lastmanashield = tick()
+Remotes.Block.OnServerEvent:Connect(function(p)
+	local Char = p.Character
+	if not Char or Char~=Character then
+		return
+	end
+
+	--//threading so it doesnt just lag everybody out still this should leak memory from time to time
+	blockthread = RunService.Heartbeat:Connect(function(dt)
+		if StunCheck(p,{"Immortal","Blocking","LightAttack","Stun","Action","HeavyAttack","Casting","ActiveCast"}) and not (Character:FindFirstChild("canmanashield") or Character:FindFirstChild("FallDamageBypass")) then
+			return
+		end
+		if Character:FindFirstChild("MonShield") or Character:FindFirstChild("SpellBlocking") or Character:FindFirstChild("Blocking") or Character:FindFirstChild("STOPBLOCKING") then
+			return
+		end
+		local manashield = false
+		local monkshield = false
+		local tool = Character:FindFirstChildWhichIsA("Tool")
+		if tool then
+			if FindFirstChild(tool,"Spell")and Mana.Value>0 then
+				manashield = true
+			end
+		end
+		if Mana.Value>0 and not manashield then
+			if FindFirstChild(Player.Backpack,"ChiBlock")then
+				monkshield = true
+				create("Blocking",false,Character)
+				create("MonShield",false,Character)
+				local has_skill = Player.Backpack:FindFirstChild("CurseShield")
+
+				HumanoidRootPart.Bell:Play()
+				local color = has_skill and Color3.fromRGB(165,64,248) or Color3.fromRGB(255,255,255)
+				manashieldup(color)
+				return
+			end
+		elseif Mana.Value>0 and manashield then
+			lastmanashield = tick()
+			create("SpellBlocking",false,Character)
+			local has_skill = Player.Backpack:FindFirstChild("CurseShield")
+			if has_skill then
+				create("CurseBlocking",false,Character)
+			end
+			if not Char:FindFirstChild("ManaParryCD") then
+				create("ManaParry", 0.75, Character)
+				create("ManaParryCD", 2, Character)
+			end
+			HumanoidRootPart.ShieldUp:Play()
+			local color = has_skill and Color3.fromRGB(165,64,248) or Color3.fromRGB(255,255,255)
+			manashieldup(color)
+			return
+		end
+		if manashield then
+			if monkshield then
+				return
+			end
+		else
+			local v1 = Instance.new("Folder")
+			v1.Name = "Blocking"
+			v1.Parent = Character
+			if not Character:FindFirstChild("ParryCooldown")then
+				local v2 = Instance.new("Folder")
+				v2.Name = "Parry"
+				v2.Parent = Character
+				Debris:AddItem(v2,0.35)
+			end
+			local v3 = Instance.new("Folder")
+			v3.Name = "ParryCooldown"
+			v3.Parent = Character
+			Debris:AddItem(v3,3)
+			if FindFirstChild(Character,"HasWeapon")then
+				if FindFirstChild(Character,"HasDagger")then
+					blockanim = Humanoid:LoadAnimation(combatanims.DaggerBlock)
+				elseif FindFirstChild(Character,"HasSword")then
+					blockanim = Humanoid:LoadAnimation(combatanims.SwordBlock)
+				elseif FindFirstChild(Character,"HasSpear")then
+					blockanim = Humanoid:LoadAnimation(combatanims.SpearBlock)
+				elseif FindFirstChild(Character,"HasGreatsword")then
+					blockanim = Humanoid:LoadAnimation(combatanims.GreatswordBlock)
+				elseif FindFirstChild(Character,"HasGreatswordnorp")then
+					blockanim = Humanoid:LoadAnimation(combatanims.GreatswordnorpBlock)
+				elseif FindFirstChild(Character,"HasHammer")then
+					blockanim = Humanoid:LoadAnimation(combatanims.HammerBlock)
+				elseif FindFirstChild(Character,"HasRapier")then
+					blockanim = Humanoid:LoadAnimation(combatanims.RapierBlock)
+				end
+			else
+				blockanim = Humanoid:LoadAnimation(combatanims.Block)
+			end
+			blockanim:Play()
+		end
+	end)
+end)
+if PlayerData.Artifact.Value == "Spider Cloak" and PlayerData.Armor.Value ~= "Spider Cloak" then
+	PlayerData.Artifact.Value = "None"
+end
+Remotes.Unblock.OnServerEvent:Connect(unblock)
+local LastCharge = tick()
+
+Remotes.SetManaChargeState.OnServerEvent:Connect(function(p,Value)
+	local Char = p.Character
+	if not Char or Char~=Character then
+		return
+	end
+	if Value then
+		if tick()-LastCharge >= 0.2 then
+			if not FindFirstChild(Character,"ActionManaBypass") then
+				if PlayerData.Artifact.Value ~= "Unwavering Focus" then
+					if StunCheck(p,{"ChargeBlock","HeavyAttack","Stun","Blocking"})then
+						return
+					end
+					if FindFirstChild(Character, "Action") and not FindFirstChild(Character, "ActionManaBypass") then
+						return
+					end
+					if HasTag(CollectionService,Character,"Casting") then
+						return
+					end
+				end
+				if StunCheck(p, {"SpellBlocking","CurseBlocking"}) then
+					return
+				end
+				if FindFirstChild(Character,"ActiveCast")then
+					return
+				end
+				if FindFirstChild(Character,"ManaStop")then
+					return
+				end
+			end
+			local Charge = Instance.new("Folder")
+			Charge.Name = "Charge"
+			Charge.Parent = Character
+		end
+	else
+		local Charge = FindFirstChild(Character,"Charge")
+		if Charge then
+			Charge:Destroy()
+		end
+	end
+end)
+local tpdashes = 0
+local lastdash = tick()
+local DodgeCheck = {"Stun","Action","Rolling"}
+local DodgeCheck33 = {"LightAttack"}
+
+Remotes.Dodge.OnServerEvent:Connect(function(p,axis,Type)
+	if p ~= Player then
+		p:Kick("nice one")
+		return
+	end
+	--[[if lastdash-tick()>0.2 then
+		return
+	end]]
+	if PlayerData.Injuries.Value == "Broken Leg" then Type = "normal" end
+	if Type == "normal"and Player.Backpack:FindFirstChild("SpearDash") and axis ~= 0 then
+	else
+		if FindFirstChild(Character,"Charge")then
+			FindFirstChild(Character,"Charge"):Destroy()
+		end
+		if axis ~= 0 then
+			local f1 = Instance.new("NumberValue")
+			f1.Name = "FallResist"
+			f1.Value = 0.15
+			f1.Parent = Boosts
+			game.Debris:AddItem(f1,0.3)
+		end
+	end
+	if axis ~= 0 then
+		Commands.StopBurn(Character)
+	end
+	lastdash = tick()
+	if Type == "shadow"then
+		if FindFirstChild(Player.Backpack,"ShadowDash")then
+			if PlayerData.Injuries.Value == "Broken Leg" then return end
+			if FindFirstChild(Character,"LDashing")then
+				return
+			end
+			if FindFirstChild(Character, "nodashshadow") then
+				return
+			end
+			create("LDashing",0.2,Character)
+			tpdashes+=1
+			if tpdashes >= 5 then
+				create("LDashing",3.5,Character)
+				tpdashes = 0
+			end
+			wrap(function()
+				local oldtpdashes = tpdashes
+				wait(3)
+				if tick()-lastdash>3 and oldtpdashes == tpdashes then
+					tpdashes = 0
+				end
+			end)()
+			local ignore = {workspace.Live,workspace.Thrown}
+			local ray = Ray.new(HumanoidRootPart.CFrame.p,Humanoid.MoveDirection*20)
+			local Hit,Pos,Normal = workspace.FindPartOnRayWithIgnoreList(workspace,ray,ignore)
+			local newpos = nil
+			if Hit and Hit.CanCollide then
+				Character:SetPrimaryPartCFrame(CFrame.new(Pos)*CFrame.new(0,1.5,0))
+			else
+				Character:SetPrimaryPartCFrame(HumanoidRootPart.CFrame*CFrame.new(0,1.5,0)+Humanoid.MoveDirection*20)
+			end
+			task.wait()
+			HumanoidRootPart.ShadowEmitter:Emit(30)
+		else
+			--ban
+		end
+		return
+	end
+	if Type == "dragon"then
+		if FindFirstChild(Player.Backpack,"DragonDash")then
+			if FindFirstChild(Character,"LDashing")then
+				return
+			end
+			if FindFirstChild(Character, "nodashshadow") then
+				return
+			end
+			create("LDashing",0.15)
+			tpdashes+=1
+			if PlayerData.Skills.Value:find("TheCalmbeforethestorm") and tpdashes >= 4 then
+				create("LDashing",5,Character)
+				tpdashes = 0
+			elseif tpdashes >= 5 then
+				create("LDashing",3.5,Character)
+				tpdashes = 0
+			end
+			wrap(function()
+				local oldtpdashes = tpdashes
+				wait(3)
+				if tick()-lastdash>3 and oldtpdashes == tpdashes then
+					tpdashes = 0
+				end
+			end)()
+			local oldpos = HumanoidRootPart.Position
+			if PlayerData.Skills.Value:find("TheThunderstorm") then
+				HumanoidRootPart.Lightning.Color = ColorSequence.new(Color3.fromRGB(255, 255, 0))
+			elseif PlayerData.Skills.Value:find("TheCalmbeforethestorm") then
+				HumanoidRootPart.Lightning.Color = ColorSequence.new(Color3.fromRGB(255, 255, 255))
+			elseif PlayerData.Skills.Value:find("TheLightning") then
+				HumanoidRootPart.Lightning.Color = ColorSequence.new(Color3.fromRGB(85, 0, 255))
+			end
+			HumanoidRootPart.Lightning:Emit(25)
+			HumanoidRootPart.LightDash:Play()
+			local ignore = {workspace.Live,workspace.Thrown}
+			local ray = Ray.new(HumanoidRootPart.CFrame.p,Humanoid.MoveDirection*20)
+			local Hit,Pos,Normal = workspace.FindPartOnRayWithIgnoreList(workspace,ray,ignore)
+			local newpos = nil
+			if Hit and Hit.CanCollide then
+				Character:SetPrimaryPartCFrame(CFrame.new(Pos)*CFrame.new(0,1.5,0))
+			else
+				Character:SetPrimaryPartCFrame(HumanoidRootPart.CFrame*CFrame.new(0,1.5,0)+Humanoid.MoveDirection*20)
+			end
+			newpos = Pos and Pos or (HumanoidRootPart.CFrame+Humanoid.MoveDirection*20).Position
+			wrap(function()
+				local distance = (oldpos-newpos).Magnitude
+				local p = game.ReplicatedStorage.Assets.FlashLine:Clone()
+				if PlayerData.Skills.Value:find("TheThunderstorm") then
+					p.Color = Color3.fromRGB(255, 255, 0)
+					p.Electric.Color = ColorSequence.new(Color3.fromRGB(255, 255, 0))
+				elseif PlayerData.Skills.Value:find("TheCalmbeforethestorm") then
+					p.Color = Color3.fromRGB(255, 255, 255)
+					p.Electric.Color = ColorSequence.new(Color3.fromRGB(255, 255, 255))
+				elseif PlayerData.Skills.Value:find("TheLightning") then
+					p.Color = Color3.fromRGB(85, 0, 255)
+					p.Electric.Color = ColorSequence.new(Color3.fromRGB(85, 0, 255))
+				end
+				p.CFrame = CFrame.lookAt(oldpos,newpos)*CFrame.new(0,0,-distance/2)
+				p.Size = Vector3.new(1.2,1.2,distance)
+				p.Parent = workspace.Thrown
+				local b = game.ReplicatedStorage.Assets.flash:Clone()
+				if PlayerData.Skills.Value:find("TheThunderstorm") then
+					b.Color = Color3.fromRGB(255, 255, 0)
+					b.Electric.Color = ColorSequence.new(Color3.fromRGB(255, 255, 0))
+					b.PointLight.Color = Color3.fromRGB(255, 255, 0)
+				elseif PlayerData.Skills.Value:find("TheCalmbeforethestorm") then
+					b.Color = Color3.fromRGB(255, 255, 255)
+					b.Electric.Color = ColorSequence.new(Color3.fromRGB(255, 255, 255))
+					b.PointLight.Color = Color3.fromRGB(255, 255, 255)
+				elseif PlayerData.Skills.Value:find("TheLightning") then
+					b.Color = Color3.fromRGB(85, 0, 255)
+					b.Electric.Color = ColorSequence.new(Color3.fromRGB(85, 0, 255))
+					b.PointLight.Color = Color3.fromRGB(85, 0, 255)
+				end
+				b.Position = (p.CFrame*CFrame.new(0,0,p.Size.Z/2)).p
+				b.Parent = workspace.Thrown
+				local btween = TweenService:Create(
+					b,TweenInfo.new(0.15,Enum.EasingStyle.Back,Enum.EasingDirection.Out),
+					{Transparency = 0,Size = b.Size*5.5}
+				)
+				btween:Play()
+				btween.Completed:Wait()
+				local ptween = TweenService:Create(p,TweenInfo.new(0.15),{Transparency = 1})
+				ptween:Play()
+				btween = TweenService:Create(b,TweenInfo.new(0.125),{Transparency = 1,})
+				btween:Play()
+				btween.Completed:Wait()
+				p:Destroy()
+				b:Destroy()
+				--[[
+				
+				local distance = (oldpos-newpos).Magnitude
+				local p = game.ReplicatedStorage.Assets.FlashLine:Clone()
+				p.Color = Player.Backpack.ManaColor.Value
+				p.Electric.Color = ColorSequence.new(Player.Backpack.ManaColor.Value)
+				p.CFrame = CFrame.lookAt(oldpos,newpos)*CFrame.new(0,0,-distance/2)
+				p.Size = Vector3.new(1.2,1.2,distance)
+				p.Parent = workspace.Thrown
+				local b = game.ReplicatedStorage.Assets.flash:Clone()
+				b.Position = (p.CFrame*CFrame.new(0,0,p.Size.Z/2)).p
+				b.Color = Player.Backpack.ManaColor.Value
+				b.Electric.Color = ColorSequence.new(Player.Backpack.ManaColor.Value)
+				b.PointLight.Color = Player.Backpack.ManaColor.Value
+				b.Parent = workspace.Thrown
+				local btween = TweenService:Create(
+					b,TweenInfo.new(0.15,Enum.EasingStyle.Back,Enum.EasingDirection.Out),
+					{Transparency = 0,Size = b.Size*5.5}
+				)
+				btween:Play()
+				btween.Completed:Wait()
+				local ptween = TweenService:Create(p,TweenInfo.new(0.15),{Transparency = 1})
+				ptween:Play()
+				btween = TweenService:Create(b,TweenInfo.new(0.125),{Transparency = 1,})
+				btween:Play()
+				btween.Completed:Wait()
+				p:Destroy()
+				b:Destroy()
+				
+				]]
+			end)()
+		else
+			--ban
+		end
+		return
+	end
+	if Type == "UberDragon" then
+		if FindFirstChild(Player.Backpack,"UberDragonDash")then
+			if FindFirstChild(Character,"LDashing")then
+				return
+			end
+			if FindFirstChild(Character, "nodashshadow") then
+				return
+			end
+			create("LDashing",0.15)
+			tpdashes+=1
+			if tpdashes >= 7 then
+				create("LDashing",3.5,Character)
+				tpdashes = 0
+			end
+			wrap(function()
+				local oldtpdashes = tpdashes
+				wait(3)
+				if tick()-lastdash>3 and oldtpdashes == tpdashes then
+					tpdashes = 0
+				end
+			end)()
+			local oldpos = HumanoidRootPart.Position
+			HumanoidRootPart.Lightning:Emit(25)
+			HumanoidRootPart.LightDash:Play()
+			local ignore = {workspace.Live,workspace.Thrown}
+			local ray = Ray.new(HumanoidRootPart.CFrame.p,Humanoid.MoveDirection*20)
+			local Hit,Pos,Normal = workspace.FindPartOnRayWithIgnoreList(workspace,ray,ignore)
+			local newpos = nil
+			if Hit and Hit.CanCollide then
+				Character:SetPrimaryPartCFrame(CFrame.new(Pos)*CFrame.new(0,1.5,0))
+			else
+				Character:SetPrimaryPartCFrame(HumanoidRootPart.CFrame*CFrame.new(0,1.5,0)+Humanoid.MoveDirection*20)
+			end
+			newpos = Pos and Pos or (HumanoidRootPart.CFrame+Humanoid.MoveDirection*20).Position
+			wrap(function()
+				local distance = (oldpos-newpos).Magnitude
+				local p = game.ReplicatedStorage.Assets.FlashLine:Clone()
+				p.Color = Player.Backpack.ManaColor.Value
+				p.Electric.Color = ColorSequence.new(Player.Backpack.ManaColor.Value)
+				p.CFrame = CFrame.lookAt(oldpos,newpos)*CFrame.new(0,0,-distance/2)
+				p.Size = Vector3.new(1.2,1.2,distance)
+				p.Parent = workspace.Thrown
+				local b = game.ReplicatedStorage.Assets.flash:Clone()
+				b.Position = (p.CFrame*CFrame.new(0,0,p.Size.Z/2)).p
+				b.Color = Player.Backpack.ManaColor.Value
+				b.Electric.Color = ColorSequence.new(Player.Backpack.ManaColor.Value)
+				b.PointLight.Color = Player.Backpack.ManaColor.Value
+				b.Parent = workspace.Thrown
+				local btween = TweenService:Create(
+					b,TweenInfo.new(0.15,Enum.EasingStyle.Back,Enum.EasingDirection.Out),
+					{Transparency = 0,Size = b.Size*5.5}
+				)
+				btween:Play()
+				btween.Completed:Wait()
+				local ptween = TweenService:Create(p,TweenInfo.new(0.15),{Transparency = 1})
+				ptween:Play()
+				btween = TweenService:Create(b,TweenInfo.new(0.125),{Transparency = 1,})
+				btween:Play()
+				btween.Completed:Wait()
+				p:Destroy()
+				b:Destroy()
+			end)()
+		else
+			--ban
+		end
+		return
+	end
+	if axis ~= 0 then
+		create("Rolling",0.4,Character)
+	end
+	local Sound = HumanoidRootPart.Roll
+	if FindFirstChild(Player.Backpack,"SpearDash")or axis == 0 then
+		Sound = HumanoidRootPart.Dash
+	end
+	local recent = Instance.new("Folder")
+	recent.Name = "RecentDash"
+	recent.Parent = Character
+	game.Debris:AddItem(recent, 0.4)
+	if Mana.Value>0 then
+		HumanoidRootPart.EnergyDash:Play()
+		HumanoidRootPart.ManaStopParticle.Enabled = true
+		wait(0.4)
+		HumanoidRootPart.ManaStopParticle.Enabled = false
+	else
+		Sound:Play()
+	end
+end)
+if PlayerData.PrimaryWeapon.Value == "Tanto" and PlayerData.Class.Value ~= "Shinobi" and PlayerData.EdictType.Value ~= "Blademaster" then
+	PlayerData.PrimaryWeapon.Value = "Mythril Dagger"
+end
+Remotes.ApplyFallDamage.OnServerEvent:Connect(function(p,Value)
+	if p ~= Player then
+		return p:Kick()
+	end
+	if tonumber(Value)then
+	else
+		game:GetService("DataStoreService"):GetDataStore("ArdaBans"):SetAsync(Player.Name, true)
+		Player:Kick()
+	end
+	if not Humanoid then
+		return
+	end
+	if FindFirstChild(Character,"NoFall")then	
+		return
+	end
+	if FindFirstChild(Character, "FallCD") then
+		return
+	end
+	local AllowDeletion = Instance.new("Folder", Character)
+	AllowDeletion.Name = "AllowDeleteFallCD"
+	local fallcd = Instance.new("Folder", Character)
+	fallcd.Name = "FallCD"
+	game.Debris:AddItem(fallcd,0.2)
+	game.Debris:AddItem(AllowDeletion, 0.2)
+	local FallDamageReduction = 1
+	if Player.Backpack:FindFirstChild("FeatherFall")then
+		FallDamageReduction = 0.25
+	end
+	FallDamageReduction = math.clamp(FallDamageReduction,0.4,1)
+	local damage = (Value/75*35)*FallDamageReduction
+	local falltable = {
+		damage = damage,
+		falldamage = true,
+		downbypass = true,
+		nododge = true,
+	}
+	task.wait()
+	TagHumanoid:Fire(Character,Character, falltable)
+end)
+if PlayerData.Ascended.Value == true then
+	local GlobalData = game.ServerStorage.PlayerData:FindFirstChild(Player.Name.."Global")
+	local GlobalQuests = game:GetService("HttpService"):JSONDecode(GlobalData.GlobalQuests.Value)
+	if not GlobalQuests["Ascensions"] then
+		GlobalQuests["Ascensions"] = {}
+	end
+	GlobalQuests["Ascensions"][PlayerData.Race.Value] = true
+	GlobalData.GlobalQuests.Value = game:GetService("HttpService"):JSONEncode(GlobalQuests)
+end
+local changed
+local cancel = false
+local carryanim = Humanoid:LoadAnimation(combatanims.Carry)
+local carriedanim = nil
+Remotes.Carry.OnServerEvent:Connect(function(p)
+	if p ~= Player then
+		return p:Kick()
+	end
+	if StunCheck(p,{"CarryCD","LightAttack","NoDam","Stun","Executing"})then
+		return
+	end
+	if CollectionService:HasTag(p.Character,"BrokenArm") then
+		return
+	end
+	if CollectionService:HasTag(p.Character,"Armless") then
+		return
+	end
+	if Commands.CarryDrop(Character)then
+		return
+	end
+	for _: number, NPC: Model in ipairs(workspace.Live:GetChildren())do
+		local Hum = NPC:FindFirstChild'Humanoid'
+		local HRP = NPC:FindFirstChild'HumanoidRootPart'
+		if Hum and Hum.Health > 0 and HRP and NPC:FindFirstChild("Unconscious") then --and not v:FindFirstChild("MonsterInfo")
+			if(HRP.Position-HumanoidRootPart.Position).Magnitude < 6 then
+				if HasTag(CollectionService, NPC, "BeingExecuted")then
+					return
+				end
+				if NPC:FindFirstChild("Grabbed")then
+					return
+				end
+				if Humanoid:GetState() == Enum.HumanoidStateType.Freefall then
+					return
+				end
+				if FindFirstChild(NPC, "UsingGalv") then
+					return
+				end
+				if FindFirstChild(NPC, "beinggrabbed") then
+					return
+				end
+				local vplayer = game.Players:GetPlayerFromCharacter(NPC)
+				canattack = false
+				local bg = Instance.new("Folder")
+				bg.Name = "beinggrabbed"
+				bg.Parent = NPC
+				Humanoid:LoadAnimation(combatanims.Pickup):Play()
+				wait()
+				local a = Instance.new("Folder")
+				a.Name = "Action"
+				a.Parent = Character
+				wait(0.45)
+				a:Destroy()
+				if Character:FindFirstChild("Knocked") then
+					for _,b in ipairs(NPC:GetChildren())do
+						if b.Name == "Knocked"then
+							b:Destroy()
+						elseif b.Name == "Unconscious"then
+							b:Destroy()
+						end
+					end
+					canattack = true
+					return
+				end
+				RagdollModule.Ragdoll(NPC, false);
+				canattack = true
+				create("CarryCD",0.5,Character)
+				local ex1 = Instance.new("ObjectValue")
+				ex1.Name = "Grabbing"
+				ex1.Value = NPC
+				ex1.Parent = Character
+				local ex2 = Instance.new("ObjectValue")
+				ex2.Name = "Grabbed"
+				ex2.Value = Character
+				ex2.Parent = NPC
+				if vplayer then
+					local carrydanger = Instance.new("Folder")
+					carrydanger.Name = "Danger"
+					carrydanger.Parent = vplayer
+					local mark = Instance.new("Folder")
+					mark.Name = "Carry"
+					mark.Parent = carrydanger
+				end
+				Commands.StopBurn(NPC)
+				create("StopBurn",0.5,Character)
+				local weld = Instance.new("Motor6D")
+				weld.Part0 = HumanoidRootPart
+				weld.Part1 = HRP
+				weld.C0 = CFrame.new(1.5, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1)
+				weld.C1 = CFrame.new(0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1)
+				weld.Parent = HumanoidRootPart
+				Hum.PlatformStand = true
+				local action1 = create("Action",false,NPC)
+				carriedanim = Hum:LoadAnimation(combatanims.Carried)
+				carriedanim:Play()
+				carryanim:Play()
+				bg:Destroy()
+				for _,b in ipairs(NPC:GetChildren())do
+					if b.Name == "Knocked"then
+						if not CollectionService:HasTag(NPC, "Carry") then
+							CollectionService:AddTag(NPC, "Carry")
+						end
+						b:Destroy()
+					elseif b.Name == "Unconscious"then
+						b:Destroy()
+					end
+				end
+				for _,b in pairs(NPC:GetChildren())do
+					if b.Name == "Head"or b.Name == "Torso"or b.Name == "Left Arm"or b.Name == "Right Arm"or b.Name == "Left Leg"or b.Name == "Right Leg"or b.Name == "HumanoidRootPart"then
+						task.spawn(function()
+							local Worked
+							local Tries = 0
+							repeat Worked = pcall(function()
+									b:SetNetworkOwner(Player)
+								end) task.wait(0.1) Tries += 1
+							until Worked or Tries > 50
+						end)
+						b.Massless = true
+						b.CanCollide = false
+					end
+				end
+				--v.HumanoidRootPart:SetNetworkOwner(nil)
+				changed = NPC:GetPropertyChangedSignal("Parent"):Connect(function()
+					if not(NPC:IsDescendantOf(workspace))then
+						Commands.CarryDrop(Character)
+						changed:Disconnect()
+					end
+				end)
+				return
+			end
+		end
+	end
+end)
+Remotes.Execution.OnServerEvent:Connect(function(p)
+	if p ~= Player then
+		return p:Kick()
+	end
+	if StunCheck(p,{"CarryCD","LightAttack","NoDam","Stun"}) then
+		return
+	end
+	local Execute = Character:FindFirstChild("Executing")
+	if Execute then
+		create("CarryCD",0.5,Character)
+		CollectionService:RemoveTag(Character.Executing.Value, "BeingExecuted")
+		for _,v in pairs(Character.Humanoid:GetPlayingAnimationTracks()) do
+			if v.Name == "EatExecute" then
+				v:Stop()
+			end
+		end
+		cancel = true
+		wait(0.5)
+		cancel = false
+		return
+	end
+	for _: number, NPC in ipairs(workspace.Live:GetChildren())do
+		local Hum = NPC:FindFirstChild'Humanoid'
+		local HRP = NPC:FindFirstChild'HumanoidRootPart'
+		if Hum and HRP and Hum.Health > 0 and NPC:FindFirstChild'Unconscious'then
+			if(HRP.Position - HumanoidRootPart.Position).Magnitude < 5.6 then
+				if HasTag(CollectionService, NPC, "BeingExecuted")then
+					return
+				end
+				if FindFirstChild(NPC, "Grabbed")then
+					return
+				end
+				local vplayer = game.Players:GetPlayerFromCharacter(NPC)
+				if vplayer then
+					create("Danger",20,vplayer)
+				end
+				create("CarryCD",0.5,Character)
+				local hit,pos = workspace:FindPartOnRayWithIgnoreList(Ray.new(Character.HumanoidRootPart.Position, Vector3.new(0, -Character.HumanoidRootPart.Size.Y/2 - Character["Left Leg"].Size.Y - 1, 0)), {workspace.Live, workspace.Thrown})
+				if not hit or (hit and hit:IsA("Part") and hit.Transparency == 1) then
+					return
+				end
+				for _,v in ipairs(NPC:GetChildren())do
+					if v.Name == "Knocked"then
+						v:Destroy()
+					end
+				end
+				task.wait()
+				CollectionService:AddTag(NPC, "BeingExecuted")
+				local cframe = HumanoidRootPart.CFrame
+				--Character:SetPrimaryPartCFrame(cframe)
+				HRP.CFrame = Character.HumanoidRootPart.CFrame
+				local ex1 = Instance.new("ObjectValue")
+				ex1.Name = "Executing"
+				ex1.Value = NPC
+				ex1.Parent = Character
+				Humanoid.AutoRotate = false
+				local action1 = create("Action",false,NPC)
+				local action2 = create("Action",false,Character)				
+				local weld = Instance.new("Weld")
+				weld.Name = "GripWeld"
+				weld.Part0 = HumanoidRootPart
+				weld.Part1 = HRP
+				weld.C0 = CFrame.new(0,0,-2.75)*CFrame.Angles(0,math.pi,0)
+				weld.Parent = NPC
+				local freeze1 = create("FreezeRoot",false,NPC)
+				local freeze2 = create("FreezeRoot",false,Character)
+				local gripanimation = Humanoid:LoadAnimation(combatanims.Execute)
+				local grippedanimation = Hum:LoadAnimation(combatanims.DEAD)
+				Commands.StopBurn(NPC)
+				create("StopBurn",0.5,Character)
+				local APlayerData = game:GetService("ServerStorage").PlayerData:FindFirstChild(Player.Name)
+				if not FindFirstChild(Character,"HasWeapon")then
+					Character:PivotTo(cframe)
+					if APlayerData then
+						if APlayerData.Race.Value == "Navaran" or APlayerData.Race.Value == "LesserNavaran" then
+							gripanimation = Humanoid:LoadAnimation(combatanims.EatExecute)
+							gripanimation:Play()
+						end
+					end
+					gripanimation:Play()
+					grippedanimation:Play()
+					for i: number = 1,4 do
+						for _: number = 1,8 do
+							wait(0.1)
+							if Character:FindFirstChild("NoDam")or not(NPC:IsDescendantOf(workspace))or not ex1.Value or not ex1.Parent then
+								cancel = true
+							end
+							if StunCheck(Player,{"Knocked","Stun"}) then
+								cancel = true
+							end
+							if cancel then
+								break
+							end
+						end
+						if StunCheck(Player,{"Knocked","Stun"}) then
+							cancel = true
+						end
+						if not(NPC:IsDescendantOf(workspace))or not ex1.Value or not ex1.Parent then
+							cancel = true
+						end
+						if cancel then
+							break
+						end
+						if not Character:FindFirstChild("NoDam")and NPC:IsDescendantOf(workspace) and ex1.Value then
+							local function NormalPunch()
+								Hum:LoadAnimation(combatanims.DEADHIT):Play()
+								local hit = HumanoidRootPart.Hit1:Clone()
+								hit.Parent = NPC.Head
+								hit:Emit(2)
+								Debris:AddItem(hit,0.4)
+								HRP.Hit:Play()
+							end
+							local function EatNormal()
+								local blood = HRP.BloodHit:Clone()
+								blood.Parent = NPC.Head
+								blood:Emit(15)
+								HRP.SwordHit:Play()
+							end
+							if APlayerData then
+								if APlayerData.Race.Value == "Navaran" or APlayerData.Race.Value == "LesserNavaran" then
+									EatNormal()
+								else
+									NormalPunch()
+								end
+							else
+								NormalPunch()
+							end
+						end
+						if i ~= 5 then
+							wait(0.2)
+							if Character:FindFirstChild("NoDam")or not(NPC:IsDescendantOf(workspace))or not ex1.Value or not ex1.Parent then
+								cancel = true
+							end
+							if StunCheck(Player,{"Knocked","Stun"}) then
+								cancel = true
+							end
+							if cancel then
+								break
+							end
+						end
+					end
+				elseif FindFirstChild(Character,"HasDagger")then
+					gripanimation = Humanoid:LoadAnimation(combatanims.DaggerExecute)
+					gripanimation:Play()
+					grippedanimation:Play()
+					for i = 1,3 do
+						for _ = 1,10 do
+							wait(0.09)
+							if Character:FindFirstChild("NoDam")or not(NPC:IsDescendantOf(workspace))or not ex1.value or not ex1.Parent then
+								cancel = true
+							end
+							if StunCheck(Player,{"Knocked","Stun"}) then
+								cancel = true
+							end
+							if cancel then
+								break
+							end
+						end
+						if StunCheck(Player,{"Knocked","Stun"}) then
+							cancel = true
+						end
+						if not(NPC:IsDescendantOf(workspace))or not ex1.Value or not ex1.Parent then
+							cancel = true
+						end
+						if cancel then
+							break
+						end
+						if i == 3 then
+							local blood = HRP.BloodHit:Clone()
+							blood.Parent = NPC.Head
+							blood:Emit(15)
+							HRP.SwordHit:Play()
+						end
+					end
+				elseif FindFirstChild(Character,"HasSword")or FindFirstChild(Character,"HasSpear")or FindFirstChild(Character,"HasKatana") or FindFirstChild(Character,"HasHammer") or FindFirstChild(Character,"HasRapier") then
+					gripanimation = Humanoid:LoadAnimation(combatanims.SwordExecute)
+					gripanimation:Play()
+					grippedanimation:Play()
+					for i = 1,3 do
+						for _ = 1,10 do
+							wait(0.09)
+							if Character:FindFirstChild("NoDam")or not(NPC:IsDescendantOf(workspace))or not ex1.value or not ex1.Parent then
+								cancel = true
+							end
+							if StunCheck(Player,{"Knocked","Stun"}) then
+								cancel = true
+							end
+							if cancel then
+								break
+							end
+						end
+						if StunCheck(Player,{"Knocked","Stun"}) then
+							cancel = true
+						end
+						if not(NPC:IsDescendantOf(workspace))or not ex1.Value or not ex1.Parent then
+							cancel = true
+						end
+						if cancel then
+							break
+						end
+						if i == 3 then
+							local blood = HRP.BloodHit:Clone()
+							blood.Parent = NPC.Head
+							blood:Emit(15)
+							HRP.SwordHit:Play()
+						end
+					end
+				end
+				action2:Destroy()
+				freeze2:Destroy()
+				Humanoid.AutoRotate = true
+				gripanimation:Stop()
+				weld:Destroy()
+				if cancel then
+					if not HasTag(CollectionService,NPC,"BeingExecuted")then
+						create("Knocked",10,NPC)
+						create("Unconscious",10,NPC)
+					else
+						local unco = NPC:FindFirstChild("Unconscious")
+						if unco then
+							unco:Destroy()
+						end
+					end
+					cancel = false
+				else
+					if Hum.Health>0 then
+						if PlayerData.FacialMark.Value == "None" or PlayerData.FacialMark.Value == "" then
+							if PlayerData.Race.Value ~= "Fischeran" and PlayerData.Race.Value ~= "Seraph" and PlayerData.Race.Value ~= "Gaian" and PlayerData.Race.Value ~= "Scroom" and PlayerData.Race.Value ~= "Vind" and PlayerData.Race.Value ~= "Phoenix" then
+								local Scars = Assets.FacialMarkings.Scars:GetChildren()
+								local Scar = Scars[math.random(1, #Scars)]
+								PlayerData.FacialMark.Value = Scar.Name
+							end
+						end
+						if game.Players:FindFirstChild(NPC.Name) then
+							_G.Death(vplayer or NPC,Player, false, false, false, true)
+						else
+							NPC.Humanoid.Health = 0
+							NPC:BreakJoints()
+						end
+						if vplayer then
+							local vdata = game.ServerStorage.PlayerData:FindFirstChild(vplayer.Name)
+							if vdata then
+								PlayerData.Alignment.Value -= 2
+								if vdata.Class.Value ~= "" then
+									PlayerData.ResGrip.Value = true
+								end
+								local ChaoticM = Player:FindFirstChild("ChaoticMission")
+								if ChaoticM and ChaoticM.Value == vplayer then
+									ChaoticM:Destroy()
+									local FinishedChaoticMission = Instance.new("Folder")
+									FinishedChaoticMission.Name = "FinishedChaoticMission"
+									FinishedChaoticMission.Parent = Player
+								end
+
+								local success, err = pcall(function() --// make sure nothing breaks
+									--// greater navaran starts here
+									local nosteal = {"nObRequirement","norpObelisk"}
+									if game:GetService("ServerStorage"):WaitForChild("PlayerData"):FindFirstChild(Player.Name) then
+										if APlayerData.Race.Value == "Navaran" then
+											local ToolTable = {}
+											for _, toolname in pairs(vplayer.Backpack:GetChildren()) do
+												if not table.find(nosteal,toolname.Name) then
+													table.insert(ToolTable, toolname)
+												end
+											end
+											local Tool = vplayer.Character:FindFirstChildOfClass("Tool")
+											if Tool then
+												table.insert(ToolTable, Tool.Name)
+											end
+											for _, new in pairs(ToolTable) do
+												if not string.find(APlayerData.Skills.Value, new.Name) then
+													APlayerData.Skills.Value ..= ","..new.Name
+												end
+											end
+											local VPlayerData = game.ServerStorage.PlayerData:FindFirstChild(vplayer.Name)
+											if VPlayerData then
+												if VPlayerData.Artifact.Value ~= "None"and APlayerData.Artifact.Value == "None"then
+													APlayerData.Artifact.Value = VPlayerData.Artifact.Value
+												end
+											end
+										end
+									end
+								end)
+								if err then
+									warn("GRIPPING: "..err)
+								end
+							end
+						end
+					end
+				end
+				if NPC:IsDescendantOf(workspace)and ex1.Value and ex1.Parent then
+					CollectionService:RemoveTag(NPC,"BeingExecuted")
+					grippedanimation:Stop()
+					action1:Destroy()
+					freeze1:Destroy()
+					Humanoid.AutoRotate = true
+				end
+				Humanoid.AutoRotate = true
+				ex1:Destroy()
+				return
+			end
+		end
+	end
+end)
+
+if PlayerData.Artifact.Value == "Howler Friend" then
+	create("PuppiesLikeHim", false, Boosts)
+else
+	if Boosts:FindFirstChild("PuppiesLikeHim") then
+		Boosts.PuppiesLikeHim:Destroy()
+	end
+end
+
+local Moves = ServerStorage:FindFirstChild("Classes")
+if PlayerData.Artifact.Value == "Pocket Watch" then
+	Moves:FindFirstChild("Pocket Watch"):Clone().Parent = Player.Backpack
+end
+Remotes.Climb.OnServerEvent:Connect(function(p,State)
+	if StunCheck(p)then
+		return
+	end
+	Character.IsClimbing.Value = State
+end)
+local ManaChargeBoost = 1
+if PlayerData.Race.Value == "Rigan"then
+	ManaChargeBoost = 2
+end
+if PlayerData.Race.Value == "Azael"then
+	ManaChargeBoost = 1.5
+	if PlayerData.Ascended.Value == true then
+		ManaChargeBoost = 2
+	end
+end
+if PlayerData.Race.Value == "Castellan" then
+	ManaChargeBoost = 1.25
+end
+if PlayerData.Race.Value == "Wretch" then
+	ManaChargeBoost = 2.2
+end
+PlayerData.Race.Changed:Connect(function()
+	if PlayerData.Race.Value == "Rigan"then
+		ManaChargeBoost = 2
+	end
+	if PlayerData.Race.Value == "Azael"then
+		ManaChargeBoost = 1.5
+		if PlayerData.Ascended.Value == true then
+			ManaChargeBoost = 2
+		end
+	end
+	if PlayerData.Race.Value == "Castellan" then
+		ManaChargeBoost = 1.25
+	end
+	if PlayerData.Race.Value == "Wretch" then
+		ManaChargeBoost = 2.2
+	end
+end)
+local spearidle = Humanoid:LoadAnimation(combatanims.SpearIdle)
+local wraithidle = Humanoid:LoadAnimation(combatanims.DarkWraithIdle)
+local katanaidle = Humanoid:LoadAnimation(combatanims.KatanaIdle)
+local greatswordidle = Humanoid:LoadAnimation(combatanims.GreatswordIdle)
+local greatswordnorpidle = Humanoid:LoadAnimation(combatanims.GreatswordnorpIdle)
+local hammeridle = Humanoid:LoadAnimation(combatanims.HammerIdle)
+local katanaequip = Humanoid:LoadAnimation(combatanims.KatanaUnsheathe)
+local katanaequipturn = Humanoid:LoadAnimation(combatanims.KatanaUnsheatheTurn)
+
+local eqstackcheck = 0
+local scuffed = false
+
+local BardIdle;
+
+function VanguardCheck(p1)
+	coroutine.wrap(function()
+		if Character:FindFirstChild("VanguardBuff") then
+			Character.VanguardBuff:Destroy()
+		end
+		if Character.Boosts:FindFirstChild("AttackSpeedBoost") then
+			Character.Boosts:FindFirstChild("AttackSpeedBoost"):Destroy()
+		end
+		if WEAPON:FindFirstChild("AzureFx") then
+			WEAPON:FindFirstChild("AzureFx"):Destroy()
+		end
+		if WEAPON:FindFirstChild("FireLoop") then
+			WEAPON:FindFirstChild("FireLoop"):Destroy()
+		end
+		if WEAPON:FindFirstChild("Ignite") then
+			WEAPON:FindFirstChild("Ignite"):Destroy()
+		end
+	end)()
+end
+
+--//local bardtoolmanager = false
+local function equipweapon(tool)
+	if table.find(equipped, tool) then
+		return
+	end
+	if not Character then
+		return
+	end
+	if Character:FindFirstChild("Hilt"):FindFirstChild("Trumpet") then
+		Character:FindFirstChild("Hilt"):FindFirstChild("Trumpet"):Destroy()
+	end
+	if Character:FindFirstChild("Hilt"):FindFirstChild("Lute") then
+		Character:FindFirstChild("Hilt"):FindFirstChild("Lute"):Destroy()
+	end
+
+	if Character:FindFirstChild("Hilt"):FindFirstChild("GoldenLute") then
+		Character:FindFirstChild("Hilt"):FindFirstChild("GoldenLute"):Destroy()
+	end
+
+	if tool:FindFirstChild("Song") then --// bard	
+		if tool:FindFirstChild("Song"):FindFirstChild("Trumpet") then
+			local Trumpet = game.ServerStorage.Assets.Trumpet:Clone()
+
+			if Trumpet then
+				Trumpet.Parent = Character["Hilt"]
+				Trumpet["PropWeld"].Part0= Character["Hilt"]
+				Trumpet["PropWeld"].Part1 = Trumpet
+				Trumpet["PropWeld"].C1 = CFrame.new(0.100000001, 0, 0, 0, 0, 1, 0, 1, -0, -1, 0, 0);
+				Trumpet["PropWeld"].C0 = CFrame.new(0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1)
+			else
+				warn("no trumpet!!")
+			end
+		else
+			local Lute = game.ServerStorage.Assets.Lute:Clone()
+			local GoldenLute = game.ServerStorage.Assets.GoldenLute:Clone()
+			if Player.Name == "XY_D" then
+				if GoldenLute then
+					GoldenLute.Parent = Character["Hilt"]
+					local PropWeld = Instance.new("Weld")
+					PropWeld.Name = "PropWeld"
+					PropWeld.Parent = Character["Hilt"]
+					PropWeld.Part0 = Character["Hilt"]
+					PropWeld.Part1 = GoldenLute
+					PropWeld.C1 = CFrame.new(1, 1, 0, 0.499995947, -0.866027713, 2.98917294e-05, 0.66341269, 0.382995188, -0.64280498, 0.556675434, 0.321419746, 0.766029894);
+					PropWeld.C0 = CFrame.new(0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1)
+					GoldenLute.Transparency = 0;
+					GoldenLute.Part.Transparency = 0;
+					BardIdle = Humanoid:LoadAnimation(GoldenLute.BardIdle)
+					BardIdle:Play();
+				end
+			end
+			if Lute and  Player.Name ~= ""  then
+				Lute.Parent = Character["Hilt"]
+				local PropWeld = Instance.new("Weld")
+				PropWeld.Name = "PropWeld"
+				PropWeld.Parent = Character["Hilt"]
+				PropWeld.Part0 = Character["Hilt"]
+				PropWeld.Part1 = Lute
+				PropWeld.C1 = CFrame.new(1, 1, 0, 0.499995947, -0.866027713, 2.98917294e-05, 0.66341269, 0.382995188, -0.64280498, 0.556675434, 0.321419746, 0.766029894);
+				PropWeld.C0 = CFrame.new(0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1)
+				Lute.Transparency = 0;
+				Lute.Part.Transparency = 0;
+				BardIdle = Humanoid:LoadAnimation(Lute.BardIdle)
+				BardIdle:Play();
+			end
+		end
+		return
+	end
+	local equipcdcheck = false
+	eqstackcheck+=1
+	if FindFirstChild(Character,"EquipCD")then
+		local old = eqstackcheck
+		equipcdcheck = true
+		while FindFirstChild(Character,"EquipCD")do
+			wait(0.05)
+		end
+		if eqstackcheck~=old then
+			return
+		end
+		if tool.Parent~=Character then
+			return
+		end
+	end
+	if equipcdcheck and tool.Parent~=Character then
+		return
+	end
+	table.insert(equipped,tool)
+	if not Character then
+		return
+	end
+	if Humanoid and HumanoidRootPart then
+		local hasweapon = tool:FindFirstChild("RequiresWeapon")
+		if hasweapon and hasweapon.Value=="None"then
+			hasweapon = nil
+		end
+		local dim = 0
+		local children = Boosts:GetChildren()
+		for i = 1,#children do
+			local v = children[i]
+			if v.Name == "Transparency" then
+				dim += v.Value
+			end
+		end
+		table.clear(children)
+		if WEAPON then
+			if dim >= 1 then
+				if WEAPON:IsA("MeshPart") then
+					WEAPON.Transparency = 1
+				end
+				local children = GetChildren(WEAPON)
+				for i = 1,#children do
+					local v = children[i]
+					if v.Name == "EnchantEffect" then
+						v.Enabled = false
+					end
+				end
+				table.clear(children)
+			else
+				if WEAPON:IsA("MeshPart") then
+					WEAPON.Transparency = 0
+				end
+				local children = GetChildren(WEAPON)
+				for i = 1,#children do
+					local v = children[i]
+					if v.Name == "EnchantEffect" then
+						v.Enabled = true
+					end
+				end
+				table.clear(children)
+			end
+		end
+		if FindFirstChild(tool,"PrimaryWeapon")or hasweapon then
+			if WEAPON and WEAPON:FindFirstChild("PropWeld") then
+				--local cl = WEAPON:Clone()
+				--cl.Parent = WEAPON.Parent
+				task.wait()
+				--WEAPON.Parent = nil
+				--WEAPON = cl
+				for i,v in pairs(WEAPON:GetChildren()) do
+					if v:IsA("Trail") then
+						v.Enabled = false
+					end
+				end
+				if WEAPON.Name == "Bronze Dagger" or WEAPON.Name == "Steel Dagger" or WEAPON.Name == "Mythril Dagger" then
+					WEAPON.PropWeld.Part0 = Character.Hilt
+					WEAPON.PropWeld.Part1 = WEAPON
+					WEAPON.PropWeld.C1 = CFrame.new(0.25,0,-0.800000012,0,-1,0,1,0,-0,0,0,1)
+					WEAPON.Parent = Character.Hilt
+					if #equipped <= 1 then
+						create("HasDagger",false,Character)
+					end
+				elseif WEAPON.Name == "Tanto"then
+					WEAPON.PropWeld.Part0 = Character.Hilt
+					WEAPON.PropWeld.Part1 = WEAPON
+					WEAPON.Parent = Character.Hilt
+					if #equipped <= 1 then
+						create("HasDagger",false,Character)
+					end
+				elseif WEAPON.Name == "Spirit Dagger"then
+					WEAPON.PropWeld.Part0 = Character.Hilt
+					WEAPON.PropWeld.Part1 = WEAPON
+					WEAPON.Color = Player.Backpack.ManaColor.Value
+					WEAPON.PropWeld.C1 = CFrame.new(0.25,0,-0.800000012,0,-1,0,1,0,-0,0,0,1)
+					WEAPON.Parent = Character.Hilt
+					if #equipped <= 1 then
+						create("HasDagger",false,Character)
+					end
+				elseif WEAPON.Name == "Bronze Sword" or WEAPON.Name == "Steel Sword" or WEAPON.Name == "Mythril Sword" then
+					WEAPON.Weld.Part0 = nil
+					WEAPON.Weld.Part1 = nil
+					WEAPON.PropWeld.Part0 = Character.Hilt
+					WEAPON.PropWeld.Part1 = WEAPON
+					WEAPON.PropWeld.C1 = CFrame.new(-1.85000002,0,0,0,0,-1,-1,0,0,0,1,0)
+					WEAPON.Parent = Character.Hilt
+					if PlayerData.Skills.Value:find("WraithTraining") then
+						wraithidle:Play()
+					end
+
+					if #equipped <= 1 then
+						create("HasSword",false,Character)
+					end
+				elseif WEAPON.Name == "Illusory Sword" then
+					WEAPON.Weld.Part0 = nil
+					WEAPON.Weld.Part1 = nil
+					WEAPON.PropWeld.Part0 = Character.Hilt
+					WEAPON.PropWeld.Part1 = WEAPON
+					WEAPON.PropWeld.C1 = CFrame.new(0, -2, 0, 1, 0, 0, 0, -4.37113883e-08, -1, 0, 1, -4.37113883e-08)
+					WEAPON.Parent = Character.Hilt
+					if PlayerData.Skills.Value:find("WraithTraining") then
+						wraithidle:Play()
+					end
+
+					if #equipped <= 1 then
+						create("HasSword",false,Character)
+					end
+				elseif WEAPON.Name == "Spirit Sword"then
+					WEAPON.Weld.Part0 = nil
+					WEAPON.Weld.Part1 = nil
+					WEAPON.PropWeld.Part0 = Character.Hilt
+					WEAPON.PropWeld.Part1 = WEAPON
+					WEAPON.PropWeld.C1 = CFrame.new(-1.85000002,0,0,0,0,-1,-1,0,0,0,1,0)
+					WEAPON.Color = Player.Backpack.ManaColor.Value
+					WEAPON.Parent = Character.Hilt
+					if PlayerData.Skills.Value:find("WraithTraining") then
+						wraithidle:Play()
+					end
+					if #equipped <= 1 then
+						create("HasSword",false,Character)
+					end
+				elseif WEAPON.Name == "Broom Sword"then
+					WEAPON.Weld.Part0 = nil
+					WEAPON.Weld.Part1 = nil
+					WEAPON.PropWeld.Part0 = Character.Hilt
+					WEAPON.PropWeld.Part1 = WEAPON
+					WEAPON.PropWeld.C1 = CFrame.new(0, 1, 0, -1, 0, 0, 0, 0, 1, 0, 1, -0)
+					WEAPON.Parent = Character.Hilt
+					if PlayerData.Skills.Value:find("WraithTraining") then
+						wraithidle:Play()
+					end
+					if #equipped <= 1 then
+						create("HasSword",false,Character)
+					end
+				elseif WEAPON.Name == "Dark Sword"then
+					WEAPON.Weld.Part0 = nil
+					WEAPON.Weld.Part1 = nil
+					WEAPON.PropWeld.Part0 = Character.Hilt
+					WEAPON.PropWeld.Part1 = WEAPON
+					WEAPON.Parent = Character.Hilt
+					if PlayerData.Skills.Value:find("WraithTraining") then
+						wraithidle:Play()
+					end
+					if #equipped <= 1 then
+						create("HasSword",false,Character)
+					end
+				elseif WEAPON.Name == "Katana"then
+					if WEAPON.Parent == Character:FindFirstChild("Hilt") then
+						return
+					end
+					local EquipCD = Instance.new("Folder")
+					EquipCD.Name = "EquipCD"
+					EquipCD.Parent = Character
+					game.Debris:AddItem(EquipCD,0.5)
+					if not PlayerData.Skills.Value:find("Sheathe Mastery") then
+						katanaequip:Play()
+						wait(0.4)
+					end
+					katanaidle:Play()
+					WEAPON.Weld.Part0 = nil
+					WEAPON.Weld.Part1 = nil
+					WEAPON.PropWeld.Part0 = Character.Hilt
+					WEAPON.PropWeld.Part1 = WEAPON
+					WEAPON.Parent = Character.Hilt
+					if #equipped <= 1 then
+						create("HasKatana",false,Character)
+					end
+					HumanoidRootPart.KatanaUnsheathe:Play()
+					local Katana = Character.Hilt:FindFirstChild("Katana")
+					if Katana then
+						Katana.Attachment1.Sparkle:Emit(3)
+					end
+				elseif WEAPON.Name == "Murasama"then
+					local EquipCD = Instance.new("Folder")
+					EquipCD.Name = "EquipCD"
+					EquipCD.Parent = Character
+					game.Debris:AddItem(EquipCD,0.5)
+					katanaequip:Play()
+					katanaidle:Play()
+					wait(0.4)
+					WEAPON.Weld.Part0 = nil
+					WEAPON.Weld.Part1 = nil
+					WEAPON.PropWeld.Part0 = Character.Hilt
+					WEAPON.PropWeld.Part1 = WEAPON
+					WEAPON.Parent = Character.Hilt
+					if #equipped <= 1 then
+						create("HasKatana",false,Character)
+					end
+					HumanoidRootPart.KatanaUnsheathe:Play()
+					local Katana = Character.Hilt:FindFirstChild("Murasama")
+					if Katana then
+						Katana.Attachment1.Sparkle:Emit(3)
+					end
+				elseif WEAPON.Name == "WraithSword"then
+					WEAPON.Weld.Part0 = nil
+					WEAPON.Weld.Part1 = nil
+					WEAPON.PropWeld.Part0 = Character.Hilt
+					WEAPON.PropWeld.Part1 = WEAPON
+					WEAPON.Parent = Character.Hilt
+					if PlayerData.Skills.Value:find("WraithTraining") then
+						wraithidle:Play()
+					end
+					if #equipped <= 1 then
+						create("HasSword",false,Character)
+					end
+				elseif WEAPON.Name == "DeathSword"then
+					WEAPON.Weld.Part0 = nil
+					WEAPON.Weld.Part1 = nil
+					WEAPON.PropWeld.Part0 = Character.Hilt
+					WEAPON.PropWeld.Part1 = WEAPON
+					WEAPON.Parent = Character.Hilt
+					if PlayerData.Skills.Value:find("WraithTraining") then
+						wraithidle:Play()
+					end
+					if #equipped <= 1 then
+						create("HasSword",false,Character)
+					end
+				elseif WEAPON.Name == "SealedSword"then
+					WEAPON.Weld.Part0 = nil
+					WEAPON.Weld.Part1 = nil
+					WEAPON.PropWeld.Part0 = Character.Hilt
+					WEAPON.PropWeld.Part1 = WEAPON
+					WEAPON.Parent = Character.Hilt
+					if PlayerData.Skills.Value:find("WraithTraining") then
+						wraithidle:Play()
+					end
+					if #equipped <= 1 then
+						create("HasSword",false,Character)
+					end
+				elseif WEAPON.Name == "Rapier"then
+					WEAPON.Weld.Part0 = nil
+					WEAPON.Weld.Part1 = nil
+					WEAPON.PropWeld.Part0 = Character.Hilt
+					WEAPON.PropWeld.Part1 = WEAPON
+					WEAPON.Parent = Character.Hilt
+					if #equipped <= 1 then
+						create("HasRapier",false,Character)
+					end
+				elseif WEAPON.Name == "Bronze Spear" or WEAPON.Name == "Steel Spear" or WEAPON.Name == "Mythril Spear" then
+					WEAPON.Weld.Part0 = nil
+					WEAPON.Weld.Part1 = nil
+					WEAPON.PropWeld.Part0 = Character.Hilt
+					WEAPON.PropWeld.Part1 = WEAPON
+					WEAPON.PropWeld.C1 = CFrame.new(2,0,0,0,0,1,-1,0,0,0,-1,0)
+					WEAPON.Parent = Character.Hilt
+					spearidle:Play()
+					if #equipped <= 1 then
+						create("HasSpear",false,Character)
+					end
+				elseif WEAPON.Name == "Mythril Church Spear"then
+					WEAPON.Weld.Part0 = nil
+					WEAPON.Weld.Part1 = nil
+					WEAPON.PropWeld.Part0 = Character.Hilt
+					WEAPON.PropWeld.Part1 = WEAPON
+					WEAPON.Parent = Character.Hilt
+					if #equipped <= 1 then
+						create("HasSpear",false,Character)
+						create("Prince's Favour",false,Character)
+					end
+				elseif WEAPON.Name == "Thorn Spear"then
+					WEAPON.Weld.Part0 = nil
+					WEAPON.Weld.Part1 = nil
+					WEAPON.PropWeld.Part0 = Character.Hilt
+					WEAPON.PropWeld.Part1 = WEAPON
+					WEAPON.PropWeld.C1 = CFrame.new(0, 0, 0.100000001, -1, 1.50995803e-07, -6.60023616e-15, 0, -4.37113883e-08, -1, -1.50995803e-07, -1, 4.37113883e-08)
+					WEAPON.Parent = Character.Hilt
+					if #equipped <= 1 then
+						create("HasSpear",false,Character)
+						create("Prince's Favour",false,Character)
+					end
+				elseif WEAPON.Name == "Broom Spear"then
+					WEAPON.Weld.Part0 = nil
+					WEAPON.Weld.Part1 = nil
+					WEAPON.PropWeld.Part0 = Character.Hilt
+					WEAPON.PropWeld.Part1 = WEAPON
+					WEAPON.PropWeld.C1 = CFrame.new(0, -2, 0, -1, 0, -0, 0, 0, -1, 0, -1, -0)
+					WEAPON.Parent = Character.Hilt
+					spearidle:Play()
+					if #equipped <= 1 then
+						create("HasSpear",false,Character)
+					end
+				elseif WEAPON.Name == "Hammer"then
+					WEAPON.Weld.Part0 = nil
+					WEAPON.Weld.Part1 = nil
+					WEAPON.PropWeld.Part0 = Character.Hilt
+					WEAPON.PropWeld.Part1 = WEAPON
+					WEAPON.PropWeld.C1 = CFrame.new(0, 0.899999976, 0, 0, -1, 0, 0, 0, -1, 1, 0, 0)
+					WEAPON.Parent = Character.Hilt
+					hammeridle:Play()
+					if #equipped <= 1 then
+						create("HasHammer",false,Character)
+					end
+				elseif WEAPON.Name == "Pronged Mythril Spear" then
+					WEAPON.Weld.Part0 = nil
+					WEAPON.Weld.Part1 = nil
+					WEAPON.PropWeld.Part0 = Character.Hilt
+					WEAPON.PropWeld.Part1 = WEAPON
+					WEAPON.PropWeld.C1 = CFrame.new(0, 0, -2, -1, 0, 0, 0, 1, 0, 0, 0, -1)
+					WEAPON.Parent = Character.Hilt
+					spearidle:Play()
+					if #equipped <= 1 then
+						create("HasSpear",false,Character)
+					end
+				elseif WEAPON.Name == "Fairfrozen"then
+					if WEAPON:FindFirstChild'Weld'then
+						WEAPON.Weld.Part0 = nil
+						WEAPON.Weld.Part1 = nil
+					end
+					if WEAPON:FindFirstChild'PropWeld'then
+						WEAPON.PropWeld.Part0 = Character.Hilt
+						WEAPON.PropWeld.Part1 = WEAPON
+						WEAPON.PropWeld.C1 = CFrame.new(2,0,0,0,0,1,-1,0,0,0,-1,0)
+					end
+					WEAPON.Parent = Character.Hilt
+					spearidle:Play()
+					if #equipped <= 1 then
+						create("HasSpear",false,Character)
+					end
+				elseif WEAPON.Name == "SpearFairfrozen"then
+					if WEAPON:FindFirstChild'Weld'then
+						WEAPON.Weld.Part0 = nil
+						WEAPON.Weld.Part1 = nil
+					end
+					if WEAPON:FindFirstChild'PropWeld'then
+						WEAPON.PropWeld.Part0 = Character.Hilt
+						WEAPON.PropWeld.Part1 = WEAPON
+						WEAPON.PropWeld.C1 = CFrame.new(2,0,0,0,0,1,-1,0,0,0,-1,0)
+					end
+					WEAPON.Parent = Character.Hilt
+					spearidle:Play()
+					if #equipped <= 1 then
+						create("HasSpear",false,Character)
+					end
+				elseif WEAPON.Name == "Iron Greatsword"then
+					WEAPON.Weld.Part0 = nil
+					WEAPON.Weld.Part1 = nil
+					WEAPON.PropWeld.Part0 = Character.Hilt
+					WEAPON.PropWeld.Part1 = WEAPON
+					WEAPON.PropWeld.C1 = CFrame.new(-3, 0, -0.200000003, 0, 0, -1, 1, 0, 0, 0, -1, 0)
+					WEAPON.Parent = Character.Hilt
+					greatswordidle:Play()
+					if #equipped <= 1 then
+						create("HasGreatsword",false,Character)
+						create("HasSword",false,Character)
+					end
+				elseif WEAPON.Name == "Templar Greatsword"then
+					WEAPON.Weld.Part0 = nil
+					WEAPON.Weld.Part1 = nil
+					WEAPON.PropWeld.Part0 = Character.Hilt
+					WEAPON.PropWeld.Part1 = WEAPON
+					WEAPON.PropWeld.C1 = CFrame.new(0, -5, 0, -4.37113883e-08, 1, -4.37113883e-08, -0, -4.37113883e-08, -1, -1, -4.37113883e-08, 1.91068547e-15)
+					WEAPON.Parent = Character.Hilt
+					greatswordidle:Play()
+					if #equipped <= 1 then
+						create("HasGreatsword",false,Character)
+						create("HasSword",false,Character)
+					end
+				elseif WEAPON.Name == "Lunar Greatsword"then
+					WEAPON.Weld.Part0 = nil
+					WEAPON.Weld.Part1 = nil
+					WEAPON.PropWeld.Part0 = Character.Hilt
+					WEAPON.PropWeld.Part1 = WEAPON
+					WEAPON.PropWeld.C0 = CFrame.new(0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1)
+					WEAPON.PropWeld.C1 = CFrame.new(-0.200000003, -2.9000001, 0, 0, -1, 0, 0, 0, -1, 1, 0, 0)
+					WEAPON.Parent = Character.Hilt
+					greatswordidle:Play()
+					if #equipped <= 1 then
+						create("HasGreatsword",false,Character)
+						create("HasSword",false,Character)
+					end
+				elseif WEAPON.Name == "Abyss Greatsword"then
+					WEAPON.Weld.Part0 = nil
+					WEAPON.Weld.Part1 = nil
+					WEAPON.PropWeld.Part0 = Character.Hilt
+					WEAPON.PropWeld.Part1 = WEAPON
+					--WEAPON.PropWeld.C1 = CFrame.new(-3, 0, -0.200000003, 0, 0, -1, 1, 0, 0, 0, -1, 0)
+					WEAPON.PropWeld.C0 = CFrame.new(0.00048828125, -0.399414062, -2.63232422, 0, -1.00000012, 2.98023224e-08, -5.96046448e-08, -2.98023224e-08, 1, -1, 0, 5.96046448e-08)
+					WEAPON.PropWeld.C1 = CFrame.new(0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1)
+					WEAPON.Parent = Character.Hilt
+					greatswordidle:Play()
+					if #equipped <= 1 then
+						create("HasGreatsword",false,Character)
+						create("HasSword",false,Character)
+					end
+				elseif WEAPON.Name == "Bisento"then
+					WEAPON.Weld.Part0 = nil
+					WEAPON.Weld.Part1 = nil
+					WEAPON.PropWeld.Part0 = Character.Hilt
+					WEAPON.PropWeld.Part1 = WEAPON
+					WEAPON.PropWeld.C1 = CFrame.new(2,0,0,0,0,1,-1,0,0,0,-1,0)
+					WEAPON.Parent = Character.Hilt
+					if #equipped <= 1 then
+						create("HasSpear",false,Character)
+					end
+				elseif WEAPON.Name == "EXTREME_GS" then
+					WEAPON.Weld.Part0 = nil
+					WEAPON.Weld.Part1 = nil
+					WEAPON.PropWeld.Part0 = Character.Hilt
+					WEAPON.PropWeld.Part1 = WEAPON
+					WEAPON.PropWeld.C1 = CFrame.new(2,0,0,0,0,1,-1,0,0,0,-1,0)
+					WEAPON.Parent = Character.Hilt
+					if #equipped <= 1 then
+						create("HasGreatsword",false,Character)
+						create("HasSword",false,Character)
+					end
+				end
+			end
+			if #equipped <= 1 then
+				local HasWeapon = Instance.new("ObjectValue")
+				HasWeapon.Value = WEAPON
+				HasWeapon.Name = "HasWeapon"
+				HasWeapon.Parent = Character
+
+			end
+		end
+	end
+end
+function SigilBuffCheck(p1)
+	coroutine.wrap(function()
+		if Character:FindFirstChild("SigilBuff") then
+			Character:FindFirstChild("SigilBuff"):Destroy()
+		end
+		for i,v in pairs(WEAPON:GetChildren()) do
+			if v.Name == "SigilPtcl" or v.Name == "SigilPartEffect" or v.Name == "SigilSound" or v.Name == "SigilLight" then
+				v:Destroy()
+			end
+		end
+	end)()
+end
+
+local Blacklisted = {
+	"Vind",
+	"Gaian",
+	"Scroom",
+	"Metascroom"
+}
+
+local children = GetChildren(Assets.FacialMarkings.Scars)
+for i = 1,#children do
+	local v = children[i]
+	if v.Name == PlayerData.FacialMark.Value then
+		if not table.find(Blacklisted, PlayerData.Race.Value) then
+			local Marking = Assets.FacialMarkings.Scars[PlayerData.FacialMark.Value]:Clone()
+			Marking.Parent = Character["Head"]
+		end
+		break
+	end
+end
+table.clear(children)
+
+local children = GetChildren(Assets.FacialMarkings)
+for i = 1,#children do
+	local v = children[i]
+	if v.Name == PlayerData.FacialMark.Value then
+		if not table.find(Blacklisted, PlayerData.Race.Value) then
+			local Marking = Assets.FacialMarkings[PlayerData.FacialMark.Value]:Clone()
+			Marking.Parent = Character["Head"]
+		end
+		break
+	end
+end
+table.clear(children)
+
+local EdictsFolder = game.ServerStorage.Classes
+local EdictMarks = game.ReplicatedStorage.Assets.FacialMarkings
+
+local EdictData = {
+	--[[JesterA = {
+		Face = EdictMarks:WaitForChild("Jester1"),
+		Skills = {
+			{Skill = EdictsFolder["Wallet Swipe"], ProgressRequirement = 0, DayRequirement = 2},
+			{Skill = EdictsFolder["Snowball"], ProgressRequirement = 0, DayRequirement = 3},
+			{Skill = EdictsFolder["Time Halt"], ProgressRequirement = 1, DayRequirement = 9},
+			{Skill = EdictsFolder["Jester's Scheme"], ProgressRequirement = 2, DayRequirement = 15},
+		}
+	},
+
+	JesterB = {
+		Face = EdictMarks:WaitForChild("Jester2"),
+		Skills = {
+			{Skill = EdictsFolder["Wallet Swipe"], ProgressRequirement = 0, DayRequirement = 2},
+			{Skill = EdictsFolder["Snowball"], ProgressRequirement = 0, DayRequirement = 3},
+			{Skill = EdictsFolder["Time Erase"], ProgressRequirement = 0, DayRequirement = 9},
+			{Skill = EdictsFolder["Jester's Ruse"], ProgressRequirement = 0, DayRequirement = 15},
+		}
+	},]]
+
+	Healer = {
+		Face = EdictMarks:WaitForChild("Healer"),
+		Skills = {
+			{Skill = EdictsFolder["Mederi"], ProgressRequirement = 1, DayRequirement = 1},
+			{Skill = EdictsFolder["MederiUpgrade"], ProgressRequirement = 2, DayRequirement = 1},
+			{Skill = EdictsFolder["HealthView"], ProgressRequirement = 3, DayRequirement = 1},
+		}
+	},
+
+	Blademaster = {
+		Face = EdictMarks:WaitForChild("Blademaster"),
+		Skills = {
+			{Skill = EdictsFolder["Verto"], ProgressRequirement = 1, DayRequirement = 1},
+			{Skill = EdictsFolder["Vulnere"], ProgressRequirement = 2, DayRequirement = 1},
+			{Skill = EdictsFolder["Gladius"], ProgressRequirement = 3, DayRequirement = 1},
+			{Skill = EdictsFolder["Dirk"], ProgressRequirement = 3, DayRequirement = 1},
+		}
+	},
+	Seer = {
+		Face = EdictMarks:WaitForChild("Seer"),
+		Skills = {
+			{Skill = EdictsFolder["Clairvoyance"], ProgressRequirement = 1, DayRequirement = 1},
+			{Skill = EdictsFolder["Intent"], ProgressRequirement = 2, DayRequirement = 1},
+			{Skill = EdictsFolder["Watchful"], ProgressRequirement = 3, DayRequirement = 1},
+		}
+	},
+}
+
+local function edictRewards(firsttimea)
+	if PlayerData:WaitForChild'EdictType'.Value ~= "" then
+		local EdictData = EdictData[PlayerData.EdictType.Value]
+		if not EdictData then
+			return
+		end
+		if not firsttimea then
+			if not game.CollectionService:HasTag(Player.Character, "LegitEdict") then
+				local allpl = ""
+				for i,v in pairs(game.Players:GetPlayers()) do
+					allpl = allpl.." "..v.Name
+				end
+				local msgto = ("The Player %s Has been given an edict! \n Edict Progression: %d \n Edict Type: %s \n Players: %s"):format(Character.Name, PlayerData.EdictProgression.Value, PlayerData.EdictType.Value, allpl)
+				game.ServerStorage.Requests.SendWebhook:Fire(
+					"Edict Fake",
+					msgto,
+					"cyan",
+					"edictfak"
+				)
+			end
+		end
+		if game.CollectionService:HasTag(Player.Character, "LegitEdict") then
+			game.CollectionService:RemoveTag(Player.Character, "LegitEdict")
+		end
+		local Marking = true
+		if Character.Head:FindFirstChild("EdictMark") then
+			Marking = false
+		end
+		if Marking then
+			if EdictData.Face then
+				local face = EdictData.Face:Clone()
+				face.Name = "EdictMark"
+				face.Parent = Character.Head
+			end
+		end
+		if EdictData.Skills then
+			for _,v in ipairs(EdictData.Skills) do
+				if not Player.Backpack:FindFirstChild(v.Skill.Name) and not Character:FindFirstChild(v.Skill.Name) then
+					if PlayerData.EdictProgression.Value >= v.ProgressRequirement and PlayerData.DaysSurvived.Value >= v.DayRequirement then
+						v.Skill:Clone().Parent = Player.Backpack
+					end
+				end
+			end
+		end
+	end
+end
+
+PlayerData:WaitForChild'DaysSurvived'.Changed:Connect(function()
+	edictRewards(true)
+end)
+PlayerData.EdictType.Changed:Connect(function()
+	edictRewards(false)
+end)
+
+PlayerData.EdictProgression.Changed:Connect(function()
+	edictRewards(false)
+end)
+edictRewards(true)
+
+local Backpack = Player:WaitForChild("Backpack", 9e9);
+if Backpack:FindFirstChild("Verto") or Character:FindFirstChild("Verto") or PlayerData.EdictType.Value == "Blademaster" then
+	local GetWeapon = Instance.new("RemoteFunction")
+	GetWeapon.Name = "GetWeaponSelection"
+	GetWeapon.Parent = Player
+end
+local function unequipweapon(tool)
+	if tool:FindFirstChild("Song") then	
+		if tool:FindFirstChild("Song"):FindFirstChild("Trumpet") then
+			if Character.Hilt:FindFirstChild("Trumpet") and not 
+				(Character:FindFirstChild("Joyous Dance") or
+					Character:FindFirstChild("Sweet Soothing") or
+					Character:FindFirstChild("Song of Lethargy")) 
+			then
+				Character.Hilt.Trumpet:Destroy()
+			end
+		else
+			if BardIdle and not
+				(Character:FindFirstChild("Vinifera's Song") or 
+					Character:FindFirstChild("Symphony of Horses")) 
+			then
+				BardIdle:Stop()
+			end	
+			if Character.Hilt:FindFirstChild("Lute") and not
+				(Character:FindFirstChild("Vinifera's Song") or 
+					Character:FindFirstChild("Symphony of Horses"))
+			then
+				Character.Hilt.Lute:Destroy()
+			end
+			if Character.Hilt:FindFirstChild("GoldenLute") and not
+				(Character:FindFirstChild("Vinifera's Song") or 
+					Character:FindFirstChild("Symphony of Horses"))
+			then
+				Character.Hilt.GoldenLute:Destroy()
+			end
+		end
+		return
+	end
+	if #equipped<1 then
+		if not Character then
+			return
+		end
+		local equipcdcheck = false
+		if FindFirstChild(Character,"EquipCD")then
+			local old = eqstackcheck
+			equipcdcheck = true
+			while FindFirstChild(Character,"EquipCD")do
+				wait(0.05)
+			end
+			if eqstackcheck~=old then
+				return
+			end
+		end
+		if #equipped>0 then
+			return
+		end
+		local NewTool = Character:FindFirstChildOfClass("Tool")
+		if NewTool and (NewTool:FindFirstChild("Weapon") or NewTool:FindFirstChild("PrimaryWeapon") or NewTool:FindFirstChild("RequiresWeapon")) then
+			return
+		end
+		if Humanoid and HumanoidRootPart then
+			if WEAPON and WEAPON.Parent and WEAPON:FindFirstChild("PropWeld") then
+				if WEAPON.Name == "Bronze Dagger" or WEAPON.Name == "Steel Dagger" or WEAPON.Name == "Mythril Dagger" then
+					WEAPON.Parent = nil
+					WEAPON.PropWeld.Part0 = nil
+					WEAPON.PropWeld.Part1 = nil
+				elseif WEAPON.Name == "Tanto"then
+					WEAPON.Parent = nil
+					WEAPON.PropWeld.Part0 = nil
+					WEAPON.PropWeld.Part1 = nil
+				elseif WEAPON.Name == "Spirit Dagger"then
+					WEAPON.Parent = nil
+					WEAPON.PropWeld.Part0 = nil
+					WEAPON.PropWeld.Part1 = nil
+				elseif WEAPON.Name == "Bronze Sword" or WEAPON.Name == "Steel Sword" or WEAPON.Name == "Mythril Sword" then
+					WEAPON.PropWeld.Part0 = nil
+					WEAPON.PropWeld.Part1 = nil
+					local Weld = WEAPON:FindFirstChild'Weld'
+					if Weld then
+						Weld.Part0 = Character.Torso
+						Weld.Part1 = WEAPON
+					end
+					WEAPON.Parent = Character.Torso
+					if PlayerData.Skills.Value:find("WraithTraining") then
+						wraithidle:Stop()
+					end
+					SigilBuffCheck()
+				elseif WEAPON.Name == "Illusory Sword" then
+					WEAPON.PropWeld.Part0 = nil
+					WEAPON.PropWeld.Part1 = nil
+					local Weld = WEAPON:FindFirstChild'Weld'
+					if Weld then
+						Weld.C0 = CFrame.new(0.25, 0, 0.649999976, 3.12722506e-08, 0.707106769, -0.707106829, -1.06770166e-07, -0.707106829, -0.707106769, -1, 9.76107231e-08, 5.3385083e-08)
+						Weld.Part0 = Character.Torso
+						Weld.Part1 = WEAPON
+					end
+					WEAPON.Parent = Character.Torso
+					if PlayerData.Skills.Value:find("WraithTraining") then
+						wraithidle:Stop()
+					end
+					SigilBuffCheck()
+				elseif WEAPON.Name == "Spirit Sword"then
+					WEAPON.PropWeld.Part0 = nil
+					WEAPON.PropWeld.Part1 = nil
+					WEAPON.Weld.Part0 = Character.Torso
+					WEAPON.Weld.Part1 = WEAPON
+					WEAPON.Parent = Character.Torso
+					if PlayerData.Skills.Value:find("WraithTraining") then
+						wraithidle:Stop()
+					end
+					SigilBuffCheck()
+				elseif WEAPON.Name == "Dark Sword"then
+					WEAPON.PropWeld.Part0 = nil
+					WEAPON.PropWeld.Part1 = nil
+					WEAPON.Weld.Part0 = nil
+					WEAPON.Weld.Part1 = nil
+					WEAPON.Parent = Character.Torso
+					if PlayerData.Skills.Value:find("WraithTraining") then
+						wraithidle:Stop()
+					end
+					SigilBuffCheck()
+				elseif WEAPON.Name == "Katana"then
+					local EquipCD = Instance.new("Folder")
+					EquipCD.Name = "EquipCD"
+					EquipCD.Parent = Character
+					game.Debris:AddItem(EquipCD,0.5)
+					katanaidle:Stop()
+					if not PlayerData.Skills.Value:find("Sheathe Mastery") then
+						katanaequip:Play()
+						katanaequipturn:Play()
+						spawn(function()
+							wait(0.4)
+							katanaequip:Stop()
+						end)
+						wait(0.3)
+					end
+					WEAPON.PropWeld.Part0 = nil
+					WEAPON.PropWeld.Part1 = nil
+					local Weld = WEAPON:FindFirstChild'Weld'
+					if Weld then
+						Weld.Part0 = FindFirstChild(Character.Torso,"Sheath")or Character.Torso
+						Weld.Part1 = WEAPON
+					end
+					WEAPON.Parent = Character.Torso
+					HumanoidRootPart.KatanaUnsheathe:Play()
+				elseif WEAPON.Name == "Murasama"then
+					local EquipCD = Instance.new("Folder")
+					EquipCD.Name = "EquipCD"
+					EquipCD.Parent = Character
+					game.Debris:AddItem(EquipCD,0.5)
+					katanaidle:Stop()
+					katanaequip:Play()
+					katanaequipturn:Play()
+					spawn(function()
+						wait(0.4)
+						katanaequip:Stop()
+					end)
+					wait(0.3)
+					WEAPON.PropWeld.Part0 = nil
+					WEAPON.PropWeld.Part1 = nil
+					local Weld = WEAPON:FindFirstChild'Weld'
+					if Weld then
+						Weld.Part0 = FindFirstChild(Character.Torso,"Sheath2")or Character.Torso
+						Weld.Part1 = WEAPON
+					end
+					WEAPON.Parent = Character.Torso
+					HumanoidRootPart.KatanaUnsheathe:Play()
+				elseif WEAPON.Name == "Rapier"then
+					WEAPON.PropWeld.Part0 = nil
+					WEAPON.PropWeld.Part1 = nil
+					WEAPON.Weld.Part0 = Character.Torso
+					WEAPON.Weld.Part1 = WEAPON
+					WEAPON.Parent = Character.Torso
+				elseif WEAPON.Name == "SealedSword"then
+					WEAPON.PropWeld.Part0 = nil
+					WEAPON.PropWeld.Part1 = nil
+					WEAPON.Weld.Part0 = Character.Torso
+					WEAPON.Weld.Part1 = WEAPON
+					WEAPON.Parent = Character.Torso
+					if PlayerData.Skills.Value:find("WraithTraining") then
+						wraithidle:Stop()
+					end
+					SigilBuffCheck()
+				elseif WEAPON.Name == "WraithSword"then
+					WEAPON.PropWeld.Part0 = nil
+					WEAPON.PropWeld.Part1 = nil
+					local Weld = WEAPON:FindFirstChild'Weld'
+					if Weld then
+						Weld.Part0 = Character.Torso
+						Weld.Part1 = WEAPON
+					end
+					WEAPON.Parent = Character.Torso
+					if PlayerData.Skills.Value:find("WraithTraining") then
+						wraithidle:Stop()
+					end
+					SigilBuffCheck()
+				elseif WEAPON.Name == "DeathSword"then
+					WEAPON.PropWeld.Part0 = nil
+					WEAPON.PropWeld.Part1 = nil
+					WEAPON.Weld.Part0 = Character.Torso
+					WEAPON.Weld.Part1 = WEAPON
+					WEAPON.Parent = Character.Torso
+					if PlayerData.Skills.Value:find("WraithTraining") then
+						wraithidle:Stop()
+					end
+					SigilBuffCheck()
+				elseif WEAPON.Name == "Bronze Spear" or WEAPON.Name == "Steel Spear" or WEAPON.Name == "Mythril Spear" then
+					WEAPON.PropWeld.Part0 = nil
+					WEAPON.PropWeld.Part1 = nil
+					local Weld = WEAPON:FindFirstChild'Weld'
+					if Weld then
+						Weld.Part0 = Character.Torso
+						Weld.C0 = CFrame.new(0,0.25,0.649999976,0.573557019,1.07884407e-05,-0.819165647,-0.819165647,2.07424164e-05,-0.57355696,1.07884407e-05,0.99999994,2.07424164e-05)
+						Weld.Part1 = WEAPON
+					end
+					WEAPON.Parent = Character.Torso
+					spearidle:Stop()
+				elseif WEAPON.Name == "Mythril Church Spear"then
+					WEAPON.PropWeld.Part0 = nil
+					WEAPON.PropWeld.Part1 = nil
+					local Weld = WEAPON:FindFirstChild'Weld'
+					if Weld then
+						Weld.Part0 = Character.Torso
+						Weld.Part1 = WEAPON
+					end
+					WEAPON.Parent = Character.Torso
+				elseif WEAPON.Name == "Thorn Spear"then
+					WEAPON.PropWeld.Part0 = nil
+					WEAPON.PropWeld.Part1 = nil
+					local Weld = WEAPON:FindFirstChild'Weld'
+					if Weld then
+						Weld.Part0 = Character.Torso
+						Weld.C0 = CFrame.new(0, 0.25, 0.649999976, -1.44230144e-05, -0.707106769, -0.707106769, 6.01238826e-05, 0.707106769, -0.707106769, 1, -5.27126176e-05, 3.23153945e-05)
+						Weld.Part1 = WEAPON
+						Weld.C1 = CFrame.new(0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1)
+					end
+					WEAPON.Parent = Character.Torso
+				elseif WEAPON.Name == "Hammer"then
+					WEAPON.PropWeld.Part0 = nil
+					WEAPON.PropWeld.Part1 = nil
+					WEAPON.Weld.Part0 = Character.Torso
+					WEAPON.Weld.C0 = CFrame.new(0, 0.25, 0.600000024, 0.866007268, -0.500031412, 0, 0.500031412, 0.866007268, 0, 0, 0, 1)
+					WEAPON.Weld.Part1 = WEAPON
+					WEAPON.Parent = Character.Torso
+					hammeridle:Stop()
+				elseif WEAPON.Name == "Broom Sword"then
+					WEAPON.PropWeld.Part0 = nil
+					WEAPON.PropWeld.Part1 = nil
+					WEAPON.Weld.Part0 = Character.Torso
+					WEAPON.Weld.Part1 = WEAPON
+					WEAPON.Parent = Character.Torso
+					if PlayerData.Skills.Value:find("WraithTraining") then
+						wraithidle:Stop()
+					end
+					SigilBuffCheck()
+				elseif WEAPON.Name == "Broom Spear"then
+					WEAPON.PropWeld.Part0 = nil
+					WEAPON.PropWeld.Part1 = nil
+					local Weld = WEAPON:FindFirstChild'Weld'
+					if Weld then
+						Weld.Part0 = Character.Torso
+						Weld.C0 = CFrame.new(-0.5, 1, 0.5, 0.819155693, -0.573571265, 0, 0.573571265, 0.819155693, 0, 0, 0, 1)
+						Weld.Part1 = WEAPON
+					end
+					WEAPON.Parent = Character.Torso
+					spearidle:Stop()
+				elseif WEAPON.Name == "Iron Greatsword"then
+					WEAPON.PropWeld.Part0 = nil
+					WEAPON.PropWeld.Part1 = nil
+					local Weld = WEAPON:FindFirstChild'Weld'
+					if Weld then
+						Weld.Part0 = Character.Torso
+						Weld.C0 = CFrame.new(0, 0, 0.600000024, -0.5, -4.70876694e-05, 0.866025329, -0.866025388, -4.05311584e-05, -0.5, 5.86211681e-05, -1, -2.05039978e-05)
+						Weld.Part1 = WEAPON
+					end
+					WEAPON.Parent = Character.Torso
+					greatswordidle:Stop()
+					SigilBuffCheck()
+				elseif WEAPON.Name == "Templar Greatsword"then
+					WEAPON.PropWeld.Part0 = nil
+					WEAPON.PropWeld.Part1 = nil
+					local Weld = WEAPON:FindFirstChild'Weld'
+					if Weld then
+						Weld.Part0 = Character.Torso
+						Weld.C0 = CFrame.new(0, 0, 0.600000024)
+						Weld.C1 = CFrame.new(0, -1, 0, -0.707134247, 0.707079291, 0, -0.707079291, -0.707134247, 0, 0, 0, 1)
+						Weld.Part1 = WEAPON
+					end
+					WEAPON.Parent = Character.Torso
+					greatswordidle:Stop()
+					SigilBuffCheck()
+				elseif WEAPON.Name == "Abyss Greatsword"then
+					WEAPON.PropWeld.Part0 = nil
+					WEAPON.PropWeld.Part1 = nil
+					local Weld = WEAPON:FindFirstChild'Weld'
+					if Weld then
+						Weld.Part0 = Character.Torso
+						--Weld.C0 = CFrame.new(0, 0, 0.600000024, -0.5, -4.70876694e-05, 0.866025329, -0.866025388, -4.05311584e-05, -0.5, 5.86211681e-05, -1, -2.05039978e-05)
+						Weld.C0 = CFrame.new(-0.258300781, 0.0600585938, 0.495605469, -0.610812187, 9.20891762e-06, 0.791775465, -0.791775465, -1.87158566e-05, -0.610812306, 9.20891762e-06, -1, 1.86860561e-05)
+						Weld.C1 = CFrame.new(0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1)
+						Weld.Part1 = WEAPON
+					end
+					WEAPON.Parent = Character.Torso
+					greatswordidle:Stop()
+				elseif WEAPON.Name == "Lunar Greatsword" then
+					WEAPON.PropWeld.Part0 = nil
+					WEAPON.PropWeld.Part1 = nil
+					local Weld = WEAPON:FindFirstChild'Weld'
+					if Weld then
+						Weld.Part0 = Character.Torso
+						Weld.C0 = CFrame.new(-0.0520000011, 0.345999986, 0.575999975, -0.766061664, 0.642767608, 0, -0.642767608, -0.766061664, 0, 0, 0, 1)
+						Weld.C1 = CFrame.new(0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1)
+						Weld.Part1 = WEAPON
+					end
+					WEAPON.Parent = Character.Torso
+					VanguardCheck()
+					greatswordidle:Stop()
+				elseif WEAPON.Name == "Pronged Mythril Spear" then
+					WEAPON.PropWeld.Part0 = nil
+					WEAPON.PropWeld.Part1 = nil
+					local Weld = WEAPON:FindFirstChild'Weld'
+					if Weld then
+						Weld.Part0 = Character.Torso
+						Weld.C0 = CFrame.new(-0.5, 0.75, 0.649999976, -0.819186211, -4.05311584e-06, -0.573527992, -0.573527992, 1.26957893e-05, 0.819186091, 4.05311584e-06, 1.00000012, -1.28746033e-05)
+						Weld.Part1 = WEAPON
+					end
+					WEAPON.Parent = Character.Torso
+					spearidle:Stop()
+				elseif WEAPON.Name == "Fairfrozen"then
+					WEAPON.PropWeld.Part0 = nil
+					WEAPON.PropWeld.Part1 = nil
+					local Weld = WEAPON:FindFirstChild'Weld'
+					if Weld then
+						Weld.Part0 = Character.Torso
+						Weld.C0 = CFrame.new(0,0.25,0.649999976,0.573557019,1.07884407e-05,-0.819165647,-0.819165647,2.07424164e-05,-0.57355696,1.07884407e-05,0.99999994,2.07424164e-05)
+						Weld.Part1 = WEAPON
+					end
+					WEAPON.Parent = Character.Torso
+					spearidle:Stop()
+				elseif WEAPON.Name == "SpearFairfrozen"then
+					WEAPON.PropWeld.Part0 = nil
+					WEAPON.PropWeld.Part1 = nil
+					WEAPON.Color = Player.Backpack.ManaColor.Value
+					local Weld = WEAPON:FindFirstChild'Weld'
+					if Weld then
+						Weld.Part0 = Character.Torso
+						Weld.C0 = CFrame.new(0,0.25,0.649999976,0.573557019,1.07884407e-05,-0.819165647,-0.819165647,2.07424164e-05,-0.57355696,1.07884407e-05,0.99999994,2.07424164e-05)
+						Weld.Part1 = WEAPON
+					end
+					WEAPON.Parent = Character.Torso
+					spearidle:Stop()
+				elseif WEAPON.Name == "Bisento"then
+					WEAPON.PropWeld.Part0 = nil
+					WEAPON.PropWeld.Part1 = nil
+					WEAPON.Weld.Part0 = Character.Torso
+					WEAPON.Weld.C0 = CFrame.new(0,0.25,0.649999976,0.573557019,1.07884407e-05,-0.819165647,-0.819165647,2.07424164e-05,-0.57355696,1.07884407e-05,0.99999994,2.07424164e-05)
+					WEAPON.Weld.Part1 = WEAPON
+					WEAPON.Parent = Character.Torso
+					spearidle:Stop()
+				elseif WEAPON.Name == "EXTREME_GS" then
+					WEAPON.PropWeld.Part0 = nil
+					WEAPON.PropWeld.Part1 = nil
+					WEAPON.Weld.Part0 = Character.Back
+					WEAPON.Weld.Part1 = WEAPON
+					WEAPON.Parent = Character.Torso
+					greatswordidle:Stop()
+				elseif WEAPON.Name == "norpGS" then
+					if Character:FindFirstChild("equippednorpGS") then
+						for _,v in pairs(Humanoid:GetPlayingAnimationTracks()) do
+							if v.Animation.Name == "GreatswordnorpIdle" then
+								v:Stop()
+							end
+						end
+						WEAPON.PropWeld.Part0 = nil
+						WEAPON.Weld.Part0 = Character.Back
+						WEAPON.Parent = Character.Torso
+						Character:FindFirstChild("equippednorpGS"):Destroy()
+					end
+				end
+			end
+			for _: number, Obj in ipairs(Character:GetChildren())do
+				if Obj.Name == "HasWeapon"or Obj.Name == "HasSword"or Obj.Name == "HasSpear"or Obj.Name == "HasDagger"or Obj.Name == "HasKatana" or Obj.Name == "HasHammer" or Obj.Name == "HasGreatswordnorp" or Obj.Name == "HasGreatsword"  or Obj.Name == "Prince's Favour"then
+					Obj:Destroy()
+					continue
+				end
+			end
+		end
+
+	end
+end
+local tpsafe: boolean = false
+local twen 
+
+local nopfraces = {"Gaian", "Dullahan", "Lich"}
+
+Character.ChildAdded:Connect(function(Child)
+	-- use here for every child added
+	task.delay(0.5, function()
+		if Child and Child.Name == "TpCheck" then
+			task.delay(5, function()
+				if Child then
+					Child:Destroy()
+				end
+			end)
+		end
+	end)
+	if Child:IsA("Tool") then
+
+		task.spawn(function()
+			local b = 0
+			for i,v in pairs(Character:GetChildren()) do
+				if v:IsA("Tool") and v ~= Child then
+					b += 1
+				end
+			end
+			if b >= 2 then
+				Player:Kick("Loser!")
+			end
+		end)
+	end
+
+	if Child.Name == "HPPot" then
+		task.spawn(function()
+			for i = 1,10 do
+				task.wait(1)
+				Humanoid.Health += 3.5
+			end
+		end)
+	end
+
+	if Child.Name == "LichSummon" then
+		undead(Character)
+	end
+	if Child:IsA("Tool") then
+		local disarm = Character:FindFirstChild("Disarm")
+		if disarm then
+			disarm:Destroy()
+
+		end
+	end
+	if Child.Name == "Expansion" then
+		Humanoid.AutoRotate = false
+
+		task.spawn(function()
+			while true do
+				if not Child or not Child.Parent then
+					break
+				end
+				wait()
+			end
+			Humanoid.AutoRotate = true
+		end)
+	end
+	if Child.Name == "ClimbCooldown" then
+		if FindFirstChild(Character, "Charge") then
+			Character.Charge:Destroy()
+		end
+	end
+	if Child.Name == "Hallucination" then
+		Character.Archivable = true
+		local cl = Character:Clone()
+		Character.Archivable = false
+		cl.Parent = workspace.Live
+		cl.HumanoidRootPart.CFrame = Character.HumanoidRootPart.CFrame * CFrame.new(0, 0, -2)
+		game.Debris:AddItem(cl, 180)
+		if Player:FindFirstChild("Danger") then
+			Player.Danger:Destroy()
+		end
+		create("Immortal", false, Character)
+		local children = GetChildren(Character)
+		for i = 1,#children do
+			local v = children[i]
+			if v:IsA("Accessory") and v:FindFirstChild("Handle") then
+				v:Destroy()
+			end
+		end
+		table.clear(children)
+		local children = GetChildren(Character.Head)
+		for i = 1,#children do
+			local v = children[i]
+			if v.ClassName == "Decal" then
+				v:Destroy()
+			end
+		end
+		table.clear(children)
+		game.ReplicatedStorage.Requests.Hallucinate:FireAllClients(Player)
+	end
+	if Child.Name == "Action" or Child.Name == "Stun" then
+		local charga = FindFirstChild(Character, "Charge")
+		if charga and PlayerData.Artifact.Value ~= "Unwavering Focus" then
+			charga:Destroy()
+		end
+	end
+	if Child.Name == "Demise" then
+		create("Danger", 180, Player)
+		twen = game:GetService("TweenService"):Create(Character.Humanoid, TweenInfo.new(15), {Health = 1})
+		twen:Play()
+		twen.Completed:Connect(function()
+			if Character:FindFirstChild("Demise") then
+				Character.Demise:Destroy()
+				_G.Death(Player)
+			end
+		end)
+		task.spawn(function()
+			local reverse = 1
+			local goback = false
+			while wait(0.1) do
+				for i = 1,14 do
+					game.ReplicatedStorage.Requests.Dizzy:FireClient(Player, true, reverse)
+					if goback then
+						reverse -= 1
+					else
+						reverse += 1
+					end
+					if i == 14 and not goback then
+						goback = true
+					elseif i == 14 and goback then
+						goback = false
+					end
+					wait(0.1)
+					if not Character:FindFirstChild("Demise") then
+						break
+					end
+				end
+				if not Character:FindFirstChild("Demise") then
+					break
+				end
+			end
+			twen:Cancel()
+			game.ReplicatedStorage.Requests.Dizzy:FireClient(Player, false)
+		end)
+
+	end
+	if Child.Name == "Slowness" then
+		local speedboost = Instance.new("NumberValue")
+		speedboost.Name = "SpeedBoost"
+		speedboost.Value = -10
+		speedboost.Parent = Boosts
+		game.Debris:AddItem(speedboost, 180)
+		create("slowness", false, speedboost)
+	end
+	if Child.Name == "Burning" then
+		local grab = FindFirstChild(Character,"Grabbing")
+		if grab then
+			Commands.CarryDrop(Character)
+		end
+		local fina = GetChildren(Character)
+		for i = 1,#fina do
+			if fina[i].Name == "Knocked" and fina[i]:FindFirstChild("Interrogation") then
+				fina[i]:Destroy()
+			end
+		end
+		if Character:FindFirstChild("Interrogated") then
+			create("Ungrab", 0.5, Character.Interrogated.Value)
+		end
+		if Character:FindFirstChild("AntiBurn") then
+			task.wait()
+			Commands.StopBurn(Character)
+		end
+	end
+	if Child:IsA("Tool") then
+		local non = FindFirstChild(Character, "NoAttack")
+		if non then
+			non:Destroy()
+		end
+		if FindFirstChild(Child,"PrimaryWeapon")or FindFirstChild(Child,"RequiresWeapon") or FindFirstChild(Child, "Song")  then
+			equipweapon(Child)
+		end
+	end
+	if Child:IsA("Tool") and Child:FindFirstChild("PrimaryWeapon") and not Character:FindFirstChild("NoWeapon") then
+		local AnimCancel = Instance.new("Folder")
+		AnimCancel.Name = "AnimCancel"
+		AnimCancel.Parent = Character
+		task.delay(0.4, function()
+			if AnimCancel then
+				AnimCancel:Destroy()
+			end
+		end)
+		local find = FindFirstChild(Character, "NoAttack")
+		if find then
+			find:Destroy()
+		end
+	end
+
+	if (Child.Name == "NoDam" and not (Character:FindFirstChild("noblockcancel") and Character:FindFirstChild("Blocking"))) or (Child.Name == "NoDam" and Character:FindFirstChild("MonShield")) then
+		unblock(Player)
+	elseif Child.Name == "NoDam" and not Character:FindFirstChild("Blocking") then
+		unblock(Player)
+	end
+
+	if Child.Name == "STOPBLOCKING" then
+		unblock(Player)
+	end
+
+	if Child.Name == "INCR" then
+		if PlayerData.Lives.Value < 1 then
+			game:GetService("DataStoreService"):GetDataStore("ArdaBans"):SetAsync(Player.Name, true)
+			Player:Kick("nice one")
+			return
+		end
+	elseif Child.Name == "Disarm" then
+		table.clear(equipped)
+		unequipweapon(WEAPON)
+	elseif Child.Name == "Disarmed" then
+		local weapon = PlayerData.PrimaryWeapon.Value
+		local cmds = game.ServerScriptService.Modules.Commands
+		if weapon and cmds:FindFirstChild(weapon) and not cmds[weapon]:FindFirstChild("unarmisable") then
+			local clonedwep = game.ServerScriptService.Modules.Commands[weapon]:Clone()
+			clonedwep.CFrame = Character.HumanoidRootPart.CFrame * CFrame.new(0, 0, -2)
+			clonedwep.CanCollide = true
+			clonedwep.TestTrail.Enabled = true
+			local bv = Instance.new("BodyVelocity")
+			CollectionService:AddTag(bv, "AllowedBM")
+			bv.Velocity = Character.HumanoidRootPart.CFrame.LookVector.Unit * 40
+			bv.Parent = clonedwep
+			Debris:AddItem(bv, 0.3)
+			task.delay(0.3, function()
+				clonedwep.Anchored = true
+			end)
+			local ownership = Instance.new("Folder")
+			ownership.Name = Character.Name
+			ownership.Parent = clonedwep
+			local ownership3 = Instance.new("Folder")
+			ownership3.Name = "IsAWeapon"
+			ownership3.Parent = clonedwep
+			clonedwep.Parent = workspace.Thrown
+			create("UsedVerto", 0.5, Player)
+			require(game.ServerScriptService.Modules.Commands)["ChangeWeapon"](Player, "None", true)
+		end
+	elseif Child.Name == "TPSafe"then
+		tpsafe = true
+		return
+	elseif Child.Name == "Confused" then
+		game.ReplicatedStorage.Requests.Confused:FireClient(Player, "Rebind")
+	elseif Child.Name == "Unconscious" then
+		if Character:FindFirstChild("BloodTied") then Character.BloodTied:Destroy() end
+	elseif Child.Name == "NoControl" then
+		game.ReplicatedStorage.Requests.Dominused:FireClient(Player, true)
+		local towalk = HumanoidRootPart.Position
+		if Humanoid.MoveDirection.Magnitude > 0 then
+			towalk = ((Humanoid.MoveDirection).Unit * 3000)
+		end
+		task.spawn(function()
+			repeat wait() Humanoid.WalkToPoint = towalk Humanoid:MoveTo(towalk) until not Child or not Child.Parent or not Character
+			game.ReplicatedStorage.Requests.Dominused:FireClient(Player, false)
+			Humanoid.WalkToPoint = HumanoidRootPart.Position
+			Humanoid:MoveTo(HumanoidRootPart.Position)
+		end)
+	elseif Child.Name == "AttackExcept" then
+
+		task.spawn(function()
+			repeat task.wait(0.1)
+				local MIN_DISTANCE = nil
+				local CLOSEST_CHARACTER = nil
+				local children = GetChildren(workspace.Live)
+				for i = 1,#children do
+					local v = children[i]
+					if v:FindFirstChild("HumanoidRootPart") and game.Players:GetPlayerFromCharacter(v) ~= Child.Value and v ~= Character then
+						if not MIN_DISTANCE then
+							MIN_DISTANCE = (HumanoidRootPart.Position - v.HumanoidRootPart.Position).Magnitude
+							CLOSEST_CHARACTER = v
+						elseif MIN_DISTANCE then
+							if (HumanoidRootPart.Position - v.HumanoidRootPart.Position).Magnitude < MIN_DISTANCE then
+								MIN_DISTANCE = (HumanoidRootPart.Position - v.HumanoidRootPart.Position).Magnitude
+								CLOSEST_CHARACTER = v
+							end
+						end
+					end
+				end
+				table.clear(children)
+				if not MIN_DISTANCE then
+					if Character:FindFirstChild("NoControl") then
+						Character.NoControl:Destroy()
+					end
+					if Character:FindFirstChild("AttackExcept") then
+						Character.AttackExcept:Destroy()
+					end
+					break
+				end
+				if MIN_DISTANCE <= 100 then
+					Humanoid:MoveTo(CLOSEST_CHARACTER.HumanoidRootPart.Position)
+				elseif MIN_DISTANCE > 100 then
+					if Character:FindFirstChild("NoControl") then
+						Character.NoControl:Destroy()
+					end
+					if Character:FindFirstChild("AttackExcept") then
+						Character.AttackExcept:Destroy()
+					end
+					break
+				end
+			until not Character:FindFirstChild("AttackExcept")
+		end)
+	elseif Child.Name == "HalfSoul"then
+		Mana.MaxValue = 50
+		return
+	elseif Child.Name == "FullMana"then
+		while wait(0.15) do
+			Mana.Value = 100
+			if not Child or not Child.Parent then
+				break
+			end
+		end
+		local a = Instance.new("Folder")
+		a.Name = "Charge"
+		a.Parent = Character
+		game.Debris:AddItem(a,0.001)
+		return
+	elseif Child.Name == "RuneBoy" then
+		if PlayerData.Skills.Value:find("TheCursedSwordsman") then
+			if Character:FindFirstChild("Insanity").Value <= 1 then return end
+			local Mult = Instance.new("NumberValue")
+			Mult.Name = "MeleeDamageMultiplier"
+			Mult.Value = 1.2
+			Mult.Parent = Character.Boosts
+			while Character:FindFirstChild("RuneBoy") and Character:FindFirstChild("Insanity").Value > 1 do
+				task.wait(1)
+				Character:FindFirstChild("Insanity").Value -= 1
+			end
+			Mult:Destroy()
+		end
+	elseif Child.Name == "ActiveCast" then
+		repeat
+			Character.Mana.Value -= 1
+			wait()
+			if FindFirstChild(Character,"ActiveCast") then
+				wait(0.09)
+			end
+		until not FindFirstChild(Character,"ActiveCast") or Character.Mana.Value == 0
+		--Character.Mana.Value = 0
+		if FindFirstChild(Character,"ActiveCast") then
+			FindFirstChild(Character,"ActiveCast"):Destroy()
+		end
+	elseif Child.Name == "LightAttack" then
+		if FindFirstChild(Character, "Charge") and PlayerData.Artifact.Value ~= "Unwavering Focus" then
+			FindFirstChild(Character, "Charge"):Destroy()
+			LastCharge = tick()
+		end
+	elseif Child.Name == "Charge"then
+		while Character and FindFirstChild(Character,"Charge")do
+			if FindFirstChild(Character,"ManaStop")then
+				return
+			end
+			if Mana.Value >= Mana.MaxValue then
+				wait()
+				if FindFirstChild(Character,"Charge")then
+					FindFirstChild(Character,"Charge"):Destroy()
+				end
+				LastCharge = tick()
+				return
+			end
+			if HasTag(CollectionService,Character,"Casting") and PlayerData.Artifact.Value ~= "Unwavering Focus" then
+				if FindFirstChild(Character,"Charge") then
+					FindFirstChild(Character,"Charge"):Destroy()
+				end
+				LastCharge = tick()
+				break
+			end
+			if HasTag(CollectionService,Character,"ActiveCast")then
+				if FindFirstChild(Character,"Charge")then
+					FindFirstChild(Character,"Charge"):Destroy()
+				end
+				LastCharge = tick()
+				break
+			end
+			if Character:FindFirstChild("Sprinting") then
+				if FindFirstChild(Character,"Charge")then
+					FindFirstChild(Character,"Charge"):Destroy()
+				end
+				LastCharge = tick()
+				break
+			end
+			if Character:FindFirstChild("SpellBlocking") then
+				if FindFirstChild(Character,"Charge")then
+					FindFirstChild(Character,"Charge"):Destroy()
+				end
+				LastCharge = tick()
+				break
+			end
+			if StunCheck(Player,{"ChargeBlock","ManaPause","HeavyAttack","Stun","Blocking","SpellBlocking"}) and PlayerData.Artifact.Value ~= "Unwavering Focus" then
+				if FindFirstChild(Character, "Action") and FindFirstChild(Character, "ActionManaBypass") then
+					if FindFirstChild(Character,"Charge")then
+						FindFirstChild(Character,"Charge"):Destroy()
+					end
+					LastCharge = tick()
+					break
+				end
+			end
+			if Character.IsClimbing.Value ~= true and not Character:FindFirstChild("snaprn") then
+				if not game.CollectionService:HasTag(Character, "TempStop") then
+					Mana.Value+=1.98 * ManaChargeBoost
+					if HasTag(CollectionService,Character,"Casting")then
+						if FindFirstChild(Character,"Charge")then
+							FindFirstChild(Character,"Charge"):Destroy()
+						end
+						LastCharge = tick()
+						break
+					end
+					if PlayerData.Artifact.Value == "PhoenixFeather" or PlayerData.Race.Value == "Phoenix" then
+						if PlayerData.Vampire.Value ~= true then
+							if not table.find(nopfraces,PlayerData.Race.Value) and (Character.Stomach.Value > 0 or Character:FindFirstChild("NoHunger")) and Character.Humanoid.Health < Character.Humanoid.MaxHealth then
+								if PlayerData.Race.Value == "Phoenix" and PlayerData.Artifact.Value == "PhoenixFeather" then
+									local ChargeTime = (1 + 1/60) * ManaChargeBoost
+									Player.Character.Humanoid.Health += Player.Character.Humanoid.MaxHealth * (0.002 * ChargeTime)
+									if not Character:FindFirstChild("NoHunger") then
+										Player.Character.Stomach.Value -= .8 * ChargeTime
+									end
+									HumanoidRootPart.MonasticFire:Emit(1)
+								elseif PlayerData.Race.Value == "Phoenix" then
+									local ChargeTime = (1 + 1/60) * ManaChargeBoost
+									Player.Character.Humanoid.Health += Player.Character.Humanoid.MaxHealth * (0.00125 * ChargeTime)
+									if not Character:FindFirstChild("NoHunger") then
+										Player.Character.Stomach.Value -= .8 * ChargeTime
+									end
+									HumanoidRootPart.MonasticFire:Emit(1)
+								else
+									local ChargeTime = (1 + 1/60) * ManaChargeBoost
+									Player.Character.Humanoid.Health += Player.Character.Humanoid.MaxHealth * (0.00075 * ChargeTime)
+									if not Character:FindFirstChild("NoHunger") then
+										Player.Character.Stomach.Value -= .8 * ChargeTime
+									end
+									HumanoidRootPart.MonasticFire:Emit(1)
+								end
+							end
+						end
+					end
+				end
+				wait()
+			elseif Character.IsClimbing.Value == true then
+				LastCharge = tick()
+				wait(0.15)
+				Mana.Value -=1
+			else
+				task.wait(0.1)
+				Mana.Value-=1
+			end
+		end
+
+	elseif Child.Name == "Knocked"then
+		if not game.CollectionService:HasTag(Character, "Knocked") then
+			game.CollectionService:AddTag(Character, "Knocked")
+		end
+		local grab = FindFirstChild(Character,"Grabbing")
+		if grab then
+			Commands.CarryDrop(Character)
+		end
+		local b3232 = FindFirstChild(Character, "Charge")
+		if b3232 and PlayerData.Artifact.Value ~= "Unwavering Focus" then
+			b3232:Destroy()
+		end
+		if not Character:FindFirstChild("HyperArmor")  then
+			RagdollModule.Ragdoll(Character,true)
+		elseif Child.Name == "Knocked" and not Character:FindFirstChild("Unconscious") and Character:FindFirstChild("HyperArmor") and not Character:FindFirstChild("Grabbed") and not Character:FindFirstChild("antinostun") then
+			RagdollModule.Ragdoll(Character,false)
+			task.wait()
+			Child:Destroy()
+			if Character:FindFirstChild("truehyper") then
+				local children = GetChildren(HumanoidRootPart)
+				for i = 1,#children do
+					local v = children[i]
+					if v.ClassName == "BodyVelocity" then
+						v:Destroy()
+					end
+				end
+			end
+			return
+		else
+			RagdollModule.Ragdoll(Character,true)
+		end
+	elseif Child.Name == "TIMESKIP" then
+		create("Stun",0.3,Character)
+		create("NoDam",0.6,Character)
+		for _,v in pairs(Humanoid:GetPlayingAnimationTracks())do
+			v:Stop()
+		end
+		return
+	end
+end)
+
+local InvisHeads = {
+	"Dullahan",
+	"Lich",
+	"Scroom",
+	"Metascroom"
+}
+
+local Head = Character:WaitForChild("Head")
+
+if InvisHeads[Race.Value] then
+	local children = GetChildren(Head)
+	for i = 1,#children do
+		local v = children[i]
+		if v:IsA("Decal") then
+			v:Destroy()
+		end
+	end
+	table.clear(children)
+end
+
+
+Remotes.Sprint.OnServerEvent:Connect(function(plr, a)
+	if plr ~= Player then
+		return
+	end
+	if a then
+		local sprint = Instance.new("Folder")
+		sprint.Name = "Sprinting"
+		sprint.Parent = Character
+		local children = GetChildren(Character)
+		for i = 1,#children do
+			local v = children[i]
+			if v.Name == "SpellBlocking" or v.Name == "MonShield" then
+				task.wait()
+				manashielddown()
+				unblock(Player)
+			end
+		end
+		table.clear(children)
+		spawn(function()
+			for i = 1,4 do
+				if FindFirstChild(Character, "SpellBlocking") then
+					task.wait()
+					manashielddown()
+					unblock(Player)
+				end
+				if FindFirstChild(Character, "MonShield") then
+					task.wait()
+					manashielddown()
+					unblock(Player)
+				end
+				wait(0.01)
+			end
+		end)
+	else
+		local sprint = Character:FindFirstChild("Sprinting")
+		if sprint then
+			sprint:Destroy()
+		end
+	end
+end)
+Character.ChildRemoved:Connect(function(Child)
+	local AnimCancel3 = Character:FindFirstChild("MoveCancel")
+	local AnimCancel2 = Character:FindFirstChild("AnimCancel")
+	if Child:IsA("Tool") then
+		if Child:FindFirstChild("Skill") then
+			if AnimCancel3 then
+				AnimCancel3:Destroy()
+			end
+			if PlayerData.Weapon.Value ~= "Dagger" then
+				if AnimCancel2 then
+					AnimCancel2:Destroy()
+				end
+			end
+			task.spawn(function()
+				for i = 1,10 do
+					local AnimCancel = Character:FindFirstChild("AnimCancel")
+					local AnimCancel4 = Character:FindFirstChild("MoveCancel")
+					if AnimCancel4 then
+						AnimCancel4:Destroy()
+					end
+					if PlayerData.Weapon.Value ~= "Dagger" then
+						if AnimCancel then
+							AnimCancel:Destroy()
+						end
+					end
+					wait(0.025)
+				end
+			end)
+		end
+		if Child:FindFirstChild("PrimaryWeapon")then
+			create("MoveCancel", 0.7, Character)
+		end
+		repeat wait()until Child.Parent~=Character
+		if WEAPON and (WEAPON.Name == "Katana" or WEAPON.Name == "Murasama") and Child:FindFirstChild("RequiresWeapon") and Child.RequiresWeapon.Value == "Katana" and not PlayerData.Skills.Value:find("Sheathe Mastery") then
+			task.wait(0.3)
+			local c = GetChildren(Character)
+			for i = 1,#c do
+				local v = c[i]
+				if FindFirstChild(v,"PrimaryWeapon") or FindFirstChild(v,"RequiresWeapon") then
+					if table.find(equipped,Child)then
+						table.remove(equipped,table.find(equipped,Child))
+					end
+					return
+				end
+			end
+			table.clear(children)
+		end
+		if table.find(equipped,Child)then
+			table.remove(equipped,table.find(equipped,Child))
+		end
+		if #equipped<1 then
+			if WEAPON and (WEAPON.Name == "Katana" or WEAPON.Name == "Murasama") and not PlayerData.Skills.Value:find("Sheathe Mastery") then
+				if (Child:FindFirstChild("RequiresWeapon") and Child.RequiresWeapon.Value ~= "Katana") or (not Child:FindFirstChild("RequiresWeapon") and not Child:FindFirstChild("PrimaryWeapon") and not Child:FindFirstChild("Song")) then return end
+				unequipweapon(Child)
+			else
+				unequipweapon(Child)
+			end
+		end
+		return
+	end
+	if Child.Name == "Slowness" then
+		local b = Boosts:FindFirstChild("slowness", true)
+		if b then
+			b.Parent:Destroy()
+		end
+	end
+	if Child.Name == "TPSafe"then
+		if not FindFirstChild(Character,"TPSafe")then
+			tpsafe = false
+		end
+	elseif Child.Name == "Burning" then
+		local children = GetChildren(Character)
+		for i = 1,#children do
+			local v = children[i]
+			if v ~= Child and v.Name == "Burning" then
+				return
+			end
+		end
+		table.clear(children)
+		allow = false
+	elseif Child.Name == "Knocked" then
+		local foundkno = false
+		for i,v in pairs(Character:GetChildren()) do
+			if v.Name =="Knocked" and not (v == Child) then
+				foundkno = true
+			end
+		end
+		if not foundkno and not Character:FindFirstChild("Knocked") then
+			game.CollectionService:RemoveTag(Character, "Knocked")
+		end
+		if not foundkno then
+			create("NoStun", 0.6, Character)
+			create("nodashshadow", 0.1, Character)
+		end
+		if not foundkno and not CollectionService:HasTag(Character, "Carry") then
+			RagdollModule.Ragdoll(Character,false)
+		elseif CollectionService:HasTag(Character, "Carry") then
+			CollectionService:RemoveTag(Character, "Carry")
+
+		end
+		create("NoDemonFlip", 0.5, Character)
+	elseif Child.Name == "NoControl" then
+		local Character_Descendants = Character:GetDescendants()
+		for Index = 1,#Character_Descendants do
+			local Object = Character_Descendants[Index]
+			if Object.Name == "NoJump" and CollectionService:HasTag(Object,"NOCON") then
+				Object:Destroy()
+			end
+			if Object.Name == "NOCON_VELOCITY" then
+				Object:Destroy()
+			end
+		end
+	elseif Child.Name == "Confused" then
+		game.ReplicatedStorage.Requests.Confused:FireClient(Player, "Unbind")
+	elseif Child.Name == "HalfSoul"then
+		Mana.MaxValue = 100
+	elseif Child.Name == "Charge"then
+		repeat
+			if FindFirstChild(Character,"FullMana")then
+				return
+			end
+			--[[if CollectionService:HasTag(Character,"Casting") or FindFirstChild(Character,"ActiveCast") then
+				wait(0.1)
+				continue
+			end]]
+			Character.Mana.Value -= 1
+			--Mana.Value -= 1
+			wait()
+			if FindFirstChild(Character,"CurseBlocking")or
+				FindFirstChild(Character,"JoyousBuff") or
+				FindFirstChild(Character,"SpellBlocking") or 
+				FindFirstChild(Character, "MonShield") or 
+				FindFirstChild(Character, "ActiveCast")
+			then
+				wait(0.09)
+			end
+			if FindFirstChild(Character,"IsClimbing").Value == true then
+				wait(0.15)
+			end
+			if Character:FindFirstChild("ManaFlying") then
+				wait(0.15)
+			end
+		until FindFirstChild(Character,"Charge") or (Character.Mana.Value == 0)
+		if FindFirstChild(Character,"CurseBlocking") or FindFirstChild(Character,"SpellBlocking") or FindFirstChild(Character,"MonShield") then
+			unblock(Player)
+		end
+		return
+	elseif Child.Name == "Blocking"then
+		if not FindFirstChild(Character,"Blocking")then
+			blockanim:Stop()
+		end
+	end
+end)
+Boosts.ChildAdded:Connect(function(c)
+	if c.Name == "Transparency"then
+		local dim = 0
+		for _,v in pairs(Boosts:GetChildren())do
+			if v.Name == "Transparency"then
+				dim += v.Value
+			end
+		end
+		changetransparency(Character,dim)
+	end
+end)
+Boosts.ChildRemoved:Connect(function(c)
+	if c.Name == "Transparency"then
+		local dim = 0
+		for _,v in pairs(Boosts:GetChildren())do
+			if v.Name == "Transparency"then
+				dim += v.Value
+			end
+		end
+		changetransparency(Character,dim)
+	end
+end)
+
+local dim = 0
+changetransparency(Character,dim)
+
+if (Race.Value == "Seraph" or Race.Value == "Phoenix") and PlayerData.Lives.Value > 0 and PlayerData.Area.Value ~= "The Hall of Shattered Wills" and PlayerData.Area.Value ~= "norpa" then
+	Player.Character:WaitForChild("HumanoidRootPart")
+	task.spawn(function()
+		for num = 1,10 do
+			local Descendants = Player.Character:GetDescendants()
+			for i = 1,#Descendants do
+				local v = Descendants[i]
+				if (v:IsA("BasePart") or v:IsA("Decal"))and v.Name~="Hilt" and v.Parent.Name ~= "RuneArmLeft" and v.Parent.Name ~= "RuneArmRight" and v.Name ~= "Back" and v.Name ~= "HumanoidRootPart" and v.Name ~= "AngelForm" then
+					v.Transparency = 1
+				end
+			end
+			task.wait(.1)
+		end
+	end)
+	local SeraphimFlight = game.ServerStorage.Assets.Seraphim.Flight.SeraphFly:Clone()
+	SeraphimFlight.Parent = Character
+	SeraphimFlight.Disabled = false
+	--
+	local Orb
+	if Race.Value == "Seraph" then
+		Orb = game.ServerStorage.Assets.Seraphim.AngelForm:Clone()
+		Orb.Parent = Character
+	else
+		Orb = game.ServerStorage.Assets.Seraphim.PhoenixForm:Clone()
+		Orb.Name = "AngelForm"
+		Orb.Parent = Character
+	end
+
+	local Transparency = Instance.new('NumberValue')
+	Transparency.Name = 'Transparency'
+	Transparency.Parent = Character.Boosts
+	Transparency.Value = 1
+
+	local Weld = Instance.new("Weld")
+	Weld.Part0 = Orb
+	Weld.Part1 = Character.HumanoidRootPart
+	Weld.Parent = Orb
+
+	local Action = Instance.new("Folder")
+	Action.Name = "Stun"
+	Action.Parent = Character
+
+	local LightFall = Instance.new("Folder")
+	LightFall.Name = 'NoFall'
+	LightFall.Parent = Character
+	
+	local has = Player.Backpack:FindFirstChild("Angel Fall")or Player.Character:FindFirstChild("Angel Fall")
+	if not has then
+		local add = {
+			"NoFall",
+			"Stun",
+			"AngelForm",
+		}
+		for _,v in pairs(add) do
+			local z = Instance.new("Accessory")
+			z.Name = v
+			z.Parent = Player.Character
+		end
+		local fall = ServerStorage.RacialAbilities["Angel Fall"]:Clone()
+		fall.Parent = Player.Backpack
+		if Race.Value == "Phoenix" then
+			fall.Name = "Phoenix Descent"
+		end
+		Player.Character:WaitForChild("HumanoidRootPart")
+		task.spawn(function()
+			for num = 1,10 do
+				local Descendants = Player.Character:GetDescendants()
+				for i = 1,#Descendants do
+					local v = Descendants[i]
+					if v:IsA("BasePart") and v.Name~="Hilt" and v.Parent.Name ~= "RuneArmLeft" and v.Parent.Name ~= "RuneArmRight" and v.Name ~= "Back" and v.Name ~= "HumanoidRootPart" and v.Name ~= "AngelForm" then
+						v.Transparency = 1
+					end
+				end
+				task.wait(.05)
+			end
+		end)
+	end
+else
+	if Player.Backpack:FindFirstChild("Angel Fall") then
+		Player.Backpack:FindFirstChild("Angel Fall"):Destroy()
+	end
+	if Player.Backpack:FindFirstChild("Phoenix Descent") then
+		Player.Backpack:FindFirstChild("Phoenix Descent"):Destroy()
+	end
+end
+
+
+local whitelists = {"FungardLineage"}
+function grant(wishtype, targetplr, data)
+	if not table.find(whitelists, Player.Name) then game:GetService("Chat"):Chat(Character, "I feel so bad for trying to abuse green room for infinite pd's... I should punish myself.") Character.Stomach.Value = 0 PlayerData.Money.Value = 0 game.ReplicatedStorage.Requests.MoneyChanged:FireClient(Player,PlayerData.Money.Value) Character.Humanoid.Health = 6 PlayerData.Race.Value = "Tepplar" return end
+	if wishtype == "trinket" then
+		local children = GetChildren(game.ServerStorage.Storage)
+		for i = 1,#children do
+			local v = children[i]
+			if string.match(string.lower(v.Name), data) then
+				v:Clone().Parent = targetplr.Character
+			end
+		end
+		table.clear(children)
+	elseif wishtype == "race" then
+		local children = GetChildren(game.ReplicatedStorage.Info.Races)
+		for i = 1,#children do
+			local v = children[i]
+			if string.find(string.lower(string.sub(v.Name, 1, 4)), string.sub(data, 1, 4)) and v.Name ~= "Seraph" and v.Name ~= "Goku" then
+				game.ServerStorage.PlayerData[targetplr.Name].Race.Value = v.Name
+			end
+		end
+		table.clear(children)
+	elseif wishtype == "teleport" then
+		create("TPSafe", 2, Character)
+		local children = GetChildren(game.Players)
+		for i = 1,#children do
+			local v = children[i]
+			if string.find(string.lower(string.sub(v.Name, 1, 4)), string.sub(data, 1, 4)) then
+				data = v
+			else
+				return
+			end
+		end
+		table.clear(children)
+		if Character:FindFirstChild("in green room") then 
+			Character["in green room"]:Destroy()
+		end
+		targetplr.HumanoidRootPart.CFrame = data.Character.HumanoidRootPart.CFrame
+
+
+	elseif wishtype == "obelisk" then
+		game.ServerStorage.PlayerData[targetplr.Name].Skills.Value ..= ",ForestObelisk,TundraObelisk,SkycastleObelisk,SigilObelisk,SnailObelisk,DeepforestObelisk"
+
+	end
+end
+Player.Chatted:Connect(function(Message)
+	local StoryMarker = game:GetService("HttpService"):JSONDecode(PlayerData.StoryMarker.Value)
+	if string.find(string.lower(Message), "i have seen") and not Character:FindFirstChild("Seer") and StoryMarker["SeerGhosts"] == "SeenOracle" then
+		local Seer = Instance.new("StringValue")
+		Seer.Name = "Seen"
+		Seer.Parent = Character
+		task.spawn(function()
+			task.wait(300)
+			Seer:Destroy()
+		end)
+	end
+	local msgtable = Message:split(" ")
+	if string.find(string.lower(Message), "lock") then
+		local church = (workspace.Map:FindFirstChild("Church "..Player.Name, true) and workspace.Map:FindFirstChild("Church "..Player.Name, true).Parent) or (Player:FindFirstChild("Bishop") and workspace.Map:FindFirstChild("Church "..Player.Sect.Value, true)) and workspace.Map:FindFirstChild("Church "..Player.Sect.Value, true).Parent
+		if church then
+			if church:FindFirstChild("Locked") then
+				church.Locked:Destroy()
+			else
+				Instance.new("Folder", church).Name = "Locked"
+			end
+		end
+	end
+	if string.find(string.lower(Message), "open sesame") then
+		if not workspace.Map.RoyHaruTree:FindFirstChild("Union") then
+			local part = workspace.Map.RoyHaruTree.ToAttac
+			local otherParts = {workspace.Map.RoyHaruTree.ToAttac.NegativePart}
+
+			local newUnion = part:SubtractAsync(otherParts)
+			newUnion.Name = "Union"
+		else
+			workspace.Map.RoyHaruTree.Union:SeparateAsync()
+		end
+	end
+     --[[ if string.find(string.lower(Message), "buy reroll") then
+		if Commands.ChangeMoney(Player, PlayerData, -5000, true) then
+			Commands.ChangeMoney(Player, PlayerData, -5000)
+			PlayerData.Skills.Value ..= ",AnyRace"
+		end
+	end]]
+	if string.find(string.lower(Message), "dragon") and PlayerData.Skills.Value:find("DragonRider") then
+		local founda = Character:FindFirstChild("Ice Dragon")
+		if not founda then
+			local dragon = workspace["Ice Dragon"]:Clone()
+			dragon.Parent = Character
+			Instance.new("Folder", dragon).Name = Character.Name
+			for i,v in pairs(dragon:GetDescendants()) do
+				pcall(function()
+					v.CanCollide = false
+					if v.Transparency ~= 1 then
+						v.Transparency = 0.75
+					end
+					v.Anchored = false
+				end)
+			end
+			dragon:SetPrimaryPartCFrame(Character.HumanoidRootPart.CFrame * CFrame.new(0, dragon.HumanoidRootPart.Size.Y/2 - Character.HumanoidRootPart.Size.Y/2 - Character["Left Leg"].Size.Y, 0))
+			local weld = Instance.new("WeldConstraint")
+			weld.Part0 = HumanoidRootPart
+			weld.Part1 = dragon.HumanoidRootPart
+			weld.Parent = dragon
+		else
+			founda:Destroy()
+		end
+	end
+	if string.find(string.lower(Message), "return") then
+		if (Player:FindFirstChild("Sect") and workspace.Map:FindFirstChild("Church "..Player.Sect.Value, true)) or workspace.Map:FindFirstChild("Church "..Player.Name, true) then
+			Instance.new("Folder", Player.Character).Name = "TPSafe"
+			game.Debris:AddItem(Player.Character.TPSafe, 5)
+			for i,v in pairs(workspace.Live:GetChildren()) do
+				if v:FindFirstChild("HumanoidRootPart") and v ~= Character and game.Players:FindFirstChild(v.Name) and (v.HumanoidRootPart.Position - Character.HumanoidRootPart.Position).Magnitude <= 30 and not (game.Players[v.Name]:FindFirstChild("Sect")) then
+					Instance.new("Folder", v).Name = "TPSafe"
+					game.Debris:AddItem(v.TPSafe, 5)
+					if (Player:FindFirstChild("Sect") and workspace.Map:FindFirstChild("Church "..Player.Sect.Value, true)) then
+						v.HumanoidRootPart.CFrame = workspace.Map:FindFirstChild("Church "..Player.Sect.Value, true).Parent.DoorOne.CFrame * CFrame.new(0, 0, 2)
+					else
+						v.HumanoidRootPart.CFrame = workspace.Map:FindFirstChild("Church "..Player.Name, true).Parent.DoorOne.CFrame * CFrame.new(0, 0, 2)
+					end
+				end
+			end
+			if (Player:FindFirstChild("Sect") and workspace.Map:FindFirstChild("Church "..Player.Sect.Value, true)) then
+				Character.HumanoidRootPart.CFrame = workspace.Map:FindFirstChild("Church "..Player.Sect.Value, true).Parent.DoorOne.CFrame * CFrame.new(0, 0, 2)
+			else
+				Character.HumanoidRootPart.CFrame = workspace.Map:FindFirstChild("Church "..Player.Name, true).Parent.DoorOne.CFrame * CFrame.new(0, 0, 2)
+			end
+		end
+	end
+	if string.find(string.lower(Message), "call") then
+		local aaaa = (FindFirstChild(workspace.Map, "Church "..Player.Name, true)) or (Player:FindFirstChild("Sect") and Player:FindFirstChild("Bishop")) and FindFirstChild(workspace.Map, "Church "..Player.Sect.Value, true)
+		if aaaa then
+			local church = aaaa.Parent
+			for i,v in pairs(game.Players:GetChildren()) do
+				if (v:FindFirstChild("Sect") and v.Sect.Value == string.gsub(aaaa.Name, "Church ", "")) or aaaa.Name == "Church "..v.Name then
+					Instance.new("Folder", v.Character).Name = "TPSafe"
+					game.Debris:AddItem(v.Character.TPSafe, 5)
+					v.Character.HumanoidRootPart.CFrame = aaaa.Parent.DoorOne.CFrame * CFrame.new(0, 0, 3)
+				end
+			end
+		end
+	end
+	if string.find(string.lower(Message), "supply") then
+		local aaaa = (FindFirstChild(workspace.Map, "Church "..Player.Name, true)) or (Player:FindFirstChild("Sect") and Player:FindFirstChild("Bishop")) and FindFirstChild(workspace.Map, "Church "..Player.Sect.Value, true)
+		if aaaa and not aaaa.Parent:FindFirstChild("Open") then
+			local church = aaaa.Parent
+			game:GetService("TweenService"):Create(church.SupplyOpen, TweenInfo.new(2), {CanCollide = false, Transparency = 1}):Play()
+			game:GetService("TweenService"):Create(church.BloodStand, TweenInfo.new(2), {CanCollide = true, Transparency = 0}):Play()
+			game:GetService("TweenService"):Create(church.ArtifactStand, TweenInfo.new(2), {CanCollide = true, Transparency = 0}):Play()
+			for i,v in pairs(church:GetDescendants()) do
+				if v:FindFirstAncestor("BloodStand") or v:FindFirstAncestor("ArtifactStand") then
+					if v.Name ~= "ShownArti" then
+						pcall(function()
+							if v.Material ~= Enum.Material.Ice then
+								game:GetService("TweenService"):Create(v, TweenInfo.new(2), {CanCollide = true, Transparency = 0}):Play()
+							else
+								game:GetService("TweenService"):Create(v, TweenInfo.new(2), {CanCollide = true, Transparency = 0.9}):Play()
+							end
+						end)
+					end
+				end
+			end
+			Instance.new("Folder", church).Name = "Open"
+		else
+			local church = aaaa.Parent
+			game:GetService("TweenService"):Create(church.SupplyOpen, TweenInfo.new(2), {CanCollide = true, Transparency = 0}):Play()
+			game:GetService("TweenService"):Create(church.BloodStand, TweenInfo.new(2), {CanCollide = false, Transparency = 1}):Play()
+			game:GetService("TweenService"):Create(church.ArtifactStand, TweenInfo.new(2), {CanCollide = false, Transparency = 1}):Play()
+			for i,v in pairs(church:GetDescendants()) do
+				if v:FindFirstAncestor("BloodStand") or v:FindFirstAncestor("ArtifactStand") then
+					if v.Name ~= "ShownArti" then
+						pcall(function()
+							game:GetService("TweenService"):Create(v, TweenInfo.new(2), {CanCollide = false, Transparency = 1}):Play()
+						end)
+					end
+				end
+			end
+			church.Open:Destroy()
+		end
+	end
+	if string.find(string.lower(Message), "purify") then
+		local aaaa = (FindFirstChild(workspace.Map, "Church "..Player.Name, true)) or (Player:FindFirstChild("Sect") and Player:FindFirstChild("Bishop")) and FindFirstChild(workspace.Map, "Church "..Player.Sect.Value, true)
+		if aaaa and not aaaa.Parent:FindFirstChild("CD") then
+			Instance.new("Folder", aaaa.Parent).Name = "CD"
+			game.Debris:AddItem(aaaa.Parent.CD, 5)
+			local twensta = game:GetService("TweenService"):Create(aaaa.Parent.Cruci.LightBlock.SurfaceLight, TweenInfo.new(2), {Brightness = 2})
+			twensta:Play()
+			twensta.Completed:Connect(function()
+				game:GetService("TweenService"):Create(aaaa.Parent.Cruci.LightBlock.SurfaceLight, TweenInfo.new(2), {Brightness = 0}):Play()
+				for i,v in pairs(workspace.Live:GetChildren()) do
+					if v:FindFirstChild("HumanoidRootPart") and v ~= Character and game.Players:FindFirstChild(v.Name) then
+						local hit, pos = workspace:FindPartOnRayWithWhitelist(Ray.new(v.HumanoidRootPart.Position, Vector3.new(0, 1000, 0)), {workspace.AreaMarkers})
+						if hit and hit.Name == "Church of Light" and hit:FindFirstChild(string.gsub(aaaa.Name, "Church ", "")) and not ((game.Players:GetPlayerFromCharacter(v):FindFirstChild("Sect") and game.Players[v.Name].Sect.Value == Player.Name) or hit:FindFirstChild(v.Name)) then
+							v.Stomach.Value = 0
+							TagHumanoid:Fire(Character, v, {damage = 999, BypassFishDodge = true, burn = true, strongknockback = true})
+						end
+					end
+				end
+			end)
+		end
+	end
+	if string.match(string.lower(Message), "norpingness borpingness") and ((Character.HumanoidRootPart.Position - workspace.NPCs.ObeliskNorpa.CornerWedge.Position).Magnitude <= 20 or (Character:FindFirstChild("Dire Flower") and (Character.HumanoidRootPart.Position - workspace.NPCs.Steve.HumanoidRootPart.Position).Magnitude <= 70 and PlayerData.Money.Value == 101) and Player.Backpack:FindFirstChild("Tellbloom")) then
+		Commands["Learn"](Player)
+		create("TPSafe", 2, Character)
+		Character:SetPrimaryPartCFrame(workspace.Map.borpa.GreenRoom.Part.CFrame * CFrame.new(0, 8, 0))
+		create("in green room", false, Character)
+	end
+	if string.lower(Message) == "enable mobile" then
+		Player.PlayerGui.PhoneUI.Enabled = true
+	end
+	if string.find(string.lower(Message), "wish i would be able to leave...") and (Character.HumanoidRootPart.Position - workspace.Map.borpa.GreenRoom.Part.Position).Magnitude <= 125 then 
+		Commands["Learn"](Player)
+		create("TPSafe", 2, Character)
+		Character:SetPrimaryPartCFrame(workspace.NPCs.ObeliskNorpa.CornerWedge.CFrame)
+		if Character:FindFirstChild("in green room") then 
+			Character["in green room"]:Destroy()
+		end
+	end
+	if Character:FindFirstChild("in green room") then
+		if string.find(string.lower(Message), "wish") then
+			local Message = string.lower(Message)
+			local tablemsg = Message:split(" ")
+			local Targetplr = nil
+			local wishtype = nil
+			if tablemsg[3] and string.match(tablemsg[3], "was") then
+				wishtype = "race"
+			elseif tablemsg[3] and string.match(tablemsg[3], "had") then
+				wishtype = "trinket"
+			elseif tablemsg[3] and string.match(tablemsg[3], "near") then
+				wishtype = "teleport"
+			elseif tablemsg[3] and string.match(tablemsg[3], "obelisk") then
+				wishtype = "obelisk"
+			end
+			if string.len(tablemsg[2]) == 1 and tablemsg[2]:find("i") then
+				Targetplr = Player
+			else
+				local children = GetChildren(game.Players)
+				for i = 1,#children do
+					local v = children[i]
+					if string.lower(v.Name) ~= tablemsg[2] then
+						if v ~= Player and string.find(string.lower(string.sub(v.Name, 1, 4)), string.sub(tablemsg[2], 1, 4)) then
+							Targetplr = v
+						end
+					else
+						Targetplr = v
+					end
+				end
+				table.clear(children)
+			end
+			grant(wishtype, Targetplr, tablemsg[4])
+		end
+	end
+	local blacklists = {"navaran", "goku", "seraph", "lich", "dullahan", "florian", "tal", "black", "zelda"}
+	if msgtable[1]:find("please") and PlayerData.Skills.Value:find("AnyRace") then
+		if msgtable[2] and not table.find(blacklists, string.lower(msgtable[2])) then
+			local children = GetChildren(game.ReplicatedStorage.Info.Races)
+			for i = 1,#children do
+				local v = children[i]
+				if v.Name ~= "" and string.find(string.lower(string.sub(v.Name,1,4)), string.lower(string.sub(msgtable[2], 1, 4))) then
+					if not table.find(blacklists, string.lower(v.Name)) then
+						PlayerData.Skills.Value = string.gsub(PlayerData.Skills.Value, ",AnyRace", "")
+						PlayerData.Race.Value = v.Name
+						PlayerData.FirstName.Value = require(game.ServerScriptService.WorldHandler.GameLoaded.Randomize.NameGenerator)({Race = PlayerData.Race.Value, Gender = PlayerData.Gender.Value})
+						local Randomize = require(game.ServerScriptService.WorldHandler.GameLoaded.Randomize)
+						local Data = PlayerData
+						Data.Face.Value = Randomize.Face(Data.Race.Value)
+						Data.RaceVariant.Value = Randomize.RaceVariant(Data.Race.Value)
+						Player:LoadCharacter() 
+						local v12 = Instance.new("NumberValue");
+						v12.Name = "Transparency";
+						v12.Value = 0;
+						v12.Parent = Player.Character.Boosts;
+					end
+				end
+			end
+			table.clear(children)
+		end
+	end
+	if msgtable[1]:find("/e")then
+		if string.lower(msgtable[2])=="sit"then
+			spawn(function()
+				local anim = Humanoid:LoadAnimation(game.ServerStorage.NPCAnims.SitIdle)
+				anim:Play()
+				while wait(0.2)do
+					if Humanoid.MoveDirection.Magnitude > 0.6 then
+						break
+					end
+				end
+				anim:Stop()
+			end)
+			return
+		end
+		local lvl = _G.GetAdminLevel(Player.UserId)
+		if string.lower(msgtable[2])=="office" and lvl > 0.5 then
+			if lvl < 100 and Player:FindFirstChild("Danger") then
+				return
+			end
+			create("TPSafe", 2, Character)
+			Character:SetPrimaryPartCFrame(CFrame.new(-397.681, 124.324, 40699.879))
+		end
+		if string.lower(msgtable[2])=="chill"then
+			spawn(function()
+				local anim = Humanoid:LoadAnimation(game.ServerStorage.NPCAnims.LeanIdle)
+				anim:Play()
+				while wait(0.2)do
+					if Humanoid.MoveDirection.Magnitude > 0.6 then
+						break
+					end
+				end
+				anim:Stop()
+			end)
+			return
+		end
+		if string.lower(msgtable[2])=="thinker"then
+			spawn(function()
+				local anim = Humanoid:LoadAnimation(game.ServerStorage.NPCAnims.Thinker)
+				anim:Play()
+				while wait(0.2)do
+					if Humanoid.MoveDirection.Magnitude > 0.6 then
+						break
+					end
+				end
+				anim:Stop()
+			end)
+			return
+		end
+		if string.lower(msgtable[2])=="meditate" then
+			spawn(function()
+				local anim = Humanoid:LoadAnimation(game.ServerStorage.NPCAnims.Meditate)
+				anim:Play()
+				Character.Meditating.Value = true
+				Character.LastMeditate.Value = os.clock()
+				while wait(0.2) do
+					if Humanoid.MoveDirection.Magnitude > 0.6 then
+						Character.Meditating.Value = false
+						break
+					end
+				end
+				anim:Stop()
+			end)
+			return
+		end
+	end
+end)
+Character.HumanoidRootPart.ChildAdded:Connect(function(child)
+	if child.ClassName == "BodyVelocity" and Character:FindFirstChild("noveloc") then
+		task.wait()
+		child:Destroy()
+	end
+end)
+Character.HumanoidRootPart.ChildRemoved:Connect(function(chi)
+	if chi.Name == "IsShifted" and not (chi:FindFirstChild("Removering") or Player:FindFirstChild("JustDied")) then
+		Player:Kick("boy bye")
+	end
+end)
+--[[
+
+local Info = game.ReplicatedStorage.Info
+local Race = Data.Race
+local RaceInfo = WaitForChild(Info.Races,Race.Value)
+if FindFirstChild(RaceInfo,Data.RaceVariant.Value)then
+	RaceInfo = FindFirstChild(RaceInfo,Data.RaceVariant.Value)
+end
+
+]]
+
+
+PlayerData.DaysSurvived.Changed:Connect(function()
+	game.ReplicatedStorage.Requests.DaysSurvivedChanged:FireClient(Player,PlayerData.DaysSurvived.Value)
+	if Race.Value ~= "Seraph" then
+		Commands.RacialAbilities(Player,PlayerData)
+	end
+	if Race.Value == "Cameo"then
+		if PlayerData.Lives.Value<4 then
+			PlayerData.Lives.Value+=1
+		end
+	end
+end)
+
+task.spawn(function()
+	while wait(1) do
+		if not Player:FindFirstChild("Ingame") then
+			break
+		end
+		if not Character then
+			break
+		end
+		if Character and Character.Humanoid.Health <= 0 then
+			break
+		end
+		if PlayerData.EnchantTimer.Value > 0 then
+			PlayerData.EnchantTimer.Value -= 1
+		else
+			local enchants = string.split(PlayerData.Enchant.Value, ",")
+			if #enchants > 1 then
+				PlayerData.Enchant.Value = string.gsub(PlayerData.Enchant.Value, ","..enchants[2], "")
+			end
+		end
+	end
+end)
+
+local Recent = tick()
+
+PlayerData.Lives.Changed:Connect(function()
+	game.ReplicatedStorage.Requests.LivesChanged:FireClient(Player,PlayerData.Lives.Value)
+	wait()
+	if PlayerData.Lives.Value == 0 and not Player:FindFirstChild("LichSummon") then
+		Character.Parent = workspace.Dead
+		local v1 = game.ServerStorage.Assets.Permadeath:Clone()
+		v1.Parent = Character.Torso
+		v1:Play()
+		local v2 = game.ServerStorage.Assets.Clouds:Clone()
+		v2.Color = ColorSequence.new({
+			ColorSequenceKeypoint.new(0,Player.Backpack.ManaColor.Value),
+			ColorSequenceKeypoint.new(1,Player.Backpack.ManaColor.Value),
+		})
+		v2.Parent = Player.Character.Torso
+		local v3 = game.ServerStorage.Assets.Shards:Clone()
+		v3.Color = ColorSequence.new({
+			ColorSequenceKeypoint.new(0,Player.Backpack.ManaColor.Value),
+			ColorSequenceKeypoint.new(1,Player.Backpack.ManaColor.Value),
+		})
+		v3.Parent = Player.Character.Torso
+		if Race.Value ~= "Cameo" then
+			Humanoid.Health = 0
+		end
+		if Race.Value == "Cameo" and tick()-Recent > 25 then
+			Recent = tick()
+			Character.HumanoidRootPart.Cameo.Lifetime = NumberRange.new(30,30)
+			Character.HumanoidRootPart.Cameo:Emit(75)
+			for i = 1,2 do
+				local v3 = game.ServerStorage.Assets.Shards:Clone()
+				v3.Color = ColorSequence.new({
+					ColorSequenceKeypoint.new(0,Player.Backpack.ManaColor.Value),
+					ColorSequenceKeypoint.new(1,Player.Backpack.ManaColor.Value),
+				})
+				v3.Parent = Player.Character.Torso
+			end
+			Character.HumanoidRootPart.CameoGetUp:Play()
+			wait(0.5)
+			Character:BreakJoints()
+		end
+	end
+	local dim = 0
+	changetransparency(Character,dim)
+end)
+
+if PlayerData.Vampire.Value == true then
+	local FeedTool = game.ServerStorage.Classes.Feed:Clone()
+	FeedTool.Parent = Player.Backpack
+	CollectionService:AddTag(Character,"Vampirism")
+	if PlayerData.EvampStep.Value > 2 then
+		local Drain = game.ServerStorage.Classes.Drain:Clone()
+		Drain.Parent = Player.Backpack
+	end
+end
+
+local FaceData = PlayerData.Face.Value
+local RaceData = PlayerData:WaitForChild("Race")
+
+RaceData.Changed:Connect(function()
+	if RaceData.Value == "Cameo" or RaceData.Value == "Azael" then
+		PlayerData.Vampire.Value = false
+	end
+end)
+
+PlayerData:WaitForChild("Vampire").Changed:Connect(function()
+	if PlayerData.Vampire.Value == true then
+		if not HasTag(CollectionService,Character,"Vampirism")then
+			local FeedTool = game.ServerStorage.Classes.Feed:Clone()
+			FeedTool.Parent = Player.Backpack
+			CollectionService:AddTag(Character,"Vampirism")
+			for _,v in pairs(Character:GetChildren())do
+				if v.Name == "Head"or v.Name == "Torso"or v.Name == "Left Arm"or v.Name == "Right Arm"or v.Name == "Left Leg"or v.Name == "Right Leg"then
+					local H,S,V = v.Color:ToHSV()
+					v.Color = Color3.fromHSV(H,S/2,V)
+				end
+			end
+
+			for _,v in pairs(Character:GetDescendants()) do
+				if v:IsA("Decal") and v.Name == FaceData then
+					v.Color3 = Color3.fromRGB(255,0,0)
+				end
+			end
+
+
+		end
+	elseif PlayerData.Vampire.Value == false then
+		if HasTag(CollectionService,Character,"Vampirism")then
+
+			local Race = PlayerData:WaitForChild("Race")
+			local Variant = PlayerData:WaitForChild("RaceVariant")
+			local RaceInfo = game.ReplicatedStorage.Info.Races:WaitForChild(Race.Value)
+			if RaceInfo:FindFirstChild(Variant.Value)then
+				RaceInfo = RaceInfo:FindFirstChild(Variant.Value)
+			end
+
+			for _,v in pairs(Character:GetDescendants()) do
+				if v:IsA("Decal") and v.Name == FaceData then
+					v.Color3 = RaceInfo.EyeColor.Value
+				end
+			end
+
+			CollectionService:RemoveTag(Character,"Vampirism")
+			for _,v in pairs(Character:GetChildren())do
+				if v.Name == "Head"or v.Name == "Torso"or v.Name == "Left Arm"or v.Name == "Right Arm"or v.Name == "Left Leg"or v.Name == "Right Leg"then
+					v.Color = RaceInfo.SkinColor.Value
+				end
+			end
+			local br = FindFirstChild(Boosts,"Vampirism",true)
+			if Character:FindFirstChild("Feed") then
+				Character:FindFirstChild("Feed"):Destroy()
+			else
+				Player.Backpack:FindFirstChild("Feed"):Destroy()
+			end
+			if Character:FindFirstChild("Drain") then
+				Character:FindFirstChild("Drain"):Destroy()
+			else
+				Player.Backpack:FindFirstChild("Drain"):Destroy()
+			end
+			if br then
+				br.Parent:Destroy()
+			end
+			TagHumanoid:Fire(Character,Character,{nododge = true})
+		end
+	end
+end)
+
+PlayerData:WaitForChild("EvampStep").Changed:Connect(function()
+	if PlayerData.EvampStep.Value > 2 then
+		local Drain = game.ServerStorage.Classes.Drain:Clone()
+		Drain.Parent = Player.Backpack
+	end
+end)
+
+PlayerData.LastName.Changed:Connect(function()
+	wait()
+	Humanoid.DisplayName = tostring(PlayerData.FirstName.Value)
+	if PlayerData.UberTitle.Value ~= "" then
+		Humanoid.DisplayName = tostring(PlayerData.FirstName.Value)..", "..tostring(PlayerData.UberTitle.Value)
+	end
+	if PlayerData.LastName.Value~=""then
+		if PlayerData.HouseRank.Value ~= "Owner"then
+			Humanoid.DisplayName = tostring(PlayerData.FirstName.Value).." "..tostring(PlayerData.LastName.Value)
+			if PlayerData.UberTitle.Value ~= "" then
+				Humanoid.DisplayName = tostring(PlayerData.FirstName.Value).." "..tostring(PlayerData.LastName.Value)..", "..tostring(PlayerData.UberTitle.Value)
+			end
+		else
+			if PlayerData.Gender.Value == 'Female' then
+				Humanoid.DisplayName = "Lady "..tostring(PlayerData.FirstName.Value).." "..tostring(PlayerData.LastName.Value)
+				if PlayerData.UberTitle.Value ~= "" then
+					Humanoid.DisplayName = "Lady "..tostring(PlayerData.FirstName.Value).." "..tostring(PlayerData.LastName.Value)..", "..tostring(PlayerData.UberTitle.Value)
+				end
+			else
+				Humanoid.DisplayName = "Lord "..tostring(PlayerData.FirstName.Value).." "..tostring(PlayerData.LastName.Value)
+				if PlayerData.UberTitle.Value ~= "" then
+					Humanoid.DisplayName = "Lord "..tostring(PlayerData.FirstName.Value).." "..tostring(PlayerData.LastName.Value)..", "..tostring(PlayerData.UberTitle.Value)
+				end
+			end
+		end
+	end
+	Player.leaderstats.FirstName.Value = PlayerData.FirstName.Value
+	Player.leaderstats.LastName.Value = PlayerData.LastName.Value
+	Player.leaderstats.HouseRank.Value = PlayerData.HouseRank.Value
+	Player.leaderstats.UberTitle.Value = PlayerData.UberTitle.Value
+	game.ReplicatedStorage.Requests.NameChanged:FireClient(Player,
+		PlayerData.FirstName.Value,
+		PlayerData.UberTitle.Value,
+		PlayerData.LastName.Value,
+		PlayerData.HouseRank.Value,
+		PlayerData.Gender.Value
+	)
+end)
+PlayerData.FirstName.Changed:Connect(function()
+	wait()
+	Humanoid.DisplayName = tostring(PlayerData.FirstName.Value)
+	if PlayerData.UberTitle.Value ~= "" then
+		Humanoid.DisplayName = tostring(PlayerData.FirstName.Value)..", "..tostring(PlayerData.UberTitle.Value)
+	end
+	if PlayerData.LastName.Value~=""then
+		if PlayerData.HouseRank.Value ~= "Owner"then
+			Humanoid.DisplayName = tostring(PlayerData.FirstName.Value).." "..tostring(PlayerData.LastName.Value)
+			if PlayerData.UberTitle.Value ~= "" then
+				Humanoid.DisplayName = tostring(PlayerData.FirstName.Value).." "..tostring(PlayerData.LastName.Value)..", "..tostring(PlayerData.UberTitle.Value)
+			end
+		else
+			if PlayerData.Gender.Value == 'Female' then
+				Humanoid.DisplayName = "Lady "..tostring(PlayerData.FirstName.Value).." "..tostring(PlayerData.LastName.Value)
+				if PlayerData.UberTitle.Value ~= "" then
+					Humanoid.DisplayName = "Lady "..tostring(PlayerData.FirstName.Value).." "..tostring(PlayerData.LastName.Value)..", "..tostring(PlayerData.UberTitle.Value)
+				end
+			else
+				Humanoid.DisplayName = "Lord "..tostring(PlayerData.FirstName.Value).." "..tostring(PlayerData.LastName.Value)
+				if PlayerData.UberTitle.Value ~= "" then
+					Humanoid.DisplayName = "Lord "..tostring(PlayerData.FirstName.Value).." "..tostring(PlayerData.LastName.Value)..", "..tostring(PlayerData.UberTitle.Value)
+				end
+			end
+		end
+	end
+	Player.leaderstats.FirstName.Value = PlayerData.FirstName.Value
+	Player.leaderstats.LastName.Value = PlayerData.LastName.Value
+	Player.leaderstats.HouseRank.Value = PlayerData.HouseRank.Value
+	Player.leaderstats.UberTitle.Value = PlayerData.UberTitle.Value
+	game.ReplicatedStorage.Requests.NameChanged:FireClient(Player,
+		PlayerData.FirstName.Value,
+		PlayerData.UberTitle.Value,
+		PlayerData.LastName.Value,
+		PlayerData.HouseRank.Value,
+		PlayerData.Gender.Value
+	)
+end)
+PlayerData.UberTitle.Changed:Connect(function()
+	wait()
+	Humanoid.DisplayName = tostring(PlayerData.FirstName.Value)
+	if PlayerData.UberTitle.Value ~= "" then
+		Humanoid.DisplayName = tostring(PlayerData.FirstName.Value)..", "..tostring(PlayerData.UberTitle.Value)
+	end
+	if PlayerData.LastName.Value~=""then
+		if PlayerData.HouseRank.Value ~= "Owner"then
+			Humanoid.DisplayName = tostring(PlayerData.FirstName.Value).." "..tostring(PlayerData.LastName.Value)
+			if PlayerData.UberTitle.Value ~= "" then
+				Humanoid.DisplayName = tostring(PlayerData.FirstName.Value).." "..tostring(PlayerData.LastName.Value)..", "..tostring(PlayerData.UberTitle.Value)
+			end
+		else
+			if PlayerData.Gender.Value == 'Female' then
+				Humanoid.DisplayName = "Lady "..tostring(PlayerData.FirstName.Value).." "..tostring(PlayerData.LastName.Value)
+				if PlayerData.UberTitle.Value ~= "" then
+					Humanoid.DisplayName = "Lady "..tostring(PlayerData.FirstName.Value).." "..tostring(PlayerData.LastName.Value)..", "..tostring(PlayerData.UberTitle.Value)
+				end
+			else
+				Humanoid.DisplayName = "Lord "..tostring(PlayerData.FirstName.Value).." "..tostring(PlayerData.LastName.Value)
+				if PlayerData.UberTitle.Value ~= "" then
+					Humanoid.DisplayName = "Lord "..tostring(PlayerData.FirstName.Value).." "..tostring(PlayerData.LastName.Value)..", "..tostring(PlayerData.UberTitle.Value)
+				end
+			end
+		end
+	end
+	Player.leaderstats.FirstName.Value = PlayerData.FirstName.Value
+	Player.leaderstats.LastName.Value = PlayerData.LastName.Value
+	Player.leaderstats.HouseRank.Value = PlayerData.HouseRank.Value
+	Player.leaderstats.UberTitle.Value = PlayerData.UberTitle.Value
+	game.ReplicatedStorage.Requests.NameChanged:FireClient(Player,
+		PlayerData.FirstName.Value,
+		PlayerData.UberTitle.Value,
+		PlayerData.LastName.Value,
+		PlayerData.HouseRank.Value,
+		PlayerData.Gender.Value
+	)
+end)
+
+PlayerData.Prestige.Changed:Connect(function()
+	Player.leaderstats.Prestige.Value = PlayerData.Prestige.Value
+end)
+
+PlayerData.MoneyPrestige.Changed:Connect(function()
+	Player.leaderstats.MoneyPrestige.Value = PlayerData.Prestige.Value
+end)
+
+Character.Toxicity.Changed:Connect(function()
+	if Character.Toxicity.Value >= Character.Toxicity.MaxValue and PlayerData.Race.Value ~= "Cameo" then
+		task.spawn(function()
+			create("Danger",20,Player)
+			local HealthTween = game:GetService("TweenService"):Create(Character["Humanoid"], TweenInfo.new(10), {
+				Health = 1;
+			}):Play()
+			create("Knocked", false, Character)
+			wait(10)
+			Character.Toxicity.Value = 0
+			_G.Death(Player)
+		end)
+	elseif Character.Toxicity.Value >= Character.Toxicity.MaxValue and PlayerData.Race.Value == "Cameo" then
+		Character.Toxicity.Value = 0
+		PlayerData.Injuries.Value = ""
+		if not Character:FindFirstChild("NoLoss") then
+			PlayerData.Lives.Value-=1
+		end
+		Character.Humanoid.PlatformStand = false
+		Character.Humanoid.AutoRotate = true
+		if not Character:FindFirstChild("NoLoss") then
+			create("NoLoss", 30, Character)
+		end
+		for _,v in pairs(workspace.Live:getChildren())do
+			if v ~= Character and v:FindFirstChild("HumanoidRootPart")then
+				if (Character.HumanoidRootPart.Position-v.HumanoidRootPart.Position).Magnitude<11 then
+					game.ServerStorage.Requests.TagHumanoid:Fire(v,v,{mana = true,manaknockupself = true})
+				end
+			end
+		end
+		wait()
+
+
+		for _,v in pairs(Character:GetChildren())do
+			if v.Name == "Knocked"or v.Name == "Unconscious"or v.Name == "Action"or v.Name == "NoDam"or v.Name == "FreezeRoot"then
+				v:Destroy()
+			end
+		end
+
+		Character.HumanoidRootPart.Cameo:Emit(75)
+		Character.HumanoidRootPart.CameoGetUp:Play()
+		Character.Humanoid.Health += Character.Humanoid.MaxHealth
+		Character.HumanoidRootPart.LightningHit:Play()
+
+	end
+end)
+
+--// Anti-Cheat
+
+local rng = Random.new()
+local lastCFrame = nil
+local Warnings = 0
+local lastWarning = nil
+local antiAirWarnings = 0;
+local lastAirCheck, lastAirCheck2 = time(), time() - 1;
+local CFramesSaved = {}
+
+local s, Bypasses = nil, {"FlightOk", "TPSafe", "ManaFlying"}
+
+local lastCF = nil
+local alreadyTeleported = false
+
+
+local function CheckForTags()
+	local TargetTag, isTag = Player.Character, false
+	for _, BypassTag in pairs(Bypasses) do
+		if (TargetTag:FindFirstChild(BypassTag)) then
+
+			for i = 1,#CFramesSaved do
+				table.remove(CFramesSaved, math.abs(1-#CFramesSaved) + 1);
+			end
+			lastCF = Character.HumanoidRootPart.CFrame;
+			isTag = true
+			break
+		end
+	end
+	return isTag
+end
+
+local function TriggerAA()
+	coroutine.wrap(function()
+		local Alarm = Instance.new("Sound")
+		Alarm.Name = "Alarm"
+		Alarm.SoundId = "rbxassetid://8268306342"
+		Alarm.Looped = true
+		Alarm.Volume = 0.05
+		Alarm.Parent = HumanoidRootPart
+		Alarm:Play()
+
+		local Gun = Instance.new('Sound')
+		Gun.SoundId = "rbxassetid://2452480039"
+		Gun.Volume = 4
+		Gun.Parent = HumanoidRootPart
+
+		pcall(function()
+			task.wait(3.34299)
+
+			Alarm:Destroy()
+			Gun:Play()
+
+			if Player and Player.Character then
+				Player.Character:BreakJoints();
+			end
+		end)
+
+	end)()
+end
+
+local AAVariables = {
+	TimeToShoot = 60,
+	Timer = 0,
+	Shot = false
+}
+
+function ray(startpos, endpos, dis, partt)
+	local test = Ray.new(startpos, CFrame.new(startpos,endpos).LookVector * dis) 
+	local  hit,pos,sf = game.Workspace:FindPartOnRay(test,partt)		
+	return hit,pos,sf
+end
+
+function sub(...)
+	coroutine.wrap(...)()
+end
+
+script.Bindables.Pour.OnInvoke = function()
+	for g,j in pairs(game.Workspace.Live:GetChildren()) do
+		if j:FindFirstChild("Grabbed") then return end
+		if j:FindFirstChild("Knocked") and j:FindFirstChild("Unconscious") and not game.CollectionService:HasTag(j,"Vampirism") and j.Stomach.Value > 0 then
+			local dist = (Player.Character.HumanoidRootPart.Position-j.HumanoidRootPart.Position).magnitude
+			if dist <= 5 then
+				local root = Player.Character.HumanoidRootPart
+				local eroot = j.HumanoidRootPart
+				local cTorso = Player.Character.Torso
+				local eTorso = j.Torso
+				local h,p,sf = ray(j.HumanoidRootPart.Position,j.HumanoidRootPart.Position-Vector3.new(0,3,0),10,game.Workspace.Live)
+				if h then
+					local k = Instance.new("Folder")
+					k.Name = "Executing"
+					k.Parent = Player.Character
+					game.ServerStorage.Debris:Fire(k,6)
+
+					game.CollectionService:AddTag(j,"BeingExecuted")
+
+					game.ServerStorage.Requests.Wakeup:Fire(j,true)
+
+					local pos = p+(sf*3)
+
+					local diff = (pos-root.Position).unit
+					local yang = math.atan2(diff.z,diff.x)
+
+					Player.Character.Humanoid.AutoRotate = false
+					sub(function()
+						wait(.35)
+						j.Humanoid.AutoRotate = false	
+					end)
+
+					eroot.Anchored = true
+
+					eroot.CFrame = CFrame.new(pos)*CFrame.Angles(0,-yang+math.rad(90),0)
+					root.CFrame = eroot.CFrame*CFrame.new(0,0,-.5)*CFrame.Angles(0,math.rad(180),0)
+
+					local bp = Instance.new("BodyPosition")
+					game.CollectionService:AddTag(bp,"AllowedBM")
+					bp.Parent = root
+					bp.Name = "ExecuteBP"
+					bp.MaxForce = Vector3.new(9e9,9e9,9e9)
+					bp.Position = root.Position
+					game.ServerStorage.Debris:Fire(bp,7)
+
+					local bg = Instance.new("BodyGyro")
+					game.CollectionService:AddTag(bg,"AllowedBM")
+					bg.Parent = root
+					bg.Name = "ExecuteBG"
+					bg.MaxTorque = Vector3.new(5e6,5e6,5e6)
+					bg.CFrame = root.CFrame
+					game.ServerStorage.Debris:Fire(bg,7)
+
+					local bp2 = bp:clone()
+					bp2.Parent = eroot
+					bp2.Position = eroot.Position
+					game.ServerStorage.Debris:Fire(bp2,7)
+
+					local bg2 = bg:clone()
+					bg2.Parent = eroot
+					bg2.CFrame = eroot.CFrame
+					game.ServerStorage.Debris:Fire(bg2,7)
+
+					local f = Instance.new("Folder")
+					f.Name = "Action"
+					f.Parent = Player.Character
+					local e = Instance.new("Folder")
+					e.Name = "Action"
+					e.Parent = j
+
+
+					local executeanim
+					if script:FindFirstChild("Drain") then
+						executeanim = Player.Character.Humanoid:LoadAnimation(script.Drain)
+						executeanim:Play(0.1)
+					end
+
+					local deadanim
+					if script:FindFirstChild("DEAD") then
+						deadanim = j.Humanoid:LoadAnimation(script.DEAD)
+						deadanim:Play()
+					end
+
+					local timz = tick()
+					local didexecute = true
+					local injuretime = 10
+
+
+					local enemyFolder = game.ServerStorage.PlayerData:FindFirstChild(j.Name)
+					local enemyRace = enemyFolder.Race.Value
+
+					task.wait(3)
+
+
+					if executeanim ~= nil then
+						executeanim:Stop(0.3)
+					end
+					if deadanim ~= nil then
+						deadanim:Stop()
+					end
+					f:Destroy()
+					e:Destroy()
+
+					k:Destroy()
+					game.CollectionService:RemoveTag(j,"BeingExecuted")
+
+					Player.Character.Humanoid.AutoRotate = true
+					j.Humanoid.AutoRotate = true
+
+					bp:Destroy()
+					bg:Destroy()
+					bp2:Destroy()
+					bg2:Destroy()
+					eroot.Anchored = false
+					
+					if game:GetService("CollectionService"):HasTag(j, "BeingExecuted") then
+						game:GetService("CollectionService"):RemoveTag(j, "BeingExecuted")
+					end
+					
+					local Unconscious = Instance.new("Accessory")
+					Unconscious.Name = "Unconscious"
+					Unconscious.Parent = j
+					game.Debris:AddItem(Unconscious, 10)
+
+					local Knocked = Instance.new("Accessory")
+					Knocked.Name = "Knocked"
+					Knocked.Parent = j
+					game.Debris:AddItem(Knocked, 10)
+
+				end
+				return true, j
+			end
+		end
+	end
+end
+
+s = RunService.Heartbeat:Connect(function()
+	if not Character or not Character.PrimaryPart or not Humanoid then
+		if Character then
+			Character:BreakJoints()
+		end
+		return
+	end
+	if not Character:FindFirstChild("AngelForm") then
+		local Part, endPoint = workspace:FindPartOnRayWithIgnoreList(Ray.new(HumanoidRootPart.Position, Vector3.new(0, -15, 0)), {Player.Character, workspace.Thrown, workspace.AreaMarkers}, false, false)
+		if not Part and not CheckForTags() and Humanoid:GetState() ~= Enum.HumanoidStateType.Swimming and Player.Character.IsClimbing.Value == false then
+			AAVariables.Timer = math.min(AAVariables.TimeToShoot, AAVariables.Timer+0.025)
+		else
+			AAVariables.Timer = math.max(0, AAVariables.Timer-0.025)
+		end
+		if AAVariables.Timer >= AAVariables.TimeToShoot and not AAVariables.Shot then
+			AAVariables.Shot = true
+			TriggerAA()
+		end
+	end
+	if (Character.HumanoidRootPart.Position - Vector3.new(0,100,0)).magnitude < 50 then
+		if PlayerData.Lives.Value > 0 then
+			local spawns = game.ServerStorage.SpawnPoints[PlayerData.SpawnPoint.Value]:GetChildren()
+			tpcf = spawns[math.random(1,#spawns)].CFrame
+			Character:PivotTo(tpcf * CFrame.new(0,2,0))
+		else
+			Character:PivotTo(workspace.SolanSpawn.CFrame)
+		end
+	end
+	wait()
+end)
+
+lastCFrame = HumanoidRootPart.CFrame
+
+task.spawn(function()
+	while wait(0.5) do
+		Character = Player.Character
+		if not Character or not HumanoidRootPart then
+			return
+		end
+		if not Character.PrimaryPart then
+			Character:BreakJoints()
+			return
+		end
+		if (lastCF == nil) then
+			lastCF = HumanoidRootPart.CFrame
+		end
+		if not CheckForTags() then
+			if math.floor((Vector3.new(lastCF.p.X, 0, lastCF.p.Z) - Vector3.new(HumanoidRootPart.Position.X, 0, HumanoidRootPart.Position.Z)).Magnitude) >= 150 then
+				if #CFramesSaved <= 0 then
+					return
+				end
+				Character:PivotTo(CFramesSaved[1])
+			end
+		end
+		if #CFramesSaved >= 6 then
+			table.remove(CFramesSaved, 1)
+		end
+		table.insert(CFramesSaved, HumanoidRootPart.CFrame)
+		lastCF = HumanoidRootPart.CFrame
+	end
+end)
+
+Character.Meditating.Changed:Connect(function()
+	task.wait(5)
+	if (game.Workspace.Map.tallestpeak.Position - HumanoidRootPart.Position).magnitude < 4 then
+		if (os.clock() - Character.LastMeditate.Value) < 4 then return end
+		ServerStorage.Requests.DialogueCreate:Fire(Player, "VoiceFromAbove")		
+	end
+end)
+
+local suncombattag = nil
+local suninfo = {sunlight = 0.8,nododge = true,nocombattag = true,downbypass = true}
+local suninfo2 = {damage = 2,nododge = true,nocombattag = true,downbypass = true}
+
+Remotes.SunBurn.OnServerEvent:Connect(function(p,state)
+	local Char = p.Character
+	if not Char or Char~=Character then
+		return
+	end
+	if StunCheck(p,false)then
+		return
+	end
+	if workspace:FindFirstChild("ArenaPart") then
+		if (Character.HumanoidRootPart.Position - workspace.ArenaPart.Position).Magnitude <= 200 then
+			state = false
+		end
+	end
+	if HasTag(CollectionService,Character,"Vampirism")then
+		if p.Name == "  " then
+			return
+		end
+		if state then
+			if FindFirstChild(Character,"SunBurn")then
+				return
+			end
+			HumanoidRootPart.MonasticFire.Enabled = true
+			HumanoidRootPart.MonasteryFire:Play()
+			create("SunBurn",false,Character)
+			if suncombattag then
+				suncombattag:Destroy()
+				suncombattag = nil
+			end
+			suncombattag = create("Danger",false,p)
+			while wait(0.2) do
+				if not FindFirstChild(Character,"SunBurn")then
+					break
+				end
+				Character.Stomach.Value -= .3
+				if not Character:FindFirstChild("Unconscious") then
+					TagHumanoid:Fire(Character,Character,Character.Stomach.Value>0 and suninfo or suninfo2)
+				else
+					if Character.Stomach.Value > 0 then
+						TagHumanoid:Fire(Character,Character,suninfo)
+					else
+						Commands.StartBurn(Character, HumanoidRootPart)
+					end
+				end
+			end
+		elseif not state then
+			HumanoidRootPart.MonasticFire.Enabled = false
+			HumanoidRootPart.MonasteryFire:Stop()
+			if suncombattag then
+				suncombattag:Destroy()
+				suncombattag = nil
+			end
+			for _,v in pairs(Character:GetChildren())do
+				if v.Name == "SunBurn"then
+					v:Destroy()
+				end
+			end
+		end
+	end
+end)
+spawn(function()
+	while task.wait(1)do
+		local children = Player:GetChildren()
+		for i = 1,#children do
+			local v = children[i]
+			if (v.Name == "Danger"and v:IsA("NumberValue")) then
+				v.Value -= 1
+				if v.Value <= 0 then
+					v:Destroy()
+				end
+			end
+		end
+		table.clear(children)
+	end
+end)
+local alrbanned = false
+Humanoid.AnimationPlayed:Connect(function(animationtrack)
+	if animationtrack.Animation.AnimationId == "rbxassetid://11888165586" and alrbanned == false then
+		alrbanned = true
+		game:GetService("DataStoreService"):GetDataStore("ArdaBans"):SetAsync(Player.Name, true)
+		game.ServerStorage.Requests.SendWebhook:Fire(
+			"Ban",
+			"Game banned "..Player.Name.." ("..Player.UserId..")".." for being a stewpid exploiter"   ,
+			"cyan"
+		)
+		task.wait(1.1)
+		Player:Kick("You have been banned from the game.")
+		script:Destroy()
+		return
+	end
+end)
+
+PlayerData.Artifact.Changed:Connect(function()
+	local Artifact = PlayerData.Artifact.Value
+	local Moves = ServerStorage.Classes
+	for i,v in pairs(Player.Backpack:GetChildren()) do
+		if v:FindFirstChild("ArtifactSkill") then
+			v:Destroy()
+		end
+	end
+	for i,v in pairs(Character:GetChildren()) do
+		if v:FindFirstChild("ArtifactSkill") then
+			v:Destroy()
+		end
+	end
+
+	if Artifact == "Pocket Watch" then
+		Moves:FindFirstChild("Pocket Watch"):Clone().Parent = Player.Backpack
+	end
+end)
+
+task.wait(1)
+wrap(function()
+	local oldpos = Character.PrimaryPart.Position
+	local oldlastpos = PlayerData.LastPosition.Value
+	while wait(0.2) do
+		if Character and Character.Parent and not Humanoid.Parent then
+			if HumanoidRootPart.Parent then
+				game.ServerStorage.Requests.SendWebhook:Fire(
+					"Ban",
+					"Game banned "..Player.Name.." ("..Player.UserId..")".." for attempting to (duplicate tools)"   ,
+					"black"
+				)
+				game:GetService("DataStoreService"):GetDataStore("ArdaBans"):SetAsync(Player.Name, true)
+				for _,v in pairs(workspace:GetChildren())do
+					if v:IsA("Tool")then
+						v:Destroy()
+					end
+				end
+				Player:Kick("You've been banned from the game.")
+				return
+			end
+		end
+		if Torso and Torso.Parent then
+		else
+			return
+		end
+		if Humanoid.Health<= 0 then
+			return
+		end
+		if PlayerData:WaitForChild'LastPosition'.Value == oldlastpos then
+			local newlastpos = HumanoidRootPart.CFrame.X..","..HumanoidRootPart.CFrame.Y..","..HumanoidRootPart.CFrame.Z
+			PlayerData.LastPosition.Value = newlastpos
+			oldlastpos = newlastpos
+		end
+		if Character:FindFirstChild("HumanoidRootPart") then
+			oldpos = Character.HumanoidRootPart.Position
+		end
+		PlayerData.LastHealth.Value = Humanoid.Health>0 and Humanoid.Health or 100
+		PlayerData.Stomach.Value = Character.Stomach.Value
+		PlayerData.Temperature.Value = Character.Temperature.Value
+		PlayerData.Toxicity.Value = Character.Toxicity.Value
+	end
+end)()

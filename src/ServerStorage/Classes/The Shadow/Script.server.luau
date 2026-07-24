@@ -1,0 +1,98 @@
+local u3 = require(game.ServerScriptService.Modules.HitDetection)
+local TweenService = game:GetService("TweenService")
+local function ActionCheck(Parent): boolean
+	if Parent:FindFirstChild("Stun") then
+		return true
+	end
+	if Parent:FindFirstChild("NoDam") then
+		return true
+	end
+	if Parent:FindFirstChild("ReturnStun") then
+		return true
+	end
+	if Parent:FindFirstChild("Action") then
+		return true
+	end
+	if Parent:FindFirstChild("Blocking") then
+		return true
+	end
+	if Parent:FindFirstChild("ActiveCast") then
+		return true
+	end
+	if Parent:FindFirstChild("Unconscious") then
+		return true
+	end
+	if Parent:FindFirstChild("Knocked") then
+		return true
+	end
+	return false
+end
+local canuse: boolean = true
+local effectcd: boolean = false
+local function invis(Target, Transparency, State)
+	if not effectcd then
+		Target.HumanoidRootPart.ShadowEmitter:Emit(20)
+		effectcd = true
+		task.delay(1, function()
+			effectcd = false
+		end)
+	end
+	if not State then
+		for i,v in pairs(Target.Boosts:GetChildren()) do
+			if v.Name == "Transparency" then
+				task.wait()
+				v:Destroy()
+			end
+		end
+	else
+		local Invis = Instance.new("NumberValue")
+		Invis.Value = Transparency
+		Invis.Name = "Transparency"
+		Invis.Parent = Target.Boosts
+	end
+end
+local detect
+script.Parent.Equipped:Connect(function(Player, Character)
+	Character = script.Parent.Parent
+	Player = game.Players:GetPlayerFromCharacter(Character)
+	if Character.Humanoid.MoveDirection.Magnitude>0 then
+		return
+	end
+	if not canuse then
+		return
+	end
+	canuse = false
+	task.delay(0.5, function()
+		canuse = true
+	end)
+	invis(Character, 1, true)
+	task.spawn(function()
+		while true do
+			if Character.Humanoid.MoveDirection.Magnitude > 0.1 then
+				break
+			end
+			wait()
+		end
+		Character.Humanoid:UnequipTools()
+	end)
+	if detect then
+		detect:Disconnect()
+		detect = nil
+	end
+	detect = Character.ChildAdded:Connect(function(child)
+		if child.Name == "NoDam" then
+			Character.Humanoid:UnequipTools()
+		end
+	end)
+end)
+script.Parent.Unequipped:Connect(function(Player, Character)
+	Player = script.Parent.Parent.Parent
+	if detect then
+		detect:Disconnect()
+		detect = nil
+	end
+	if Player.Character then
+		Character = Player.Character
+		invis(Character, 1, false)
+	end
+end)

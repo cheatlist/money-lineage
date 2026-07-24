@@ -1,0 +1,7 @@
+script.Parent.Sound:Play()
+wait(1)
+game.TweenService:Create(script.Parent.Hint,TweenInfo.new(0.75),{Position = UDim2.new(0,0,0,0)}):Play()
+wait(15)
+game.TweenService:Create(script.Parent.Hint,TweenInfo.new(0.75),{Position = UDim2.new(0,0,-0.5,0)}):Play()
+wait(3)
+script.Parent:Destroy()

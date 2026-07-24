@@ -1,0 +1,32 @@
+{
+  "name": "money lineage",
+  "tree": {
+    "$className": "DataModel",
+    "ReplicatedStorage": {
+      "$keepUnknowns": true,
+      "$path": "src/ReplicatedStorage"
+    },
+    "ServerScriptService": {
+      "$keepUnknowns": true,
+      "$path": "src/ServerScriptService"
+    },
+    "StarterPlayer": {
+      "StarterPlayerScripts": {
+        "$keepUnknowns": true,
+        "$path": "src/StarterPlayerScripts"
+      },
+      "StarterCharacterScripts": {
+        "$keepUnknowns": true,
+        "$path": "src/StarterCharacterScripts"
+      }
+    },
+    "ServerStorage": {
+      "$keepUnknowns": true,
+      "$path": "src/ServerStorage"
+    },
+    "StarterGui": {
+      "$keepUnknowns": true,
+      "$path": "src/StarterGui"
+    }
+  }
+}
