@@ -884,27 +884,7 @@ local InCR = PlayerData.Area.Value=="Lannis's Lab"or PlayerData.Area.Value=="Cas
 if InCR then
 	PlayerData.LastPosition.Value = "N/A"
 end
-local ultraclass3 = {
-	"Faceless",
-	"Oni",
-	"Whisper",
-	"Shinobi",
-	"Candence",
-	"DarkSigilKnight",
-	"SigilKnightCommander",
-	"Ronin",
-	"DeepKnight",
-	"Lapidarist",
-	"AbyssWalker",
-	"DragonSlayer",
-	"Florist",
-	"Master Illusionist",
-	"Master Necromancer",
-	"DragonSage",
-	"Abysswalker",
-	"Wanderer",
-	"Atlas"
-}
+local ultraclass3 = require(game.ServerScriptService.WorldHandler.ClassData).ultraclass3
 if table.find(ultraclass3, PlayerData.Class.Value) or PlayerData.Hybrid.Value ~= "" then
 	PlayerData.IsUltra.Value = true
 end
