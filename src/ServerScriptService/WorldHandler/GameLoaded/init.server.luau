@@ -147,6 +147,7 @@ _G.MageClasses = {
 	"Master Necromancer",
 	"MasterNecromancer",
 }
+require(script.ClassDataDriftCheck)(_G.MageClasses, "_G.MageClasses")
 
 _G.TeamAPoints = 0
 _G.TeamBPoints = 0
