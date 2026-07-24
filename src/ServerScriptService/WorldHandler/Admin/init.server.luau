@@ -9,6 +9,7 @@ local PlayerData = game:GetService("ServerStorage").PlayerData
 local remote = game:GetService('ReplicatedStorage'):WaitForChild'Requests':WaitForChild'GlobalMessage'
 local DS2 = game:GetService("ServerScriptService").Modules.DataStore2
 local clientNotify = game.ReplicatedStorage.Requests.ClientMessage
+local Module = require(script.GetClasses)
 local CommandsModule = require(game:GetService("ServerScriptService").Modules.Commands)
 local PlayerData = game.ServerStorage.PlayerData
 local ms = game:GetService("MemoryStoreService")
