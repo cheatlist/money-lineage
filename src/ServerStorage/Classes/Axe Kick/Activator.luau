@@ -1,38 +1,11 @@
 local l__TagHumanoid__2 = game.ServerStorage.Requests.TagHumanoid
-function ActionCheck(p1)
-	if not p1:FindFirstChild("Humanoid") then
-		return true
-	end
-	if p1:FindFirstChild("Stun") then
-		return true
-	end
-	if p1:FindFirstChild("ReturnStun") then
-		return true
-	end
-	if p1:FindFirstChild("ActiveCast") then
-		return true
-	end
-	if p1:FindFirstChild("Action") then
-		return true
-	end
-	if p1:FindFirstChild("Immortal") then
-		return true
-	end
-	if p1:FindFirstChild("Blocking") then
-		return true
-	end
-	if p1:FindFirstChild("SpellBlocking") then
-		return true
-	end
-	if p1.Humanoid.Health == 0 then
-		return true
-	end
-	if p1:FindFirstChild("Climbing") then
-
-	else
-		return
-	end
-	return true
+local ActionCheckModule = require(game.ServerScriptService.Modules.ActionCheck)
+local function ActionCheck(p1)
+	return ActionCheckModule(p1, {
+		absentBlocks = {"Humanoid"},
+		presentBlocks = {"Stun","ReturnStun","ActiveCast","Action","Immortal","Blocking","SpellBlocking","Climbing"},
+		healthAtOrBelow = 0,
+	})
 end
 function ray(p2, p3, p4, p5)
 	local v3, v4, v5 = workspace:FindPartOnRay(Ray.new(p2, CFrame.new(p2, p3).LookVector * p4), p5)

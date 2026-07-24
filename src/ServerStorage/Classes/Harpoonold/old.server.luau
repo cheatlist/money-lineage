@@ -12,44 +12,14 @@ end;
 local Debounce = false
 local HoldingM1 = false
 
-function ActionCheck(Character)
-	if not Character:FindFirstChild("Humanoid") then
-		return true
-	end
-	if Character:FindFirstChild("Stun") then
-		return true
-	end
-	if Character:FindFirstChild("ReturnStun") then
-		return true
-	end
-	if Character:FindFirstChild("Action") then
-		return true
-	end
-	if Character:FindFirstChild("Blocking") then
-		return true
-	end
-	if Character:FindFirstChild("SpellBlocking") then
-		return true
-	end
-	if Character.Humanoid.Health == 0 then
-		return true
-	end
-	if Character:FindFirstChild("Climbing") then
-		return true
-	end
-	if Character:FindFirstChild("ActiveCast") then
-		return true
-	end
-	if Character:FindFirstChild("Immortal") then
-		return true
-	end
-	if game.CollectionService:HasTag(Character, "Unconscious") then
-		return true
-	end
-	if game.CollectionService:HasTag(Character, "Knocked") then
-		return true
-	end
-	return false
+local ActionCheckModule = require(game.ServerScriptService.Modules.ActionCheck)
+local function ActionCheck(Character)
+	return ActionCheckModule(Character, {
+		absentBlocks = {"Humanoid"},
+		presentBlocks = {"Stun","ReturnStun","Action","Blocking","SpellBlocking","Climbing","ActiveCast","Immortal"},
+		presentTagBlocks = {"Unconscious","Knocked"},
+		healthAtOrBelow = 0,
+	})
 end
 
 script.Parent.Activated:Connect(function()

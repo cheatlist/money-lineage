@@ -2,30 +2,12 @@ local assets = game.ServerStorage.Assets
 local u3 = require(game.ServerScriptService.Modules.HitDetection)
 local module = {}
 local cd = false
-function ActionCheck(p1)
-	if p1.Humanoid.Health <= 0 then
-		return true
-	end
-	if p1:FindFirstChild("Stun") then
-		return true
-	end
-	if p1:FindFirstChild("ReturnStun") then
-		return true
-	end
-	if p1:FindFirstChild("ActiveCast") then
-		return true
-	end
-	if p1:FindFirstChild("Action") then
-		return true
-	end
-	if p1:FindFirstChild("Blocking") then
-		return true
-	end
-	if p1:FindFirstChild("Climbing") then
-	else
-		return
-	end
-	return true
+local ActionCheckModule = require(game.ServerScriptService.Modules.ActionCheck)
+local function ActionCheck(p1)
+	return ActionCheckModule(p1, {
+		presentBlocks = {"Stun", "ReturnStun", "ActiveCast", "Action", "Blocking", "Climbing"},
+		healthAtOrBelow = 0,
+	})
 end
 function Anchor(Target, Statement)
 	if Statement then

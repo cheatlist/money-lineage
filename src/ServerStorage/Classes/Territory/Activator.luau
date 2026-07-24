@@ -1,46 +1,15 @@
 local v1 = {};
 local l__TagHumanoid__2 = game.ServerStorage.Requests.TagHumanoid;
 
-function ActionCheck(l__Parent__1)
-	if not l__Parent__1:FindFirstChild("Humanoid") then
-		return true;
-	end;
-	if l__Parent__1:FindFirstChild("Stun") then
-		return true;
-	end;
-	if l__Parent__1:FindFirstChild("ReturnStun") then
-		return true;
-	end;
-	if l__Parent__1:FindFirstChild("Action") then
-		return true;
-	end;
-	if l__Parent__1:FindFirstChild("Blocking") then
-		return true;
-	end;
-	if l__Parent__1:FindFirstChild("SpellBlocking") then
-		return true;
-	end;
-	if l__Parent__1.Humanoid.Health == 0 then
-		return true;
-	end;
-	if l__Parent__1:FindFirstChild("Climbing") then
-		return true;
-	end;
-	if l__Parent__1:FindFirstChild("ActiveCast") then
-		return true;
-	end;
-	if game.CollectionService:HasTag(l__Parent__1, "Unconscious") then
-		return true;
-	end;
-	if game.CollectionService:HasTag(l__Parent__1, "Knocked") then
-		return true;
-	end;
-	if l__Parent__1:FindFirstChild("Immortal") then
-	else
-		return;
-	end;
-	return true;
-end;
+local ActionCheckModule = require(game.ServerScriptService.Modules.ActionCheck)
+local function ActionCheck(l__Parent__1)
+	return ActionCheckModule(l__Parent__1, {
+		absentBlocks = {"Humanoid"},
+		presentBlocks = {"Stun", "ReturnStun", "Action", "Blocking", "SpellBlocking", "Climbing", "ActiveCast", "Immortal"},
+		healthAtOrBelow = 0,
+		presentTagBlocks = {"Unconscious", "Knocked"},
+	})
+end
 
 local v3 = tick();
 local l__TweenService__4 = game:GetService("TweenService");

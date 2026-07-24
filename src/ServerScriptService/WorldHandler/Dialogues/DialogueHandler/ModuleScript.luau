@@ -9703,14 +9703,29 @@ dialogues.Fang.v1 = function(p,v)
 	elseif v.page == 2 then
 		if v.choice == "I embrace the storm" then
 			commands.Learn(p.Character)
+			local randomnumber = math.random(1,3)
+			if randomnumber == 1 then data.UberTitle.Value = "Storm Herald"
+			elseif randomnumber == 2 then data.UberTitle.Value = "Eye of the Storm"
+			elseif randomnumber == 3 then data.UberTitle.Value = "Thunder Cry"
+			end
 			data.Skills.Value ..= ",StormHerald"
 			return dialogues["Fang"].stormherald
 		elseif v.choice == "I embrace the ember" then
 			commands.Learn(p.Character)
+			local randomnumber = math.random(1,3)
+			if randomnumber == 1 then data.UberTitle.Value = "Emberwyrm"
+			elseif randomnumber == 2 then data.UberTitle.Value = "Great Cinder"
+			elseif randomnumber == 3 then data.UberTitle.Value = "Explosivo"
+			end
 			data.Skills.Value ..= ",TheEmberWyrm"
 			return dialogues["Fang"].emberwyrm
 		elseif v.choice == "I embrace the abyss" then
 			commands.Learn(p.Character)
+			local randomnumber = math.random(1,3)
+			if randomnumber == 1 then data.UberTitle.Value = "The Evil Spear"
+			elseif randomnumber == 2 then data.UberTitle.Value = "Abyssdweller"
+			elseif randomnumber == 3 then data.UberTitle.Value = "Bloodleech"
+			end
 			data.Skills.Value ..= ",TheAbyssalWyrm"
 			return dialogues["Fang"].abyssalwyrm
 		else

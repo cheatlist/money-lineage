@@ -12,36 +12,15 @@ end
 
 local physicsService = game:GetService("PhysicsService")
 
-function ActionCheck()
+local ActionCheckModule = require(game.ServerScriptService.Modules.ActionCheck)
+local function ActionCheck()
 	local char = script.Parent.Parent
-	if not char:FindFirstChild("Humanoid") then
-		return true
-	end
-	if char:FindFirstChild("Stun") then
-		return true
-	end
-	if char:FindFirstChild("ReturnStun") then
-		return true
-	end
-	if char:FindFirstChild("ActiveCast") then
-		return true
-	end
-	if char:FindFirstChild("Action") then
-		return true
-	end
-	if char:FindFirstChild("Blocking") then
-		return true
-	end
-	if char:FindFirstChild("SpellBlocking") then
-		return true
-	end
-	if char.Humanoid.Health == 0 then
-		return true
-	end
-	if char:FindFirstChild("Climbing") then
-		return true
-	end
-	if game.CollectionService:HasTag(char,"Knocked") then return true end
+	return ActionCheckModule(char, {
+		absentBlocks = {"Humanoid"},
+		presentBlocks = {"Stun","ReturnStun","ActiveCast","Action","Blocking","SpellBlocking","Climbing"},
+		presentTagBlocks = {"Knocked"},
+		healthAtOrBelow = 0,
+	})
 end
 
 local tagHumanoid = game.ServerStorage.Requests.TagHumanoid

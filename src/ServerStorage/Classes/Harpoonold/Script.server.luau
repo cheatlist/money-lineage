@@ -9,40 +9,13 @@ function sub(...)
 	coroutine.wrap(...)()
 end
 
-function ActionCheck()
-	if not char:FindFirstChild("Humanoid") then
-		return true
-	end
-	if char:FindFirstChild("Charge") then
-		return true
-	end
-	if char:FindFirstChild("Stun") then
-		return true
-	end
-	if char:FindFirstChild("ReturnStun") then
-		return true
-	end
-	if char:FindFirstChild("Action") then
-		return true
-	end
-	if char:FindFirstChild("Blocking") then
-		return true
-	end
-	if char:FindFirstChild("SpellBlocking") then
-		return true
-	end
-	if char:FindFirstChild("ActiveCast") then
-		return true
-	end
-	if game.CollectionService:HasTag(char,"Unconscious") then
-		return true
-	end
-	if game.CollectionService:HasTag(char,"Knocked") then
-		return true
-	end
-	if char:FindFirstChild("Immortal") then 
-		return true
-	end
+local ActionCheckModule = require(game.ServerScriptService.Modules.ActionCheck)
+local function ActionCheck()
+	return ActionCheckModule(char, {
+		absentBlocks = {"Humanoid"},
+		presentBlocks = {"Charge","Stun","ReturnStun","Action","Blocking","SpellBlocking","ActiveCast","Immortal"},
+		presentTagBlocks = {"Unconscious","Knocked"},
+	})
 end
 
 function ClosestPointOnPart(Part, Point)

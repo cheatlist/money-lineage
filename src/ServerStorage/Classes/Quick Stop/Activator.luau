@@ -6,33 +6,13 @@ function sub(...)
 	coroutine.wrap(...)()
 end
 local l__TweenService__5 = game:GetService("TweenService")
-function ActionCheck(p1)
-	if not p1:FindFirstChild("Humanoid") then
-		return true
-	end
-	if p1:FindFirstChild("Stun") then
-		return true
-	end
-	if p1:FindFirstChild("ReturnStun") then
-		return true
-	end
-	if p1:FindFirstChild("ActiveCast") then
-		return true
-	end
-	if p1:FindFirstChild("Action") then
-		return true
-	end
-	if p1:FindFirstChild("Blocking") then
-		return true
-	end
-	if p1.Humanoid.Health == 0 then
-		return true
-	end
-	if p1:FindFirstChild("Climbing") then
-	else
-		return
-	end
-	return true
+local ActionCheckModule = require(game.ServerScriptService.Modules.ActionCheck)
+local function ActionCheck(p1)
+	return ActionCheckModule(p1, {
+		absentBlocks = {"Humanoid"},
+		presentBlocks = {"Stun", "ReturnStun", "ActiveCast", "Action", "Blocking", "Climbing"},
+		healthAtOrBelow = 0,
+	})
 end
 function ActionCheck2(p2)
 	if not p2:FindFirstChild("Humanoid") then

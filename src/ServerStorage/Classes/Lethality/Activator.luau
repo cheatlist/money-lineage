@@ -3,40 +3,13 @@
 local v1 = require(game.ServerScriptService.Modules.DangerHandler);
 local v2 = {};
 local l__Parent__1 = script.Parent.Parent;
-function ActionCheck()
-	if not l__Parent__1:FindFirstChild("Humanoid") then
-		return true;
-	end;
-	if l__Parent__1:FindFirstChild("Charge") then
-		return true;
-	end;
-	if l__Parent__1:FindFirstChild("Stun") then
-		return true;
-	end;
-	if l__Parent__1:FindFirstChild("ReturnStun") then
-		return true;
-	end;
-	if l__Parent__1:FindFirstChild("ActiveCast") then
-		return true;
-	end;
-	if l__Parent__1:FindFirstChild("Action") then
-		return true;
-	end;
-	if l__Parent__1:FindFirstChild("Blocking") then
-		return true;
-	end;
-	if l__Parent__1:FindFirstChild("SpellBlocking") then
-		return true;
-	end;
-	if game.CollectionService:HasTag(l__Parent__1, "Unconscious") then
-		return true;
-	end;
-	if game.CollectionService:HasTag(l__Parent__1, "Knocked") then
-
-	else
-		return;
-	end;
-	return true;
+local ActionCheckModule = require(game.ServerScriptService.Modules.ActionCheck)
+local function ActionCheck()
+	return ActionCheckModule(l__Parent__1, {
+		absentBlocks = {"Humanoid"},
+		presentBlocks = {"Charge","Stun","ReturnStun","ActiveCast","Action","Blocking","SpellBlocking"},
+		presentTagBlocks = {"Unconscious","Knocked"},
+	})
 end;
 local v3 = tick();
 local u2 = true;
