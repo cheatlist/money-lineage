@@ -2,7 +2,7 @@
   "className": "Tool",
   "keepUnknowns": true,
   "properties": {
-    "ManualActivationOnly": true,
+    "CanBeDropped": false,
     "RequiresHandle": false
   }
 }

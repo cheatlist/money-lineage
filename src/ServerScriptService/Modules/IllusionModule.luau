@@ -304,7 +304,7 @@ function module.UpdateAppearance(Player, playlearnsound, Character)
 	end
 end
 
-local partblacklist = {Hilt = true,Orb = true,HumanoidRootPart = true,TomeHilt = true,Head = true,--[[LichHead = true,ScroomHead = true,]]RuneHolderL = true,RuneHolderR = true,Back = true,LightBall = true,IsShifted = true,}
+local partblacklist = {Hilt = true,LeftHilt = true,Orb = true,HumanoidRootPart = true,TomeHilt = true,Head = true,--[[LichHead = true,ScroomHead = true,]]RuneHolderL = true,RuneHolderR = true,Back = true,LightBall = true,IsShifted = true,}
 
 local InvisibleHeads = {"Dullahan","Scroom","Metascroom","Lich"}
 

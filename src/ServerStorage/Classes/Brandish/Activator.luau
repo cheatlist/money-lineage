@@ -48,7 +48,7 @@ module.Active = function(v3,player, p4, p5)
 					stun:Destroy(),
 					physical = true,
 					sword = true,
-					damage = 8,
+					damage = 12,
 					move = "Brandish"
 				}, nil, false)
 			end
@@ -104,7 +104,7 @@ module.Active = function(v3,player, p4, p5)
 				physical = true,
 				knockback = true,
 				sword = true,
-				damage = 12.5,
+				damage = 17.5,
 				vanguardflame = true,
 				move = "Brandish",
 				blockbreak = true

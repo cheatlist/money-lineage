@@ -976,6 +976,7 @@ local function PlayerAdded(Player)
 			lefthilt.HiltWeld.Part0 = WaitForChild(Character,"Left Arm")
 			lefthilt.HiltWeld.Part1 = lefthilt
 			lefthilt.Parent = Character
+			lefthilt.Name = "LeftHilt"
 
 			local back = script.Back:Clone()
 			back.Back.Part0 = WaitForChild(Character,"Torso")

@@ -32,6 +32,7 @@ function v1.Active(p1, p2, p3, p45)
 		-- TheBlade path: Shadow Fan is removed
 		return
 	end
+	local master = data and data.Skills.Value:find("TheMaster")
 	if p1.Cooldowns:FindFirstChild("Shadow Fan") then
 		return
 	end
@@ -127,16 +128,31 @@ function v1.Active(p1, p2, p3, p45)
 					v19.Parent = p1;
 					game.ServerStorage.Debris:Fire(v19, 2);
 					p1.HumanoidRootPart.CFrame = l__CFrame__18;
+					if master then
+						-- TheMaster path: hitting the TP guarantees poison and shaves a few
+						-- seconds off every active cooldown. Cooldowns are just NumberValues
+						-- whose expiry is a scheduled Debris:AddItem destroy, so there's no
+						-- "subtract N seconds" API - instead, force-clear anything still
+						-- around 3s from now (a no-op for anything that would've expired
+						-- sooner anyway).
+						for _, cd in pairs(p1.Cooldowns:GetChildren()) do
+							task.delay(3, function()
+								if cd and cd.Parent then
+									cd:Destroy()
+								end
+							end)
+						end
+					end
 				end;
 				u7 = true;
 				v11[v16.Name] = v17 + 1;
 				l__TagHumanoid__4:Fire(p1, v15.Parent, {
-					slash = true, 
-					dagger = true, 
+					slash = true,
+					dagger = true,
 					blade = true,
 					noenchant = true,
-					damage = 5, 
-					poison = math.random(1, 2) == 1, 
+					damage = 5,
+					poison = master or (math.random(1, 2) == 1),
 					daggerthrow = true,
 					manabreaker = true,
 					move = "Shadow Fan"

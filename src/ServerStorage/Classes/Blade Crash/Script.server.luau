@@ -42,198 +42,194 @@ local ap
 local char
 
 tool.Activated:Connect(function()
-	if state then
+	char = tool.Parent
+	if char:FindFirstChild("BladeCrashACTIVATED!!!") then
 		task.spawn(function()
-			state = false
 			local aiming_at, isClicked = event:InvokeClient(plr), false
 			if aiming_at then
 				local between = aiming_at.Hit.Position - hrp.Position
-				if between.Magnitude < 250 then
+				if between.Magnitude < 400 then
 					if (aiming_at.Hit.Position.Y - 4) < hrp.Position.Y then
 						isClicked = true
 					end
 				end
 			end
-			if isClicked then
-				if not isClicked then return end
-				if not flame then
-					bv:Destroy()
-					ts:Create(hrp, TweenInfo.new(.4, Enum.EasingStyle.Linear), {CFrame = CFrame.new(aiming_at.Hit.Position)}):Play()
+			if not isClicked then return end
+			char:FindFirstChild("BladeCrashACTIVATED!!!"):Destroy()
+			if not flame then
+				bv:Destroy()
+				ts:Create(hrp, TweenInfo.new(.4, Enum.EasingStyle.Linear), {CFrame = CFrame.new(aiming_at.Hit.Position)}):Play()
 
-					catch_anim:Stop()
+				catch_anim:Stop()
 
-					flip_anim:Play()
-					print(vg.BC.Shock)
-					vg.BC.Shock.Launch.Parent = sword1
-					sword1.Launch:Play()
+				flip_anim:Play()
+				print(vg.BC.Shock)
+				vg.BC.Shock.Launch.Parent = sword1
+				sword1.Launch:Play()
 
-					catch_anim:Stop()
-					task.wait(0.4)
+				catch_anim:Stop()
+				task.wait(0.4)
 
-					flip_anim:Stop()
-					crash_anim:Play()
+				flip_anim:Stop()
+				crash_anim:Play()
 
-					local Hit, Pos, Normal = workspace:FindPartOnRayWithIgnoreList(Ray.new(hrp.CFrame.Position, Vector3.new(0.5, -4, 0)), {workspace.Live, workspace.Thrown})
-					task.wait(0.15)
+				local Hit, Pos, Normal = workspace:FindPartOnRayWithIgnoreList(Ray.new(hrp.CFrame.Position, Vector3.new(0.5, -4, 0)), {workspace.Live, workspace.Thrown})
+				task.wait(0.15)
 
-					vg.BC.rocky.Parent = hrp
-					hrp.rocky.Weld.Part0 = hrp
-					
-					for _, desc in ipairs(hrp.rocky:GetDescendants()) do
-						if desc:IsA("ParticleEmitter") then
-							local EMC = tonumber(desc.Name)
-							if EMC then
-								desc:Emit(EMC)
-							end
+				vg.BC.rocky.Parent = hrp
+				hrp.rocky.Weld.Part0 = hrp
+
+				for _, desc in ipairs(hrp.rocky:GetDescendants()) do
+					if desc:IsA("ParticleEmitter") then
+						local EMC = tonumber(desc.Name)
+						if EMC then
+							desc:Emit(EMC)
 						end
 					end
-
-					hitdet.magnitudeCheck(char, hrp.Position, 30, {
-						physical = true,
-						sword = true,
-						knockback = true,
-						damage = 20,
-						aoe = true,
-						blockbreak = true,
-						move = "Blade Crash"
-					}, nil, false)
-
-					hrp.Crash:Play()
-					task.wait(0.5)
-					coroutine.wrap(function()
-						task.wait(3)
-						hrp.rocky:Destroy()
-					end)()
-					sword1.Launch:Destroy()
-					stun:Destroy()
-					fall:Destroy()
-					Flight:Destroy()
-					ap:Destroy()
-					crash_anim:Stop()
-					vg:Destroy()
-					vg2:Destroy()
-				else
-					bv:Destroy()
-					ts:Create(hrp, TweenInfo.new(.4, Enum.EasingStyle.Linear), {CFrame = CFrame.new(aiming_at.Hit.Position)}):Play()
-					catch_anim:Stop()
-
-					flip_anim:Play()
-
-					vg2.BC.airspinbuff.BeamL.Parent = sword1
-					vg2.BC.airspinbuff.BeamR.Parent = sword1
-					vg2.BC.airspinbuff.ShardsR.Parent = sword1
-					vg2.BC.airspinbuff.ShardsL.Parent = sword1
-					vg2.BC.airspinbuff.a0.Parent = sword1
-					vg2.BC.airspinbuff.a1.Parent = sword1
-					vg2.BC.airspinbuff.ptcl.Parent = sword1
-					for i, v in pairs(vg2.BC.airspinbuff:GetChildren()) do
-						if v.Name == "fires1" then
-							v.Parent = sword1
-							task.delay(.4, function()
-								v:Destroy()
-							end)
-						end
-					end
-					sword1.BeamL.Attachment0 = sword1.a0
-					sword1.BeamR.Attachment0 = sword1.a0
-					sword1.ShardsR.Attachment0 = sword1.a0
-					sword1.ShardsL.Attachment0 = sword1.a0
-					sword1.BeamL.Attachment1 = sword1.a1
-					sword1.BeamR.Attachment1 = sword1.a1
-					sword1.ShardsR.Attachment1 = sword1.a1
-					sword1.ShardsL.Attachment1 = sword1.a1
-					sword1.BeamL.Enabled = true
-					sword1.BeamR.Enabled = true
-					sword1.ShardsR.Enabled = true
-					sword1.ShardsL.Enabled = true
-					game.Debris:AddItem(sword1.BeamL, .3)
-					game.Debris:AddItem(sword1.BeamR, .3)
-					game.Debris:AddItem(sword1.ShardsL, .3)
-					game.Debris:AddItem(sword1.ShardsR, .3)
-
-					vg.BC.Shock.Launch.Parent = sword1
-					sword1.Launch:Play()
-
-					catch_anim:Stop()
-					task.wait(0.3)
-					sword1.a0:Destroy()
-					sword1.a1:Destroy()
-					sword1.ptcl:Destroy()
-
-					flip_anim:Stop()
-					crash_anim:Play()
-
-					local Hit, Pos, Normal = workspace:FindPartOnRayWithIgnoreList(Ray.new(hrp.CFrame.Position, Vector3.new(0.5, -4, 0)), {workspace.Live, workspace.Thrown})
-					task.wait(0.2)
-					flip_anim:Stop()
-					local cr = vg2.BC.AzureCrack
-					cr.Crack.Position = hrp.Position
-
-					cr.Parent = workspace.Thrown
-
-					hrp.charge2:Play()
-					for i, v in pairs(cr:GetChildren()) do
-						if v.Name == "crackglow" then
-							ts:Create(v.Decal1, TweenInfo.new(.5, Enum.EasingStyle.Linear), {Transparency = 0}):Play()
-							ts:Create(v.Decal2, TweenInfo.new(.5, Enum.EasingStyle.Linear), {Transparency = 0}):Play()
-						end
-					end
-
-					task.wait(0.4)
-
-					for i, v in pairs(cr:GetChildren()) do
-						if v.Name == "crackglow" then
-							ts:Create(v.Decal1, TweenInfo.new(.5, Enum.EasingStyle.Linear), {Transparency = 1}):Play()
-							ts:Create(v.Decal2, TweenInfo.new(.5, Enum.EasingStyle.Linear), {Transparency = 1}):Play()
-						end
-					end
-
-					local exp = vg2.BC.explosion
-					exp.Position = hrp.Position
-					exp.Parent = workspace.Thrown
-					exp.smash.firey:Emit(40)
-					exp.above.winds:Emit(12)
-					exp.center.Dots:Emit(40)
-					exp.center.Smoke2:Emit(40)
-					exp.explosion1:Play()
-					exp.explosion2:Play()
-					game.Debris:AddItem(exp, 2)
-					game.Debris:AddItem(cr, 3)
-
-					hitdet.magnitudeCheck(char, hrp.Position, 30, {
-						sword = true,
-						knockback = true,
-						blockbreak = true,
-						damage = 17.5,
-						vanguardflame = true,
-						injury = "heat",
-						azurepunc = true,
-						aoe = true,
-						move = "Blade Crash",
-						physical = true
-					}, nil, false)
-
-					task.wait(.3)
-					flip_anim:Stop()
-					sword1.Launch:Destroy()
-					stun:Destroy()
-					fall:Destroy()
-					Flight:Destroy()
-					ap:Destroy()
-					crash_anim:Stop()
-					vg:Destroy()
-					vg2:Destroy()
-					state = false
 				end
+
+				hitdet.magnitudeCheck(char, hrp.Position, 30, {
+					physical = true,
+					sword = true,
+					knockback = true,
+					damage = 20,
+					aoe = true,
+					blockbreak = true,
+					move = "Blade Crash"
+				}, nil, false)
+
+				hrp.Crash:Play()
+				task.wait(0.5)
+				coroutine.wrap(function()
+					task.wait(3)
+					hrp.rocky:Destroy()
+				end)()
+				sword1.Launch:Destroy()
+				stun:Destroy()
+				fall:Destroy()
+				Flight:Destroy()
+				ap:Destroy()
+				crash_anim:Stop()
+				vg:Destroy()
+				vg2:Destroy()
+			else
+				bv:Destroy()
+				ts:Create(hrp, TweenInfo.new(.4, Enum.EasingStyle.Linear), {CFrame = CFrame.new(aiming_at.Hit.Position)}):Play()
+				catch_anim:Stop()
+
+				flip_anim:Play()
+
+				vg2.BC.airspinbuff.BeamL.Parent = sword1
+				vg2.BC.airspinbuff.BeamR.Parent = sword1
+				vg2.BC.airspinbuff.ShardsR.Parent = sword1
+				vg2.BC.airspinbuff.ShardsL.Parent = sword1
+				vg2.BC.airspinbuff.a0.Parent = sword1
+				vg2.BC.airspinbuff.a1.Parent = sword1
+				vg2.BC.airspinbuff.ptcl.Parent = sword1
+				for i, v in pairs(vg2.BC.airspinbuff:GetChildren()) do
+					if v.Name == "fires1" then
+						v.Parent = sword1
+						task.delay(.4, function()
+							v:Destroy()
+						end)
+					end
+				end
+				sword1.BeamL.Attachment0 = sword1.a0
+				sword1.BeamR.Attachment0 = sword1.a0
+				sword1.ShardsR.Attachment0 = sword1.a0
+				sword1.ShardsL.Attachment0 = sword1.a0
+				sword1.BeamL.Attachment1 = sword1.a1
+				sword1.BeamR.Attachment1 = sword1.a1
+				sword1.ShardsR.Attachment1 = sword1.a1
+				sword1.ShardsL.Attachment1 = sword1.a1
+				sword1.BeamL.Enabled = true
+				sword1.BeamR.Enabled = true
+				sword1.ShardsR.Enabled = true
+				sword1.ShardsL.Enabled = true
+				game.Debris:AddItem(sword1.BeamL, .3)
+				game.Debris:AddItem(sword1.BeamR, .3)
+				game.Debris:AddItem(sword1.ShardsL, .3)
+				game.Debris:AddItem(sword1.ShardsR, .3)
+
+				vg.BC.Shock.Launch.Parent = sword1
+				sword1.Launch:Play()
+
+				catch_anim:Stop()
+				task.wait(0.3)
+				sword1.a0:Destroy()
+				sword1.a1:Destroy()
+				sword1.ptcl:Destroy()
+
+				flip_anim:Stop()
+				crash_anim:Play()
+
+				local Hit, Pos, Normal = workspace:FindPartOnRayWithIgnoreList(Ray.new(hrp.CFrame.Position, Vector3.new(0.5, -4, 0)), {workspace.Live, workspace.Thrown})
+				task.wait(0.2)
+				flip_anim:Stop()
+				local cr = vg2.BC.AzureCrack
+				cr.Crack.Position = hrp.Position
+
+				cr.Parent = workspace.Thrown
+
+				hrp.charge2:Play()
+				for i, v in pairs(cr:GetChildren()) do
+					if v.Name == "crackglow" then
+						ts:Create(v.Decal1, TweenInfo.new(.5, Enum.EasingStyle.Linear), {Transparency = 0}):Play()
+						ts:Create(v.Decal2, TweenInfo.new(.5, Enum.EasingStyle.Linear), {Transparency = 0}):Play()
+					end
+				end
+
+				task.wait(0.4)
+
+				for i, v in pairs(cr:GetChildren()) do
+					if v.Name == "crackglow" then
+						ts:Create(v.Decal1, TweenInfo.new(.5, Enum.EasingStyle.Linear), {Transparency = 1}):Play()
+						ts:Create(v.Decal2, TweenInfo.new(.5, Enum.EasingStyle.Linear), {Transparency = 1}):Play()
+					end
+				end
+
+				local exp = vg2.BC.explosion
+				exp.Position = hrp.Position
+				exp.Parent = workspace.Thrown
+				exp.smash.firey:Emit(40)
+				exp.above.winds:Emit(12)
+				exp.center.Dots:Emit(40)
+				exp.center.Smoke2:Emit(40)
+				exp.explosion1:Play()
+				exp.explosion2:Play()
+				game.Debris:AddItem(exp, 2)
+				game.Debris:AddItem(cr, 3)
+
+				hitdet.magnitudeCheck(char, hrp.Position, 30, {
+					sword = true,
+					knockback = true,
+					blockbreak = true,
+					damage = 17.5,
+					vanguardflame = true,
+					injury = "heat",
+					azurepunc = true,
+					aoe = true,
+					move = "Blade Crash",
+					physical = true
+				}, nil, false)
+
+				task.wait(.3)
+				flip_anim:Stop()
+				sword1.Launch:Destroy()
+				stun:Destroy()
+				fall:Destroy()
+				Flight:Destroy()
+				ap:Destroy()
+				crash_anim:Stop()
+				vg:Destroy()
+				vg2:Destroy()
+				char:FindFirstChild("BladeCrashACTIVATED!!!"):Destroy()
 			end
 			--_G.System.Event:FireClient(game.Players:GetPlayerFromCharacter(char), "SetCDIndicator", {script.Parent.Name, 15})
 			task.wait(15)
 			cd = false
 		end)
 	end
-
-	char = tool.Parent
-	
 	if char.Cooldowns:FindFirstChild("Blade Crash") then
 		return
 	end
@@ -300,7 +296,7 @@ tool.Activated:Connect(function()
 	ap = Instance.new("Folder")
 	ap.Name = "APAllow"
 	ap.Parent = char
-	
+
 	task.wait(0.2)
 
 	jump_anim:Play()
@@ -400,7 +396,7 @@ tool.Activated:Connect(function()
 	catch_anim.KeyframeReached:Connect(function(key)
 		if key == "Finished" then
 			--print("anim event!")
-			state = false
+			char:FindFirstChild("BladeCrashACTIVATED!!!"):Destroy()
 			if sword:FindFirstChild("Attachmentz") then
 				sword.Attachmentz.shing:Play()
 				sword.Attachmentz.squashstar:Emit(1)
@@ -426,6 +422,8 @@ tool.Activated:Connect(function()
 	hrp.Catch:Play()
 
 	sword:Destroy()
-
-	state = true
+	
+	local iasdffasdfasdf = Instance.new("NumberValue")
+	iasdffasdfasdf.Name = "BladeCrashACTIVATED!!!"
+	iasdffasdfasdf.Parent = char
 end)

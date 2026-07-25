@@ -134,6 +134,11 @@ script.Parent.Activated:Connect(function()
 			-- poison injection: small direct hit, most of the payload lands as stacks
 			-- (applied centrally in TagHumanoid/Procs/FacelessPaths.luau)
 			hitInfo.damage = 6
+		elseif data and data.Skills.Value:find("TheMaster") then
+			-- combo starter/extender: no hard knockback/ragdoll, just a stun + gentle push
+			-- (applied in TagHumanoid/Procs/FacelessPaths.luau), and a lot less damage
+			hitInfo.knockback = nil
+			hitInfo.percent = 15
 		else
 			hitInfo.percent = 20
 		end

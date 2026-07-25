@@ -218,7 +218,7 @@ else
 	Character:SetPrimaryPartCFrame(workspace.SolanSpawn.CFrame)
 	Humanoid.WalkSpeed = 18
 end
-local partblacklist = {Hilt = true,Orb = true,HumanoidRootPart = true,TomeHilt = true, Head = true,--[[LichHead = true,ScroomHead = true,]]RuneHolderL = true,RuneHolderR = true,Back = true,LightBall = true,IsShifted = true,}
+local partblacklist = {Hilt = true,LeftHilt = true,Orb = true,HumanoidRootPart = true,TomeHilt = true, Head = true,--[[LichHead = true,ScroomHead = true,]]RuneHolderL = true,RuneHolderR = true,Back = true,LightBall = true,IsShifted = true,}
 
 local InvisibleHeads = {"Dullahan","Scroom","Metascroom","Lich"}
 
@@ -263,6 +263,24 @@ if PlayerData.Class.Value == "Faceless" or PlayerData.Skills.Value:find("ShadowD
 			v:Destroy();
 		end
 	end
+end
+if PlayerData.Skills.Value:find("TheMaster") then
+	-- TheMaster path: Agility + Bane are always on, both nerfed from their activated-skill
+	-- numbers (Agility: speed 4/attack-speed 6 -> 2/3; Bane: no bonus free unarmed hit).
+	-- Not Debris-timed, so these persist for the character's lifetime (see
+	-- Classes/Agility/Script.server.luau and Classes/Bane/Script.server.luau for the
+	-- matching no-op gates that make the buttons redundant for this path).
+	local permSpeed = Instance.new("NumberValue")
+	permSpeed.Name = "SpeedBoost"
+	permSpeed.Value = 2
+	permSpeed.Parent = Character.Boosts
+	local permAtkSpeed = Instance.new("NumberValue")
+	permAtkSpeed.Name = "AttackSpeedBoost"
+	permAtkSpeed.Value = 3
+	permAtkSpeed.Parent = Character.Boosts
+	local permBane = Instance.new("Accessory")
+	permBane.Name = "BaneEff"
+	permBane.Parent = Character
 end
 local function StunCheck(p,Stuns)
 	if p ~= Player then
@@ -1163,7 +1181,7 @@ Remotes.LeftClick.OnServerEvent:Connect(function(p,hit,target)
 		end
 		local module = require(tool.Activator)
 		if not FindFirstChild(Character,"ActiveCast") then
-			if FindFirstChild(Character, tool.Name.."CD") then return end
+			if FindFirstChild(Character.Cooldowns, tool.Name) then return end
 			if StunCheck(p,{"Immortal"})then
 				return
 			end
@@ -1841,9 +1859,15 @@ Remotes.Dodge.OnServerEvent:Connect(function(p,axis,Type)
 			if FindFirstChild(Character, "nodashshadow") then
 				return
 			end
-			create("LDashing",0.2,Character)
+			-- TheMaster path: lesser cooldown between TP dashes, longer range, and a very
+			-- brief (0.1s) NoDam iframe window right as the teleport lands
+			local shadowMaster = PlayerData.Skills.Value:find("TheMaster")
+			local dashGate = shadowMaster and 0.1 or 0.2
+			local dashSpamThreshold = shadowMaster and 7 or 5
+			local dashRange = shadowMaster and 26 or 20
+			create("LDashing",dashGate,Character)
 			tpdashes+=1
-			if tpdashes >= 5 then
+			if tpdashes >= dashSpamThreshold then
 				create("LDashing",3.5,Character)
 				tpdashes = 0
 			end
@@ -1855,13 +1879,16 @@ Remotes.Dodge.OnServerEvent:Connect(function(p,axis,Type)
 				end
 			end)()
 			local ignore = {workspace.Live,workspace.Thrown}
-			local ray = Ray.new(HumanoidRootPart.CFrame.p,Humanoid.MoveDirection*20)
+			local ray = Ray.new(HumanoidRootPart.CFrame.p,Humanoid.MoveDirection*dashRange)
 			local Hit,Pos,Normal = workspace.FindPartOnRayWithIgnoreList(workspace,ray,ignore)
 			local newpos = nil
+			if shadowMaster then
+				create("NoDam",0.1,Character)
+			end
 			if Hit and Hit.CanCollide then
 				Character:SetPrimaryPartCFrame(CFrame.new(Pos)*CFrame.new(0,1.5,0))
 			else
-				Character:SetPrimaryPartCFrame(HumanoidRootPart.CFrame*CFrame.new(0,1.5,0)+Humanoid.MoveDirection*20)
+				Character:SetPrimaryPartCFrame(HumanoidRootPart.CFrame*CFrame.new(0,1.5,0)+Humanoid.MoveDirection*dashRange)
 			end
 			task.wait()
 			HumanoidRootPart.ShadowEmitter:Emit(30)

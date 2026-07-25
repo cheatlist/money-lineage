@@ -264,10 +264,6 @@ function v1.Lannis(Character)
 		create("Immortal",3.5,Character)
 		create("LannisCD",30,Character,true)
 		create("canmanashield", 3.5, Character)
-	else
-		create("Immortal",3.5,Character)
-		create("LannisCD",60,Character,true)
-		create("canmanashield", 3.5, Character)
 	end
 	
 	local Root = Character.HumanoidRootPart

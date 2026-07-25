@@ -20,6 +20,12 @@ script.Parent.Activated:Connect(function()
 		end
 		local p2 = game.Players:GetPlayerFromCharacter(p1)
 		local data = game.ServerStorage.PlayerData[p2.Name]
+		if data.Skills.Value:find("TheMaster") then
+			-- TheMaster path: Agility is permanently active (granted at spawn in
+			-- CharacterHandler/init.server.luau) at a nerfed strength, so activating it
+			-- manually is redundant
+			return
+		end
 		local blade = data.Skills.Value:find("TheBlade")
 		local lasts = 10
 		if data.Skills.Value:find("UpgradedAgility") then

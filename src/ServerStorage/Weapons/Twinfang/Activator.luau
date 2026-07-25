@@ -3,6 +3,9 @@
 -- LeftClick handler off the equipped Tool's own Activator child), but an 8-hit combo instead
 -- of Dagger's 5, weaker per hit, and a shorter base swing gap so it sits just behind
 -- Dagger-with-Agility speed baseline (Agility still stacks on top via AttackSpeedBoost).
+-- No dedicated Twinfang animations needed: hits 1-7 play a random Dagger1-5 combo swing,
+-- hit 8 (the knockback finisher) reuses the unarmed m1 combo's Animation5 (the finishing
+-- kick). Heavy attack (Active2) is Dagger's heavy attack unchanged - same anims, same damage.
 local v1 = {};
 local l__Parent__1 = script.Parent.Parent;
 function ActionCheck()
@@ -94,7 +97,15 @@ function v1.Active(p1, p2, p45, p3)
 	if l__Combo__4.Value >= COMBO_LENGTH + 1 then
 		l__Combo__4.Value = COMBO_LENGTH;
 	end;
-	local v11 = p1.Humanoid:LoadAnimation(game.ReplicatedStorage.CombatAnims["Twinfang" .. l__Combo__4.Value]);
+	local animName;
+	if l__Combo__4.Value >= COMBO_LENGTH then
+		-- 8th hit: knockback finisher kick, reuses the unarmed combo's final animation
+		animName = "Animation5";
+	else
+		-- hits 1-7: a random dagger swing, no dedicated Twinfang animations needed
+		animName = "Dagger" .. math.random(1, 4);
+	end;
+	local v11 = p1.Humanoid:LoadAnimation(game.ReplicatedStorage.CombatAnims[animName]);
 	local v12 = 1.05;
 	if game.CollectionService:HasTag(p1, "BrokenArm") and l__Combo__4.Value < COMBO_LENGTH then
 		v12 = 0.8;
@@ -252,9 +263,10 @@ function v1.Active2(p5, p6, p45, p7)
 	v42.Parent = p5;
 	game.ServerStorage.Debris:Fire(v42, 1.3);
 	if not p5:FindFirstChild("Stun") and not p5:FindFirstChild("NoDam") then
+		-- heavy attack is identical to Dagger's own (same animations already, same damage too)
 		u7.magnitudeCheck(p5, l__HumanoidRootPart__36.Position, 8.5, {
 			physical = true,
-			damage = 4 + v38,
+			damage = 5 + v38,
 			knockback = true,
 			dagger = true,
 			blockbreak = true,

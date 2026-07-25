@@ -2695,8 +2695,8 @@ local dialogues = {
 		};
 		pathoffer = {
 			speaker = "Shadow";
-			msg = "You linger still. Good. Let it be known - some deaths take time. Will you let the rot do your killing for you? Or would you rather they never see the blade at all?";
-			choices = {"I embrace the venom.", "Show me the blade."};
+			msg = "You linger still. Good. Let it be known - some deaths take time. Will you let the rot do your killing for you? Would you rather they never see the blade at all? Or... do you no longer need my name at all?";
+			choices = {"I embrace the venom.", "Show me the blade.", "I am beyond a name."};
 			endchoice = "...";
 		};
 		venomembrace = {
@@ -2707,6 +2707,11 @@ local dialogues = {
 		bladeembrace = {
 			speaker = "Shadow";
 			msg = "Two blades, faster than they can follow. Buy the fangs, and disappear between the strikes.";
+			endchoice = "Bye";
+		};
+		masterembrace = {
+			speaker = "Shadow";
+			msg = "Then there is nothing left to teach. You were never Faceless. You are the Faceless.";
 			endchoice = "Bye";
 		};
 	};
@@ -11284,7 +11289,7 @@ function dialogues.Knight.v1(p,v)
 		if teach == "notmax"then
 			return dialogues.Knight.p1
 		elseif teach == "max"then
-			if data.Skills.Value:find("TheToxin") or data.Skills.Value:find("TheBlade") then
+			if data.Skills.Value:find("TheToxin") or data.Skills.Value:find("TheBlade") or data.Skills.Value:find("TheMaster") then
 				return dialogues.Knight.pathdone
 			elseif data.TotalGrips.Value >= 20 then
 				return dialogues.Knight.pathoffer
@@ -11328,6 +11333,14 @@ function dialogues.Knight.v1(p,v)
 			-- "Twinfang" gate above, which checks this exact skill string)
 			data.Skills.Value ..= ",TheBlade"
 			return dialogues.Knight.bladeembrace
+		elseif v.choice == "I am beyond a name." then
+			commands.Learn(p.Character)
+			-- TheMaster path gets no random UberTitle like the other two paths - just a fixed
+			-- nickname replacing whatever "Faceless One"/"Fungless One" page 3 set
+			data.FirstName.Value = "The Faceless"
+			data.Skills.Value ..= ",TheMaster"
+			commands.UpdateSkills(p)
+			return dialogues.Knight.masterembrace
 		else
 			return dialogues.Knight.p2
 		end

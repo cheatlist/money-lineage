@@ -23,6 +23,12 @@ script.Parent.Activated:Connect(function()
 		if data.Skills.Value:find("TheBlade") then
 			return
 		end
+		if data.Skills.Value:find("TheMaster") then
+			-- TheMaster path: Bane's blink-strike is permanently active (granted at spawn in
+			-- CharacterHandler/init.server.luau, without the bonus free unarmed hit below -
+			-- that's the "slightly nerfed" part), so activating it manually is redundant
+			return
+		end
 		local lasts = 10
 		if data.Skills.Value:find("UpgradedBane")then
 			lasts = 15

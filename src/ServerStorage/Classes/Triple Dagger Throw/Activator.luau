@@ -36,6 +36,8 @@ function v1.Active(p1, p2, p3, p4)
 	CD.Value = 10
 	CD.Parent = p1.Cooldowns
 	game.Debris:AddItem(CD, 10)
+	local data = game.ServerStorage.PlayerData[p2.Name]
+	local master = data and data.Skills.Value:find("TheMaster")
 	local l__HumanoidRootPart__5 = p1.HumanoidRootPart;
 	local l__Humanoid__6 = p1.Humanoid;
 	local prescriptc = p1.HumanoidRootPart.CFrame
@@ -62,68 +64,82 @@ function v1.Active(p1, p2, p3, p4)
 	if not u6 then
 		return;
 	end;
-	for v10 = -1, 1 do
-		local v11 = game.ServerStorage.Weapons.ThrowDagger:Clone();
-		v11.Parent = game.Workspace.Thrown;
-		v11.Transparency = 0.5;
-		v11.Color = Color3.new(0, 0, 0);
-		Instance.new("BodyVelocity").Parent = v11;
-		v11.TestTrail.Color = ColorSequence.new(Color3.fromRGB(0, 0, 0));
-		v11.TestTrail.Enabled = true;
-		v11.CFrame = p1.HumanoidRootPart.CFrame * CFrame.new(v10, 0, -3) * CFrame.Angles(0, v10 * 6, 0);
-		v11.BodyVelocity.Velocity = v11.CFrame.lookVector * 250;
-		v11:SetNetworkOwner(nil);
-		local u7 = {};
-		local u8 = false;
-		u5 = v9;
-		v11.Touched:Connect(function(p5)
-			if p5.Anchored == true and p5.Transparency ~= 1 then
-				v11.ShadowEmitter:Emit(100);
-				v11.Transparency = 1;
-				v11.Anchored = true;
-				p4.Transparency = 0;
+	-- TheMaster path: "Sixtuple Dagger Throw" - a second volley follows the first, and every
+	-- dagger in that second volley guarantees a teleport-to-target on hit (mirrors Shadow
+	-- Fan's blink-strike). This move never rooted the caster in place to begin with (no
+	-- WalkSpeed lock, only NoJump/Disarm), so "you can walk and throw" already held true.
+	local function fireVolley(guaranteedTP)
+		for v10 = -1, 1 do
+			local v11 = game.ServerStorage.Weapons.ThrowDagger:Clone();
+			v11.Parent = game.Workspace.Thrown;
+			v11.Transparency = 0.5;
+			v11.Color = Color3.new(0, 0, 0);
+			Instance.new("BodyVelocity").Parent = v11;
+			v11.TestTrail.Color = ColorSequence.new(Color3.fromRGB(0, 0, 0));
+			v11.TestTrail.Enabled = true;
+			v11.CFrame = p1.HumanoidRootPart.CFrame * CFrame.new(v10, 0, -3) * CFrame.Angles(0, v10 * 6, 0);
+			v11.BodyVelocity.Velocity = v11.CFrame.lookVector * 250;
+			v11:SetNetworkOwner(nil);
+			local u7 = {};
+			local u8 = false;
+			u5 = v9;
+			v11.Touched:Connect(function(p5)
+				if p5.Anchored == true and p5.Transparency ~= 1 then
+					v11.ShadowEmitter:Emit(100);
+					v11.Transparency = 1;
+					v11.Anchored = true;
+					p4.Transparency = 0;
+					game.ServerStorage.Debris:Fire(v11, 1);
+				end;
+				if p5 and p5:IsDescendantOf(p1) then
+					return;
+				end;
+				if p5 and p5.Name == v11.Name then
+					return;
+				end;
+				local v13 = p5.Parent:findFirstChild("Humanoid") or p5.Parent.Parent:findFirstChild("Humanoid");
+				if v13 and not u7[v13.Parent.Name] then
+					v11.Anchored = true;
+					v11.ShadowEmitter:Emit(100);
+					v11.Transparency = 1;
+					v11.Anchored = true;
+					p4.Transparency = 0;
+					if v13.Parent.HumanoidRootPart:FindFirstChild("BloodHit") and v13.Parent.HumanoidRootPart:FindFirstChild("DaggerHit") then
+						v13.Parent.HumanoidRootPart.DaggerHit:Play();
+						v13.Parent.HumanoidRootPart.BloodHit:Emit(30);
+					end;
+					u8 = true;
+					u7[v13.Parent.Name] = true;
+					l__TagHumanoid__4:Fire(p1, v13.Parent, {
+						slash = true,
+						dagger = true,
+						physical = true,
+						daggerthrow = true,
+						noenchant = true,
+						nobackstab = true,
+						damage = 10,
+						move = "Triple Dagger Throw"
+					});
+					if guaranteedTP and v13.Parent:FindFirstChild("HumanoidRootPart") and (v13.Parent.HumanoidRootPart.Position - p1.HumanoidRootPart.Position).Magnitude < 150 then
+						p1.HumanoidRootPart.CFrame = v13.Parent.HumanoidRootPart.CFrame;
+					end;
+					u5 = true;
+					sub(function()
+						game.ServerStorage.Debris:Fire(v11, 0.4);
+					end);
+				end;
+			end);
+			if v11 ~= nil then
 				game.ServerStorage.Debris:Fire(v11, 1);
 			end;
-			if p5 and p5:IsDescendantOf(p1) then
-				return;
-			end;
-			if p5 and p5.Name == v11.Name then
-				return;
-			end;
-			local v13 = p5.Parent:findFirstChild("Humanoid") or p5.Parent.Parent:findFirstChild("Humanoid");
-			if v13 and not u7[v13.Parent.Name] then
-				v11.Anchored = true;
-				v11.ShadowEmitter:Emit(100);
-				v11.Transparency = 1;
-				v11.Anchored = true;
-				p4.Transparency = 0;
-				if v13.Parent.HumanoidRootPart:FindFirstChild("BloodHit") and v13.Parent.HumanoidRootPart:FindFirstChild("DaggerHit") then
-					v13.Parent.HumanoidRootPart.DaggerHit:Play();
-					v13.Parent.HumanoidRootPart.BloodHit:Emit(30);
-				end;
-				u8 = true;
-				u7[v13.Parent.Name] = true;
-				l__TagHumanoid__4:Fire(p1, v13.Parent, {
-					slash = true, 
-					dagger = true, 
-					physical = true,
-					daggerthrow = true, 
-					noenchant = true,
-					nobackstab = true,
-					damage = 10,
-					move = "Triple Dagger Throw"
-				});
-				u5 = true;
-				sub(function()
-					game.ServerStorage.Debris:Fire(v11, 0.4);
-				end);
-			end;
-		end);
-		if v11 ~= nil then
-			game.ServerStorage.Debris:Fire(v11, 1);
 		end;
-	end;
-	
+	end
+	fireVolley(false)
+	if master then
+		task.wait(0.2)
+		fireVolley(true)
+	end
+
 	if p1.Name == "rip_indra" then
 		u2 = true;
 		return

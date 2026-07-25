@@ -163,7 +163,7 @@ return function(Character, Player, PlayerData, Humanoid, HumanoidRootPart, Boost
 						if offhand and Character:FindFirstChild("LeftHilt") then
 							offhand.PropWeld.Part0 = Character.LeftHilt
 							offhand.PropWeld.Part1 = offhand
-							--offhand.PropWeld.C1 = CFrame.new(-0.25,0,-0.800000012,0,1,0,-1,0,0,0,0,1)
+							offhand.PropWeld.C1 = CFrame.new(0.25,0,-0.800000012,0,-1,0,1,0,-0,0,0,1)
 							offhand.Parent = Character.LeftHilt
 						end
 						if #equipped <= 1 then

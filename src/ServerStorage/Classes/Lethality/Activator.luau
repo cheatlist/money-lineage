@@ -101,6 +101,10 @@ function v2.Active(p1, p2, p3, p45)
 		return;
 	end;
 	local data = game.ServerStorage.PlayerData[p2.Name]
+	-- TheMaster path: slightly more damage per hit, and the post-flurry recovery is cut way
+	-- down so it functions as a combo extender (you can chain straight into an M1 string
+	-- instead of eating the usual 0.7s lockout) - see the `master` uses below.
+	local master = data.Skills.Value:find("TheMaster")
 	if data.Skills.Value:find("TheBlade") then
 		if p1.Cooldowns:FindFirstChild("Lethality") then
 			return
@@ -194,12 +198,12 @@ function v2.Active(p1, p2, p3, p45)
 							game.Debris:AddItem(v17, 2);
 						end;
 						l__TagHumanoid__4:Fire(p1, v17, {
-							physical = true, 
-							dagger = true, 
-							noenchant = true, 
-							damage = 4, 
-							slash = true, 
-							executes = true, 
+							physical = true,
+							dagger = true,
+							noenchant = true,
+							damage = master and 4.5 or 4,
+							slash = true,
+							executes = true,
 							nobackstab = true,
 							nobuff = true,
 							move = "Lethality"
@@ -226,12 +230,12 @@ function v2.Active(p1, p2, p3, p45)
 								v10[v25] = true;
 								for v26 = 1, 6 do
 									l__TagHumanoid__4:Fire(p1, v25, {
-										physical = true, 
-										dagger = true, 
-										noenchant = true, 
-										damage = 4, 
-										slash = true, 
-										executes = true, 
+										physical = true,
+										dagger = true,
+										noenchant = true,
+										damage = master and 4.5 or 4,
+										slash = true,
+										executes = true,
 										nobackstab = true,
 										nobuff = true,
 										move = "Lethality"
@@ -317,13 +321,13 @@ function v2.Active(p1, p2, p3, p45)
 				spawn(function()
 					for v43 = 1, 6 do
 						l__TagHumanoid__4:Fire(p1, v41, {
-							physical = true, 
-							dagger = true, 
-							damage = 2, 
-							noenchant = true, 
+							physical = true,
+							dagger = true,
+							damage = master and 2.5 or 2,
+							noenchant = true,
 							nobackstab = true,
-							slash = true, 
-							executes = true, 
+							slash = true,
+							executes = true,
 							nobuff = true,
 							move = "Lethality"
 						});
@@ -348,7 +352,9 @@ function v2.Active(p1, p2, p3, p45)
 		local v48 = Instance.new("Folder");
 		v48.Name = "Action";
 		v48.Parent = p1;
-		game.Debris:AddItem(v48, 0.7);
+		-- TheMaster path: barely any recovery, so the flurry functions as a combo extender
+		-- into an M1 string instead of a hard stop
+		game.Debris:AddItem(v48, master and 0.1 or 0.7);
 		u6 = false;
 	end;
 	

@@ -1120,19 +1120,48 @@ commands["ChangeWeapon"] = function(player,weapon,dont, dont2)
 		clone.Weld.Part0 = character.Torso
 		clone.Weld.Part1 = clone
 		clone.Parent = character.Torso
-	elseif weapon == "Twinfang"then
+	elseif weapon == "Twinfang" then
 		local tool = game.ServerStorage.Weapons.Twinfang:Clone()
 		data.PrimaryWeapon.Value = "Twinfang"
 		tool.Parent = player.Backpack
 		data.Weapon.Value = "Dagger"
-		local lc = script.LeftTwinfang:Clone()
-		lc.Weld.Part0 = character["Left Arm"]
-		lc.Weld.Part1 = lc
-		lc.Parent = character.Torso
-		local rc = script.RightTwinfang:Clone()
-		rc.Weld.Part0 = character["Right Arm"]
-		rc.Weld.Part1 = rc
-		rc.Parent = character.Torso
+		-- Twinfang has no weapon model of its own - it's just two Mythril Dagger props. Like
+		-- every other weapon, the cosmetic is created unparented here - actual PropWeld/Parent
+		-- wiring (to Character.Hilt) happens on equip/unequip in WeaponEquip.luau, not here
+		-- (see the "Bronze Dagger"/"Steel Dagger"/"Mythril Dagger" branch there for the
+		-- pattern this mirrors). The off-hand piece has no slot of its own in the WEAPON/
+		-- `clone` single-value pipeline (return clone -> CharacterHandler's WEAPON upvalue ->
+		-- 4th arg into every Activator call), so it's linked via an "OffhandPiece" ObjectValue
+		-- child that WeaponEquip.luau's "Twinfang" branches follow to weld/unweld it to
+		-- Character.LeftHilt in lockstep with the main-hand piece.
+		clone = script["Mythril Dagger"]:Clone()
+		clone.Name = "Twinfang"
+		clone.Parent = nil
+		local lc = script["Mythril Dagger"]:Clone()
+		lc.Name = "TwinfangOffhand"
+		lc.Parent = nil
+		local offhandRef = Instance.new("ObjectValue")
+		offhandRef.Name = "OffhandPiece"
+		offhandRef.Value = lc
+		offhandRef.Parent = clone
+		if data.Enchant.Value~=""then
+			local enchant = string.split(data.Enchant.Value, ",")
+			for i,v in pairs(enchant) do
+				if v == "" then
+					table.remove(enchant, table.find(enchant, v))
+				end
+			end
+			if #enchant > 0 then
+				for i = 1,#enchant do
+					if script:FindFirstChild(enchant[i]) and script[enchant[i]]:FindFirstChild("EnchantEffect") then
+						-- `clone` (the right-hand piece) gets its EnchantEffect from the
+						-- shared trailing block below (it runs for any branch that sets
+						-- `clone`) - only the off-hand piece needs handling here.
+						script[enchant[i]].EnchantEffect:Clone().Parent = lc
+					end
+				end
+			end
+		end
 	elseif weapon == "Caestus"then
 		data.PrimaryWeapon.Value = "Caestus"
 		data.Weapon.Value = "None"

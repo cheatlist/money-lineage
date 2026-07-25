@@ -160,12 +160,20 @@ function v1.Active(p1, p2, p45, p3)
 				end;			
 			end;
 			if v16 and l__BaneEff__14 and (l__Combo__4.Value == 2 or l__Combo__4.Value == 3 or l__Combo__4.Value == 4) then
-				local v30 = v15[v16];
-				v30.mag = 1.5;
-				l__HumanoidRootPart__8.ShadowEmitter:Emit(30);
-				--l__HumanoidRootPart__8.Blink:Play();
-				local l__CFrame__31 = l__HumanoidRootPart__8.CFrame;
-				l__HumanoidRootPart__8.CFrame = CFrame.new(v30.pos, l__CFrame__31.p) * CFrame.new(0, 0, -4) * (l__CFrame__31 - l__CFrame__31.p);
+				-- TheMaster path's BaneEff is permanent (granted once at spawn, never expires -
+				-- see CharacterHandler/init.server.luau), so the blink itself only has a 25%
+				-- chance to actually trigger there; a normally-cast (temporary) BaneEff still
+				-- procs every time, same as before.
+				local masterData = p2 and game.ServerStorage.PlayerData:FindFirstChild(p2.Name)
+				local baneChance = (masterData and masterData.Skills.Value:find("TheMaster")) and 25 or 100
+				if math.random(1, 100) <= baneChance then
+					local v30 = v15[v16];
+					v30.mag = 1.5;
+					l__HumanoidRootPart__8.ShadowEmitter:Emit(30);
+					--l__HumanoidRootPart__8.Blink:Play();
+					local l__CFrame__31 = l__HumanoidRootPart__8.CFrame;
+					l__HumanoidRootPart__8.CFrame = CFrame.new(v30.pos, l__CFrame__31.p) * CFrame.new(0, 0, -4) * (l__CFrame__31 - l__CFrame__31.p);
+				end;
 			end;
 			for v32, v33 in pairs(v15) do
 				if v33.mag <= 9 then

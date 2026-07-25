@@ -183,8 +183,9 @@ random flavor `UberTitle`. Existing paths (all in `DialogueHandler/ModuleScript.
 | `TheThunderstorm` / `TheCalmbeforethestorm` / `TheLightning` | `VoiceFromAbove` | Class == `DragonSage`, `TotalGrips` | Lightning Elbow, Lightning Drop, Electric Smite, Dash |
 | `TheRunemaster` / `TheCursedFlame` / `TheCursedSwordsman` | `Heretic` | Class == `DarkSigilKnight`, `TotalGrips` + extra stat | Fire/rune/sword moves across Sigil Knight → Wraith Knight/Samurai lines, plus grants `True Vision` |
 | `StormHerald` / `TheEmberWyrm` / `TheAbyssalWyrm` | `Fang` | Class == `Dragon Slayer` fully learned, `TotalGrips >= 15` | Dragon Roar, Thunder Spear Crash, Dragon Awakening, Wing Soar, Spear Crusher (added 2026-07-25, see below) |
-| `TheToxin` (1 of 3 planned Faceless paths — the 3rd is still unbuilt) | `Knight` | Class == `Faceless` fully learned, `TotalGrips >= 20` | Ethereal Strike, Lethality/Chain Lethality (via `TagHumanoid/Procs/FacelessPaths.luau`), Emerald enchant, grants new move `Septic Burst` — see "Faceless poison path" section below |
-| `TheBlade` (2 of 3 planned Faceless paths — the 3rd is still unbuilt) | `Knight` | Class == `Faceless` fully learned, `TotalGrips >= 20` | Bane, Shadow Fan, Agility, Ethereal Strike, Lethality, new weapon `Twinfang` (bought, not taught) — see "Faceless blade path" section below |
+| `TheToxin` (1 of 3 Faceless paths) | `Knight` | Class == `Faceless` fully learned, `TotalGrips >= 20` | Ethereal Strike, Lethality/Chain Lethality (via `TagHumanoid/Procs/FacelessPaths.luau`), Emerald enchant, grants new move `Septic Burst` — see "Faceless poison path" section below |
+| `TheBlade` (2 of 3 Faceless paths) | `Knight` | Class == `Faceless` fully learned, `TotalGrips >= 20` | Bane, Shadow Fan, Agility, Ethereal Strike, Lethality, new weapon `Twinfang` (bought, not taught) — see "Faceless blade path" section below |
+| `TheMaster` (3 of 3 Faceless paths — all three now built) | `Knight` | Class == `Faceless` fully learned, `TotalGrips >= 20` | Agility, Bane, Ethereal Strike, Lethality, Triple Dagger Throw, Shadow Fan, ShadowDash, `FirstName` — see "Faceless master path" section below |
 
 The dialogue engine itself (`Dialogues/DialogueHandler/init.server.luau`) is a simple state machine:
 `talking[Character] = {npc, page, choice}`. Each NPC's `dialogues.<Name>.v1(p, v)` handler is called
@@ -332,15 +333,102 @@ an unbounded ping-pong (each press just inverts direction and reopens the window
 capped number of bounces, since "dashing back and forth" read as open-ended; Twinfang's price and
 shop NPC were left for whoever places the shop stall in Studio, no number was picked here.
 
-**Asset debt incurred** (same "write code ahead of the asset, flag it" approach as everywhere else
-in this doc): `Twinfang`'s 8-hit combo needs `ReplicatedStorage/CombatAnims/Twinfang1`..`Twinfang8`
-animations (referenced by bracket-index the same way `Dagger1`..`Dagger5` already are — same
-Studio-must-exist-or-it-errors reality as the existing Dagger combo, not a new risk category);
-`commands.ChangeWeapon`'s new `Twinfang` branch expects `script.LeftTwinfang`/`script.RightTwinfang`
-cosmetic prop children under the `Commands` module (mirrors `Caestus`'s `LeftCaestus`/
-`RightCaestus`); `Agility`'s `BladeAgility` sound; and the `Twinfang` shop stall/display object
-itself (world-placed, per above). None of this blocks the code from being correct, but none of it
-is usable in-game until someone with Studio access adds it.
+**Update (still 2026-07-25): Twinfang's M1/M2 no longer need any dedicated animations or cosmetic
+props** — reworked per follow-up design direction to reuse what already exists instead: hits 1-7 of
+the 8-hit combo play a random `CombatAnims.Dagger1`-`Dagger5` swing (`math.random(1,5)` picked fresh
+each hit), hit 8 (the knockback finisher) reuses the unarmed `Modules/m1.luau` combo's `Animation5`
+(its finishing kick), and the heavy attack (`v1.Active2`) is Dagger's heavy attack unchanged — same
+`DaggerHeavyAnim1`/`DaggerHeavyAnim2` animations, same damage. Both dagger props (main-hand and
+off-hand) also now clone the existing `script["Mythril Dagger"]` cosmetic instead of needing
+dedicated `LeftTwinfang`/`RightTwinfang` assets. This eliminated most of the originally-flagged
+asset debt.
+
+**Bug found and fixed**: `commands.ChangeWeapon`'s `Twinfang` branch clones `script["Mythril
+Dagger"]` for the main-hand `clone`, but never renamed it — `clone.Name` stayed `"Mythril Dagger"`,
+so `WeaponEquip.luau`'s dispatch (`if WEAPON.Name == "Twinfang"then ... elseif WEAPON.Name ==
+"Bronze Dagger" or ... "Mythril Dagger" then ...`) matched the *generic* dagger branch instead of
+the dedicated `Twinfang` one that actually knows about the `OffhandPiece` link — so the off-hand
+blade's `PropWeld`/`Parent` never got set, and any code looking it up (`Weapons/Twinfang/Activator.luau`'s
+`offhand` lookup) always got `nil`. Fixed with `clone.Name = "Twinfang"` right after the clone.
+**If Twinfang is ever re-templated off a different source prop, remember to re-add this rename** —
+nothing else will catch a missing/mismatched `WEAPON.Name` at parse time, it just silently falls
+through to the wrong `elseif` branch.
+
+**Asset debt still open**: `Agility`'s `BladeAgility` sound, and the `Twinfang` shop stall/display
+object itself (world-placed, per above) — neither can be finished by editing files alone.
+
+### Faceless master path (TheMaster) — added 2026-07-25
+
+Third and final Faceless path — all three are now built. Same grant mechanism as the other two:
+`Knight`, `teachskill(p,classdata.Faceless,true) == "max"`, `TotalGrips >= 20`. `pathoffer` now has
+a third choice, `"I am beyond a name."`, and `pathdone` checks all three path skill strings so a
+player can only ever hold one. Unlike `TheToxin`/`TheBlade`, `TheMaster` does **not** roll a random
+`UberTitle` — it directly sets `data.FirstName.Value = "The Faceless"`, overwriting whatever page 3
+of the base Faceless-teaching flow set (`"Faceless One"`/`"Fungless One"` for Scroom/Metascroom).
+
+Where `TheToxin` and `TheBlade` each rework the kit around one new mechanic, `TheMaster` is a
+synthesis path — every change is a targeted buff/tweak to something Faceless already has, gated on
+`data.Skills.Value:find("TheMaster")` in each file, same pattern as the other two paths:
+
+- **Agility + Bane become permanent, both nerfed.** Granted once at character spawn in
+  `CharacterHandler/init.server.luau` (alongside the existing Faceless face-decal-removal check) as
+  un-Debris'd (never-expiring) `Boosts/SpeedBoost` (2, down from Agility's 4) and
+  `Boosts/AttackSpeedBoost` (3, down from 6), plus a permanent `BaneEff` accessory on the character.
+  Both `Agility/Script.server.luau` and `Bane/Script.server.luau` now return immediately for
+  `TheMaster` (the buttons are redundant since the effect is already always on) — same "leave the
+  skill owned but make the button a no-op" approach as `TheBlade`'s Bane/Shadow Fan removal. Bane's
+  nerf is two-layered: (1) no bonus free unarmed hit, since there's no "cast" moment to trigger it
+  from; (2) `Weapons/Dagger/Activator.luau`'s `BaneEff` blink-behind-target check (hits 2/3/4 of the
+  combo) now only has a **25% chance to actually trigger** when the caster has `TheMaster` — a
+  normally-cast (temporary) `BaneEff` still procs every time, unchanged. This distinguishes
+  "permanent, always-live `BaneEff`" from "the 10-15s window you get from actually pressing Bane"
+  entirely by checking `Skills.Value:find("TheMaster")` at the point of the blink decision, not by
+  tagging the `BaneEff` instance itself — if a future change ever gives some other path/skill a
+  `BaneEff` grant that *isn't* meant to be chance-gated, this check needs to move from
+  "does this player have TheMaster" to something on the `BaneEff` instance instead.
+- **Ethereal Strike no longer ragdolls.** For `TheMaster`, `hitInfo.knockback` is cleared and
+  `percent` drops from 20 to 15 (`Ethereal Strike/Script.server.luau`); the Stun + gentle push that
+  replaces the old knockback is applied centrally in `TagHumanoid/Procs/FacelessPaths.luau` (which
+  was restructured from a single `TheToxin`-only early-return into a proper per-path `elseif` chain
+  to fit this in, alongside the untouched `TheToxin` branch) — reads as a combo starter/extender
+  rather than a burst finisher.
+- **Lethality lasts long enough to combo into an M1 string.** `Lethality/Activator.luau` computes a
+  `master` flag once at the top of `v2.Active` (used across both the Chain Lethality and base
+  branches, since `TheMaster` doesn't remove either): every hit's damage ticks up slightly (4→4.5,
+  2→2.5), and — the part that actually matters for "you can start another m1 string" — the trailing
+  `"Action"` recovery lockout on the base (non-Chain) branch drops from 0.7s to 0.1s. The Chain
+  Lethality branch never had an explicit lockout of its own, so it already permitted a fast
+  follow-up; only the base branch needed the fix.
+- **Triple Dagger Throw becomes "Sixtuple Dagger Throw."** `Triple Dagger Throw/Activator.luau`'s
+  3-dagger volley loop was extracted into a local `fireVolley(guaranteedTP)` function; `TheMaster`
+  fires it twice (a 0.2s gap between), and only the second volley's `guaranteedTP=true` forces a
+  teleport-to-target on hit (mirrors Shadow Fan's existing blink-strike, added inline in the
+  `Touched` handler rather than as a new mechanic). "You can walk and throw" needed no code change —
+  this move never applied a `WalkSpeed`/root lock to begin with (only `NoJump`/`Disarm`), confirmed
+  by reading the file rather than assumed.
+- **Shadow Fan's teleport hit guarantees poison and refunds cooldowns.** Still a 50/50 roll
+  (`math.random(1,2)==1`) for everyone else, but `poison = master or (math.random(1,2)==1)` for
+  `TheMaster`. The cooldown refund is an approximation, not a true "subtract N seconds": cooldowns
+  in this codebase are just `NumberValue`s whose removal is a one-shot scheduled
+  `game.Debris:AddItem` destroy with no way to query or reduce remaining time, so instead every
+  child of `p1.Cooldowns` gets a `task.delay(3, ...)` force-destroy queued the moment the TP lands —
+  functionally "no active cooldown can have more than ~3s left after this proc," which reads the
+  same as "removes a few seconds" for anything longer than that, and is a no-op for anything that
+  would've expired sooner anyway.
+- **ShadowDash gets a shorter cooldown, longer range, and a tiny iframe window.**
+  `CharacterHandler/init.server.luau`'s `Type == "shadow"` dash branch (a ray-cast-then-teleport,
+  not velocity-based — confirmed by reading the code, shared with the `"dragon"`/`"UberDragon"` dash
+  types via the same `LDashing`/`tpdashes` spam-limiter pattern): for `TheMaster`, the base
+  `LDashing` gate drops from 0.2s to 0.1s, the spam-limiter threshold (dashes-in-3s before a 3.5s
+  penalty kicks in) loosens from 5 to 7, dash range goes from 20 to 26 studs, and a `"NoDam"` tag is
+  applied for 0.1s right as the teleport resolves — `"NoDam"` already reads game-wide as a
+  damage-blocking tag (same tag the `TIMESKIP` effect uses for its own brief invulnerability window,
+  `CharacterHandler/init.server.luau` ~3212), so no other file needed touching for the iframe to
+  actually do anything.
+
+No asset debt from this path — every change reuses existing tags/mechanics (`Stun`, `NoDam`,
+`SpeedBoost`/`AttackSpeedBoost`, the existing Shadow Fan blink), nothing new needs to be built in
+Studio.
 
 ## Recent work (2026-07-25)
 
@@ -357,13 +445,17 @@ is usable in-game until someone with Studio access adds it.
   `StormHerald`'s `HeraldZoom`/`LightningHerald`. If dedicated sounds/meshes are wanted for these
   two paths, they need to be added in Studio and wired in by name — the code branches are already
   in place to swap them in.
-- Added `TheToxin`, the first of 3 planned Faceless (poison) paths — see "Faceless poison path"
+- Added `TheToxin`, the first of 3 Faceless (poison) paths — see "Faceless poison path"
   section below for the full design (stacking poison, reworked Ethereal Strike/Lethality, a new
   `Septic Burst` move, Emerald-enchant compatibility). Also incurs asset debt (see that section).
-- Added `TheBlade`, the second of 3 planned Faceless (dual-dagger) paths — see "Faceless blade
+- Added `TheBlade`, the second of 3 Faceless (dual-dagger) paths — see "Faceless blade
   path" section below (new purchasable `Twinfang` weapon, Bane/Shadow Fan soft-removed, Agility
   reworked, Lethality/Ethereal Strike reworked into a dash-chain + invisible-flurry combo). Also
   incurs asset debt (see that section).
+- Added `TheMaster`, the third and final Faceless path — see "Faceless master path" section below.
+  A synthesis path (permanent nerfed Agility+Bane, Ethereal Strike/Lethality/Triple Dagger
+  Throw/Shadow Fan/ShadowDash all tuned rather than reworked) — all three Faceless paths now exist.
+  No asset debt.
 
 ## Refactor session (2026-07-25)
 
