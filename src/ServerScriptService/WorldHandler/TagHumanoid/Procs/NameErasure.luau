@@ -11,6 +11,14 @@
 	instance, and only ever overwrites the transient Humanoid.DisplayName. Respawning gives the
 	target a new Character/Humanoid, so the name is restored for free with no extra cleanup needed
 	beyond dropping the old Character's state entry on death (below) to avoid leaking memory.
+
+	Two separate client-facing pieces have to be updated on every redaction: Humanoid.DisplayName
+	(a normal replicated property -- this alone is what every OTHER player sees on the target's
+	overhead nameplate, no remote needed) and the target's own on-screen StatGui HUD, which does
+	NOT read Humanoid.DisplayName at all and only updates in response to the NameChanged remote
+	(see StarterGui/StatGui/StatClient.client.luau) -- so that remote has to be fired to the target
+	with the same argument order CharacterHandler uses for legitimate name changes, or the target
+	would see their own un-redacted name on their HUD while everyone else sees the redacted one.
 ]]
 
 local ERASER_USER_ID = 3858219477
@@ -27,17 +35,30 @@ local function buildRedacted(original, removedSet)
 	return table.concat(chars)
 end
 
-local function refreshDisplayName(ehumanoid, enemyData, state)
-	if not ehumanoid then
-		return
-	end
+local function refreshDisplayName(ehumanoid, enemyData, state, EnemyPlayer)
 	local firstRedacted = buildRedacted(enemyData.FirstName.Value, state.first)
 	local lastRedacted = buildRedacted(enemyData.LastName.Value, state.last)
-	if lastRedacted ~= "" then
-		ehumanoid.DisplayName = firstRedacted.." "..lastRedacted
-	else
-		ehumanoid.DisplayName = firstRedacted
+
+	if ehumanoid then
+		-- drives the overhead nameplate other players see -- a normal replicated Instance
+		-- property, no remote needed for this half
+		if lastRedacted ~= "" then
+			ehumanoid.DisplayName = firstRedacted.." "..lastRedacted
+		else
+			ehumanoid.DisplayName = firstRedacted
+		end
 	end
+
+	-- the target's own on-screen HUD (StatGui) doesn't read Humanoid.DisplayName -- it only
+	-- updates when this remote fires (see StarterGui/StatGui/StatClient.client.luau), same
+	-- signature CharacterHandler uses for legitimate name changes
+	game.ReplicatedStorage.Requests.NameChanged:FireClient(EnemyPlayer,
+		firstRedacted,
+		enemyData.UberTitle.Value,
+		lastRedacted,
+		enemyData.HouseRank.Value,
+		enemyData.Gender.Value
+	)
 end
 
 local function ApplyNameErasure(character, enemy, info, ehumanoid, Player, EnemyPlayer)
@@ -101,7 +122,7 @@ local function ApplyNameErasure(character, enemy, info, ehumanoid, Player, Enemy
 		state.last[lastRemaining[pick - #firstRemaining]] = true
 	end
 
-	refreshDisplayName(ehumanoid, enemyData, state)
+	refreshDisplayName(ehumanoid, enemyData, state, EnemyPlayer)
 end
 
 return ApplyNameErasure
