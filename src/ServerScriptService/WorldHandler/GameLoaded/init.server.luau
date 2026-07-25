@@ -140,12 +140,10 @@ local illegalOutfits = {
 _G.MageClasses = {
 	"Botanist",
 	"Florist",
-	"Druid",
 	"Illusionist",
 	"Master Illusionist",
 	"Necromancer",
 	"Master Necromancer",
-	"MasterNecromancer",
 }
 require(script.Parent.ClassDataDriftCheck)(_G.MageClasses, "_G.MageClasses")
 
@@ -973,6 +971,11 @@ local function PlayerAdded(Player)
 			hilt.HiltWeld.Part0 = WaitForChild(Character,"Right Arm")
 			hilt.HiltWeld.Part1 = hilt
 			hilt.Parent = Character
+
+			local lefthilt = script.Hilt:Clone()
+			lefthilt.HiltWeld.Part0 = WaitForChild(Character,"Left Arm")
+			lefthilt.HiltWeld.Part1 = lefthilt
+			lefthilt.Parent = Character
 
 			local back = script.Back:Clone()
 			back.Back.Part0 = WaitForChild(Character,"Torso")

@@ -1266,7 +1266,9 @@ local function leftclick()
 	if InDash == true then
 		return
 	end
-	Sprint(false)
+	if not (Character:FindFirstChild("Boosts") and FindFirstChild(Character.Boosts, "AgilitySprintAttack")) then
+		Sprint(false)
+	end
 	local Target = Mouse.Target
 	if Target and (FindFirstChild(Target, "ClickDetector") or Target.Parent and FindFirstChild(Target.Parent, "ClickDetector") or Target.Parent and (Target.Parent.Parent and FindFirstChild(Target.Parent.Parent, "ClickDetector"))) then
 		return
@@ -1304,7 +1306,9 @@ UserInputService.InputBegan:Connect(function(key,typing)
 			if InDash == true then
 				return
 			end
-			Sprint(false)
+			if not (Character:FindFirstChild("Boosts") and FindFirstChild(Character.Boosts, "AgilitySprintAttack")) then
+				Sprint(false)
+			end
 			local Target = Mouse.Target
 			if Target and (FindFirstChild(Target, "ClickDetector") or Target.Parent and FindFirstChild(Target.Parent, "ClickDetector") or Target.Parent and (Target.Parent.Parent and FindFirstChild(Target.Parent.Parent, "ClickDetector"))) then
 				return
@@ -1864,14 +1868,14 @@ local function u97()
 	local v257 = Vector3.new((v256.x + 2) / 4, (v256.y + 2) / 4, (v256.z + 2) / 4)
 	local u98 = nil
 	pcall(function()
-		u98 = Terrain:ReadVoxels(v255, 4)
+		--u98 = Terrain:ReadVoxels(v255, 4)
 	end)
 	if not u98 then
 		return false
 	end
-	local l__Size__258 = u98.Size
-	local v259 = math.ceil(v257.x * l__Size__258.x)
-	local v260 = math.ceil(v257.y * l__Size__258.y)
+	--local l__Size__258 = u98.Size
+	--local v259 = math.ceil(v257.x * l__Size__258.x)
+	--local v260 = math.ceil(v257.y * l__Size__258.y)
 	if u98[v259] and u98[v259][v260] and u98[v259][v260][math.ceil(v257.z * l__Size__258.z)] ~= Enum.Material.Water then
 	end
 end
@@ -2214,7 +2218,7 @@ RenderStepLoop = RunService.RenderStepped:Connect(function()
 	end
 	--debug.profileend("Overlay ESP")
 	local v371 = u97()
-	if HumanoidRootPart.Velocity.y < -40 and not FallDamage and not v371 and not Climbing then
+	if HumanoidRootPart.Velocity.y < -40 and not FallDamage and not v371 and not Climbing and not FindFirstChild(Character,"Knocked") and not FindFirstChild(Character,"Unconscious") then
 		u99(true)
 	elseif (HumanoidRootPart.Velocity.y > -2 or v371) and FallDamage then
 		u99(false)

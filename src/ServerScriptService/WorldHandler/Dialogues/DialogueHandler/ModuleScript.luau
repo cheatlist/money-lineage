@@ -2688,6 +2688,27 @@ local dialogues = {
 			msg = "Who are you?";
 			endchoice = "Bye";
 		};
+		pathdone = {
+			speaker = "Shadow";
+			msg = "The rot has already taken root in you. It does not spread twice.";
+			endchoice = "Bye";
+		};
+		pathoffer = {
+			speaker = "Shadow";
+			msg = "You linger still. Good. Let it be known - some deaths take time. Will you let the rot do your killing for you? Or would you rather they never see the blade at all?";
+			choices = {"I embrace the venom.", "Show me the blade."};
+			endchoice = "...";
+		};
+		venomembrace = {
+			speaker = "Shadow";
+			msg = "Then strike softly, and let them rot from the inside. Slowly.";
+			endchoice = "Bye";
+		};
+		bladeembrace = {
+			speaker = "Shadow";
+			msg = "Two blades, faster than they can follow. Buy the fangs, and disappear between the strikes.";
+			endchoice = "Bye";
+		};
 	};
 	Isaac = {
 		p1 = {
@@ -7027,7 +7048,7 @@ local ultraclass = {
 	"Florist",
 	"Master Necromancer",
 	"DragonSage",
-	"MasterIllusionist",
+	"Master Illusionist",
 	"Wanderer",
 	"Templar",
 	"Vanguard",
@@ -10107,7 +10128,7 @@ dialogues.Rehagan.v1 = function(p,v)
 		return dialogues["Big Hoss"].no
 	end
 	if v.page == 1 then
-		local teach = teachskill(p,classdata.MasterIllusionist,true)
+		local teach = teachskill(p,classdata["Master Illusionist"],true)
 		if teach == "notmax"then
 			return dialogues.Rehagan.begin
 		elseif teach == "max"then
@@ -10116,7 +10137,7 @@ dialogues.Rehagan.v1 = function(p,v)
 			return dialogues.Rehagan.notread
 		end
 	elseif v.page == 2 then
-		local teach = teachskill(p,classdata.MasterIllusionist)
+		local teach = teachskill(p,classdata["Master Illusionist"])
 		if teach == "gotskill"then
 			return dialogues.Rehagan.getskill
 		elseif teach == "poor"then
@@ -11263,10 +11284,53 @@ function dialogues.Knight.v1(p,v)
 		if teach == "notmax"then
 			return dialogues.Knight.p1
 		elseif teach == "max"then
-			return dialogues.Knight.max
+			if data.Skills.Value:find("TheToxin") or data.Skills.Value:find("TheBlade") then
+				return dialogues.Knight.pathdone
+			elseif data.TotalGrips.Value >= 20 then
+				return dialogues.Knight.pathoffer
+			else
+				return dialogues.Knight.max
+			end
 		end
 	elseif v.page == 2 then
-		return dialogues.Knight.p2
+		if v.choice == "I embrace the venom." then
+			commands.Learn(p.Character)
+			local randomnumber = math.random(1,10)
+			if randomnumber == 1 then data.UberTitle.Value = "The Plaguebearer"
+			elseif randomnumber == 2 then data.UberTitle.Value = "Rotwalker"
+			elseif randomnumber == 3 then data.UberTitle.Value = "Venomkin"
+			elseif randomnumber == 4 then data.UberTitle.Value = "The Withering"
+			elseif randomnumber == 5 then data.UberTitle.Value = "Toxinbound"
+			elseif randomnumber == 6 then data.UberTitle.Value = "The Sepsis"
+			elseif randomnumber == 7 then data.UberTitle.Value = "Blightcaller"
+			elseif randomnumber == 8 then data.UberTitle.Value = "The Contagion"
+			elseif randomnumber == 9 then data.UberTitle.Value = "Miasma"
+			elseif randomnumber == 10 then data.UberTitle.Value = "The Festering"
+			end
+			data.Skills.Value ..= ",TheToxin,Septic Burst"
+			commands.UpdateSkills(p)
+			return dialogues.Knight.venomembrace
+		elseif v.choice == "Show me the blade." then
+			commands.Learn(p.Character)
+			local randomnumber = math.random(1,10)
+			if randomnumber == 1 then data.UberTitle.Value = "The Fangbearer"
+			elseif randomnumber == 2 then data.UberTitle.Value = "Twinblade"
+			elseif randomnumber == 3 then data.UberTitle.Value = "The Unseen"
+			elseif randomnumber == 4 then data.UberTitle.Value = "Bladedancer"
+			elseif randomnumber == 5 then data.UberTitle.Value = "The Flurry"
+			elseif randomnumber == 6 then data.UberTitle.Value = "Silverfang"
+			elseif randomnumber == 7 then data.UberTitle.Value = "The Whisperblade"
+			elseif randomnumber == 8 then data.UberTitle.Value = "Duskrunner"
+			elseif randomnumber == 9 then data.UberTitle.Value = "The Severing"
+			elseif randomnumber == 10 then data.UberTitle.Value = "Nightfang"
+			end
+			-- no Tool grant here: Twinfang is bought, not taught (see dialogues.shop's
+			-- "Twinfang" gate above, which checks this exact skill string)
+			data.Skills.Value ..= ",TheBlade"
+			return dialogues.Knight.bladeembrace
+		else
+			return dialogues.Knight.p2
+		end
 	elseif v.page == 3 then
 		local teach = teachskill(p,classdata.Faceless)
 		if teach == "gotskill"then
@@ -12983,6 +13047,13 @@ function dialogues.shop(p,v)
 		end
 	elseif display.Item.Value == "Pronged Mythril Spear" then
 		if playerdata[p.Name].Class.Value == "Spearfisher" or playerdata[p.Name].Hybrid.Value == "Spearfisher" or playerdata[p.Name].Class.Value == "Atlas" then
+		else
+			dialogues.cantbuy.speaker = display.Shopkeeper.Value
+			return dialogues.cantbuy
+		end
+	elseif display.Item.Value == "Twinfang" then
+		-- TheBlade path skill string, not a Backpack Tool - can't use RequiresBpSkill for this
+		if playerdata[p.Name].Skills.Value:find("TheBlade") then
 		else
 			dialogues.cantbuy.speaker = display.Shopkeeper.Value
 			return dialogues.cantbuy

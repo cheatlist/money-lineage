@@ -137,7 +137,10 @@ function module.changeTemperature(character, max, add)
 			danger.Name = "Danger"
 			danger.Parent = player
 			debris:AddItem(danger, 30)
-			
+
+			if character:FindFirstChild("Knocked") or character:FindFirstChild("Unconscious") then
+				return
+			end
 			humanoid.Health -= humanoid.MaxHealth*0.02
 			if humanoid.Health <= 5 then
 				local frozenCharacter = Instance.new("Model")

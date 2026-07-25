@@ -19,8 +19,10 @@ script.Parent.Activated:Connect(function()
 			return
 		end
 		local p2 = game.Players:GetPlayerFromCharacter(p1)
+		local data = game.ServerStorage.PlayerData[p2.Name]
+		local blade = data.Skills.Value:find("TheBlade")
 		local lasts = 10
-		if p2.Backpack:FindFirstChild("UpgradedAgility") then
+		if data.Skills.Value:find("UpgradedAgility") then
 			lasts = 12.5
 		end
 		local CD = Instance.new("NumberValue")
@@ -30,9 +32,14 @@ script.Parent.Activated:Connect(function()
 		game.Debris:AddItem(CD, 30-lasts)
 		local HumanoidRootPart = p1.HumanoidRootPart
 		HumanoidRootPart.AgilityEmit:Emit(40)
-		HumanoidRootPart.CrazySound:Play()
+		if blade then
+			-- TheBlade path: Agility SFX changed
+			HumanoidRootPart.BladeAgility:Play()
+		else
+			HumanoidRootPart.CrazySound:Play()
+		end
 		local speed = 4
-		if p2.Backpack:FindFirstChild("UpgradedAgility")then
+		if data.Skills.Value:find("UpgradedAgility")then
 			speed = 8
 		end
 		local v1 = Instance.new("NumberValue")
@@ -45,6 +52,14 @@ script.Parent.Activated:Connect(function()
 		v2.Value = 6
 		v2.Parent = p1.Boosts
 		game.Debris:AddItem(v2,10)
+		if blade then
+			-- TheBlade path: lets you run and M1 at the same time instead of clicking to
+			-- attack cancelling your sprint (see Input.client.luau leftclick())
+			local sprintAttack = Instance.new("Folder")
+			sprintAttack.Name = "AgilitySprintAttack"
+			sprintAttack.Parent = p1.Boosts
+			game.Debris:AddItem(sprintAttack, 10)
+		end
 		task.wait(lasts)
 		HumanoidRootPart.AgilityEmit:Emit(10)
 		task.wait(30-lasts)

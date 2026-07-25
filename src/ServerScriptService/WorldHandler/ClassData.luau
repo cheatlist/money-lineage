@@ -187,9 +187,9 @@ local classdata = {
 		price = 150,
 		requiredclass = "",
 		class = "Illusionist",
-		ultra = "MasterIllusionist",
+		ultra = "Master Illusionist",
 	},
-	MasterIllusionist = {
+	["Master Illusionist"] = {
 		skills = {
 			"Reality Bubble",
 			"Phantasmal Bolt",
@@ -199,7 +199,7 @@ local classdata = {
 		},
 		price = 350,
 		requiredclass = "Illusionist",
-		class = "MasterIllusionist",
+		class = "Master Illusionist",
 		isultra = true,
 	},
 	ChurchKnight = {
@@ -536,7 +536,7 @@ local ultraclass3 = {
 	"AbyssWalker",
 	"DragonSlayer",
 	"Florist",
-	"MasterIllusionist",
+	"Master Illusionist",
 	"Master Necromancer",
 	"DragonSage",
 	"Abysswalker",

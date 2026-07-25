@@ -4064,7 +4064,7 @@ end)
 
 local function getCharacter() return Character end
 local function setCharacter(newCharacter) Character = newCharacter end
-require(script.Modules.AntiCheat)(Player, Humanoid, HumanoidRootPart, PlayerData, RunService, getCharacter, setCharacter)
+--require(script.Modules.AntiCheat)(Player, Humanoid, HumanoidRootPart, PlayerData, RunService, getCharacter, setCharacter)
 
 function ray(startpos, endpos, dis, partt)
 	local test = Ray.new(startpos, CFrame.new(startpos,endpos).LookVector * dis) 

@@ -671,6 +671,9 @@ commands["ChangeWeapon"] = function(player,weapon,dont, dont2)
 			elseif weapon == "Pronged Mythril Spear" then
 				data.Weapon.Value = "Spear"
 				data.PrimaryWeapon.Value = "Pronged Mythril Spear"
+			elseif weapon == "Twinfang"then
+				data.Weapon.Value = "Dagger"
+				data.PrimaryWeapon.Value = "Twinfang"
 			elseif weapon == "Caestus"then
 				data.Weapon.Value = "None"
 				data.PrimaryWeapon.Value = "Caestus"
@@ -1117,6 +1120,19 @@ commands["ChangeWeapon"] = function(player,weapon,dont, dont2)
 		clone.Weld.Part0 = character.Torso
 		clone.Weld.Part1 = clone
 		clone.Parent = character.Torso
+	elseif weapon == "Twinfang"then
+		local tool = game.ServerStorage.Weapons.Twinfang:Clone()
+		data.PrimaryWeapon.Value = "Twinfang"
+		tool.Parent = player.Backpack
+		data.Weapon.Value = "Dagger"
+		local lc = script.LeftTwinfang:Clone()
+		lc.Weld.Part0 = character["Left Arm"]
+		lc.Weld.Part1 = lc
+		lc.Parent = character.Torso
+		local rc = script.RightTwinfang:Clone()
+		rc.Weld.Part0 = character["Right Arm"]
+		rc.Weld.Part1 = rc
+		rc.Parent = character.Torso
 	elseif weapon == "Caestus"then
 		data.PrimaryWeapon.Value = "Caestus"
 		data.Weapon.Value = "None"

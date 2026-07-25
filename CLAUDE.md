@@ -176,6 +176,8 @@ random flavor `UberTitle`. Existing paths (all in `DialogueHandler/ModuleScript.
 | `TheThunderstorm` / `TheCalmbeforethestorm` / `TheLightning` | `VoiceFromAbove` | Class == `DragonSage`, `TotalGrips` | Lightning Elbow, Lightning Drop, Electric Smite, Dash |
 | `TheRunemaster` / `TheCursedFlame` / `TheCursedSwordsman` | `Heretic` | Class == `DarkSigilKnight`, `TotalGrips` + extra stat | Fire/rune/sword moves across Sigil Knight → Wraith Knight/Samurai lines, plus grants `True Vision` |
 | `StormHerald` / `TheEmberWyrm` / `TheAbyssalWyrm` | `Fang` | Class == `Dragon Slayer` fully learned, `TotalGrips >= 15` | Dragon Roar, Thunder Spear Crash, Dragon Awakening, Wing Soar, Spear Crusher (added 2026-07-25, see below) |
+| `TheToxin` (1 of 3 planned Faceless paths — the 3rd is still unbuilt) | `Knight` | Class == `Faceless` fully learned, `TotalGrips >= 20` | Ethereal Strike, Lethality/Chain Lethality (via `TagHumanoid/Procs/FacelessPaths.luau`), Emerald enchant, grants new move `Septic Burst` — see "Faceless poison path" section below |
+| `TheBlade` (2 of 3 planned Faceless paths — the 3rd is still unbuilt) | `Knight` | Class == `Faceless` fully learned, `TotalGrips >= 20` | Bane, Shadow Fan, Agility, Ethereal Strike, Lethality, new weapon `Twinfang` (bought, not taught) — see "Faceless blade path" section below |
 
 The dialogue engine itself (`Dialogues/DialogueHandler/init.server.luau`) is a simple state machine:
 `talking[Character] = {npc, page, choice}`. Each NPC's `dialogues.<Name>.v1(p, v)` handler is called
@@ -184,6 +186,154 @@ choice string. Handlers branch on `v.page` for flow position and `v.choice` for 
 picked — **when adding a page to an existing NPC's flow, disambiguate by `v.choice` content if the
 page number can be reached from more than one prior branch**, don't assume page number alone is
 unique.
+
+### Faceless poison path (TheToxin) — added 2026-07-25
+
+First of 3 planned Faceless paths (the other 2 are unbuilt — don't assume the `pathoffer` dialogue
+page only ever has one choice, it's written to have more `elseif v.choice == ...` branches added
+later). Granted by `Knight` — the same NPC that already teaches the base 5 Faceless skills — once
+`teachskill(p,classdata.Faceless,true) == "max"` and `data.TotalGrips.Value >= 20` (`TotalGrips` is
+reused a third time here, same stat `VoiceFromAbove`/`Fang` already gate on; no new PlayerData field
+was introduced). See `dialogues.Knight.v1` in `DialogueHandler/ModuleScript.luau` — page 2 is shared
+between the pre-existing "buy a Faceless skill" flow and the new path-offer flow, disambiguated by
+`v.choice` per the convention above.
+
+**Design: poison stacks, not tick damage.** Unlike the pre-existing binary "Poisoned" DoT (a single
+`Accessory` gate + 20-tick coroutine, still used by everyone else — see `TagHumanoid/init.server.luau`
+~line 2636), `TheToxin` owners apply **stacking** poison: each `"ToxinStack"` instance
+(`TagHumanoid/Helpers.luau`: `addToxinStack`/`getToxinStackCount`/`clearToxinStacks`, mirroring the
+existing `getCurseCount`/`"Cursey"`-counting convention) amplifies damage the target takes from
+**anyone** (`+20% per stack`, same code shape as curse amplification, both live at
+`TagHumanoid/init.server.luau` ~line 2872) and stacks a `-3 SpeedBoost` slow per stack under
+`enemy.Boosts` (existing multi-instance slow idiom, not a new mechanic). Stacks decay individually
+after 10s, so sustained pressure — not one big hit — is what snowballs. A new move, **Septic Burst**
+(`ServerStorage/Classes/Septic Burst/`), consumes all current stacks on the nearest enemy and deals
+`4 + 6*stacks` instant damage (`Helpers.clearToxinStacks`).
+
+**Everything else is centralized in one file**: `TagHumanoid/Procs/FacelessPaths.luau` (same pattern
+as `DragonSlayerPaths.luau` — required once in `TagHumanoid/init.server.luau` and called from the
+`if info.damage then ... end` block). It: (1) nerfs **all** of a `TheToxin` owner's outgoing damage by
+30% except `Septic Burst` itself (`info.move ~= "Septic Burst"`), so the path is damage-negative
+without stacks; (2) adds 3 stacks whenever `info.move == "Ethereal Strike"` fires — the actual per-move
+rework of Ethereal Strike lives in its own script (`ServerStorage/Classes/Ethereal Strike/Script.server.luau`),
+which branches on `data.Skills.Value:find("TheToxin")` to swap its old flat `percent = 20` (20% max
+health) burst for a small flat `damage = 6` hit, since the stack injection is what's supposed to
+matter now; (3) adds 1 stack per landed **Lethality**/**Chain Lethality** flurry hit (`info.move ==
+"Lethality"`) — deliberately **not** edited in `Lethality/Activator.luau` itself, since that file's
+6-hit-loop×2-branch structure already fires one `TagHumanoid` event per hit, so the central proc
+picks it up for free without touching a risky 266-line decompiled file. Lethality's raw damage is
+still cut by the same universal 30% nerf; its `executes = true` finisher behavior was left alone
+(the user's ask to "rework or remove Lethality" was explicitly uncertain — this reads as reworking its
+role from a damage tool into a stack-applicator without gutting its execute utility, not removing it).
+
+**Emerald enchant compatibility**: the Emerald gem's poison proc
+(`TagHumanoid/init.server.luau`, the `val2:find("Emerald")` block) used to self-fire
+`TagHumanoid:Fire(enemy,enemy,{poison=true,...})` — note this loses the original attacker's identity
+(the self-fire's `character` becomes the *victim*, not whoever landed the gem proc), which is why the
+`TheToxin` check has to happen **at the Emerald block itself** (where the real attacker's `playerdata`
+is still in scope) rather than inside the generic `info.poison` handler further down. If you add
+another poison source that self-fires `{poison=true}` onto `enemy,enemy`, it has the same blind spot —
+intercept at the proc's origin, not in the generic handler.
+
+**Asset debt incurred** (same pattern as the 2026-07-25 Ember/Abyssal Wyrm work): `ToxinStack` clones
+the existing `game.ServerStorage.Assets.Cursey` prefab and just renames it — it will visually look
+identical to a curse stack until someone with Studio access gives poison its own (green-tinted)
+stack VFX. `Septic Burst`'s `Script.server.luau` references `script.Parent.Anim` the same way every
+other move Tool does, but **no `Anim` instance exists yet** — Septic Burst will run with no animation
+until one is added in Studio under `ServerStorage/Classes/Septic Burst/`. Its sounds
+(`HumanoidRootPart.DaggerCharge`/`ShineStab`) are reused from Ethereal Strike's existing
+generic per-character sounds, so those work today.
+
+### Faceless blade path (TheBlade) — added 2026-07-25
+
+Second of 3 planned Faceless paths (see TheToxin above). Same grant mechanism: `Knight`,
+`teachskill(p,classdata.Faceless,true) == "max"`, `TotalGrips >= 20`. `dialogues.Knight.v1`'s
+`pathoffer` page now has **two** choices (`"I embrace the venom."` → `TheToxin`, `"Show me the
+blade."` → `TheBlade`) — this is the second branch anticipated when `pathoffer` was written, so a
+3rd `elseif v.choice == ...` branch is exactly how the last path should be added too. `pathdone`
+now checks both `TheToxin` and `TheBlade` so a player can't hold two Faceless paths.
+
+**Design**: dual-dagger identity, not a new move-heavy kit — most of the work is reworking what
+Faceless already has, gated on `data.Skills.Value:find("TheBlade")` in each file, mirroring how
+`TheToxin` branches the same shared moves:
+
+- **`Twinfang`** (`ServerStorage/Weapons/Twinfang/`) — a new equippable weapon (not a taught
+  skill): 8-hit M1 combo vs. `Weapons/Dagger`'s 5, weaker per hit (2.25/3.25 finisher vs. Dagger's
+  3.5/5) but faster (base swing gap ~0.23s vs. Dagger's ~0.3s — deliberately just behind
+  Dagger-with-Agility's ~0.217s, since Agility still stacks on top via the same
+  `Boosts/AttackSpeedBoost`-divides-the-debounce mechanic Dagger already uses, per the design ask
+  "you keep the skill Agility"). Registered in `commands.ChangeWeapon`
+  (`ServerScriptService/Modules/Commands/init.luau`, both the lightweight `dont`-branch and the
+  real clone-and-weld branch — mirrors the `Caestus` two-cosmetic-piece weld pattern, the closest
+  existing precedent to a dual-wielded look, since there's no prior true dual-wield mechanic in this
+  codebase) with `Weapon.Value = "Dagger"` (category) / `PrimaryWeapon.Value = "Twinfang"`
+  (specific) — the `"Dagger"` category keeps `RequiresWeapon == "Dagger"` moves (Dagger Throw,
+  Triple Dagger Throw) working while it's equipped. **It is purchased, not taught**:
+  `dialogues.shop` (`DialogueHandler/ModuleScript.luau` ~13000) already handles
+  `Type.Value == "PrimaryWeapon"` generically via `commands.ChangeWeapon`, so the only code change
+  needed was a gate (`display.Item.Value == "Twinfang"` → `Skills.Value:find("TheBlade")`, since
+  `RequiresBpSkill`/`RequiresClass` don't fit a path flag) — **the actual shop stall/display object
+  (with `Item`/`Price`/`Type`/`Shopkeeper` children) still needs to be placed in Studio**, same as
+  any other world object per the Argon caveat at the top of this doc.
+- **Bane and Shadow Fan are soft-removed**: both skills are still taught/owned normally (Faceless's
+  `ClassData` skill list is untouched), but `Bane/Script.server.luau` and `Shadow Fan/Activator.luau`
+  now return immediately if the caster has `TheBlade` — same "leave it in place, just make it inert"
+  approach as the dead `GetClasses.luau` files, chosen because ripping skills back out of
+  `Skills.Value`/`ClassData` for one path would complicate the other two paths' shared 5-skill list.
+- **Agility is buffed instead of Bane**: `Agility/Script.server.luau` now plays a different sound
+  for `TheBlade` owners (`HumanoidRootPart.BladeAgility` — **new Studio asset needed**, replacing
+  `CrazySound`) and additionally drops a `Boosts/AgilitySprintAttack` marker for the buff's 10s
+  duration. That marker is read in exactly one place:
+  `CharacterHandler/Input.client.luau`'s `leftclick()`, which unconditionally called `Sprint(false)`
+  on every attack (canceling sprint — confirmed by reading the function, this is *the* existing
+  "can't run and attack" mechanic) — now skipped when the marker is present. Also fixed the
+  `UpgradedAgility`/`p2.Backpack:FindFirstChild` bug while in this file (same class of bug flagged
+  as still-open below for `Agility` and `Bane`'s `UpgradedBane`/`Chain Lethality` checks — now fixed
+  for `Agility`, `Bane`'s own `UpgradedBane` check was left as-is since Bane is inert for this path
+  anyway and touching it further wasn't needed).
+- **Lethality** (`ServerStorage/Classes/Lethality/Activator.luau`) branches early for `TheBlade`
+  into a new local `BladeLethality(p1,p2,data,buffed)`, entirely separate from the existing
+  Chain-Lethality flurry code (left untouched for non-path Faceless players): a fast single-target
+  cone check — hit lands a small opener, then a full-body `Transparency=1` invisibility window, a
+  6-hit rapid flurry (mirrors the old flurry's shape, not its code) against the same target, then a
+  strong `BodyVelocity` knockback to end it. **Miss = heavy endlag** (`Action` folder tag for 1.4s,
+  matching the existing block-tag convention every `ActionCheck`-based move already reads). The
+  `buffed` flag (auto-target, wider range, no whiff risk, +40% damage) is set when
+  `Character/EtherealFollowup` is present — see Ethereal Strike below.
+- **Ethereal Strike** (`ServerStorage/Classes/Ethereal Strike/Script.server.luau`) branches into a
+  new local `BladeEtherealStrike`: a `BodyVelocity`-driven forward dash (100 studs/s, 0.35s) that
+  hits everyone within 6 studs of the moving `HumanoidRootPart` once each (`hitAlready` table, same
+  de-dupe idea as `Shadow Fan`'s per-target hit cap), playing
+  **`game.ServerStorage.Classes.Shadowrush.Animation3`** — literally the existing Shinobi
+  `Shadowrush` aerial spin animation, reused directly per the design ask ("Shadowrush aerial
+  animation"). Confirmed safe: `LoadAnimation` just plays an animation asset, multiple Tools playing
+  the same `Animation` instance don't interfere with each other or with Shinobi's own use. After the
+  dash, two `Character`-parented markers open a ~1.5s window: `EtherealFollowup` (checked by
+  `Lethality`'s `buffed` flag above) and `EtherealChain` (a `Direction` `Vector3Value` holding the
+  just-dashed direction). Pressing Ethereal Strike again while `EtherealChain` exists **inverts**
+  that direction and dashes back — cheap way to get "dash back and forth" without a longer state
+  machine — and destroys `EtherealFollowup` in the process (per the design ask: chaining forfeits
+  the buffed-Lethality option), then opens a fresh window so the back-and-forth can keep going.
+  Using the buffed Lethality instead destroys both markers. Normal (non-`TheBlade`) Ethereal Strike
+  behavior, including the `TheToxin` branch added earlier, is untouched — this is a third branch
+  alongside those two, not a replacement.
+
+**Interpretive calls worth flagging** (the design brief left these underspecified): the "8-9" hits
+became a fixed 8; Twinfang's M2/heavy attack was left as a near-copy of Dagger's (not mentioned in
+the design ask, kept only so equipping doesn't leave M2 non-functional); the dash-chain was built as
+an unbounded ping-pong (each press just inverts direction and reopens the window) rather than a
+capped number of bounces, since "dashing back and forth" read as open-ended; Twinfang's price and
+shop NPC were left for whoever places the shop stall in Studio, no number was picked here.
+
+**Asset debt incurred** (same "write code ahead of the asset, flag it" approach as everywhere else
+in this doc): `Twinfang`'s 8-hit combo needs `ReplicatedStorage/CombatAnims/Twinfang1`..`Twinfang8`
+animations (referenced by bracket-index the same way `Dagger1`..`Dagger5` already are — same
+Studio-must-exist-or-it-errors reality as the existing Dagger combo, not a new risk category);
+`commands.ChangeWeapon`'s new `Twinfang` branch expects `script.LeftTwinfang`/`script.RightTwinfang`
+cosmetic prop children under the `Commands` module (mirrors `Caestus`'s `LeftCaestus`/
+`RightCaestus`); `Agility`'s `BladeAgility` sound; and the `Twinfang` shop stall/display object
+itself (world-placed, per above). None of this blocks the code from being correct, but none of it
+is usable in-game until someone with Studio access adds it.
 
 ## Recent work (2026-07-25)
 
@@ -200,6 +350,13 @@ unique.
   `StormHerald`'s `HeraldZoom`/`LightningHerald`. If dedicated sounds/meshes are wanted for these
   two paths, they need to be added in Studio and wired in by name — the code branches are already
   in place to swap them in.
+- Added `TheToxin`, the first of 3 planned Faceless (poison) paths — see "Faceless poison path"
+  section below for the full design (stacking poison, reworked Ethereal Strike/Lethality, a new
+  `Septic Burst` move, Emerald-enchant compatibility). Also incurs asset debt (see that section).
+- Added `TheBlade`, the second of 3 planned Faceless (dual-dagger) paths — see "Faceless blade
+  path" section below (new purchasable `Twinfang` weapon, Bane/Shadow Fan soft-removed, Agility
+  reworked, Lethality/Ethereal Strike reworked into a dash-chain + invisible-flurry combo). Also
+  incurs asset debt (see that section).
 
 ## Refactor session (2026-07-25)
 
@@ -248,3 +405,79 @@ the character.
 Do not attempt further work on items 2/3/5 opportunistically inside unrelated feature work — the
 same reasoning that applied before this session (dialogue engine and damage-resolution surface area)
 still applies to what's left of them.
+
+## Fixed: spontaneous death while ragdolled/knocked (2026-07-25)
+
+Root cause was **not** `Ragdoll.luau`'s `Humanoid.RequiresNeck` (there's an unrelated, already-uncommitted
+fix for a real race there — get-up code re-enables `RequiresNeck` before the Neck `Motor6D`'s `Part0`
+is reconnected a few lines later; since Roblox's neck-death check runs off the physics step rather than
+being gated by Lua's synchronous execution, that's a genuine bug worth keeping, just not this one) and
+**not** the anti-cheat module (was fully disabled in the working tree and the deaths still happened).
+
+Actual chain: getting knocked out sets `Humanoid.Health = 3` and tags the character `Knocked`/
+`Unconscious` for 10s (`TagHumanoid/init.server.luau` ~2930), which drives `Ragdoll.luau`'s limp-body
+physics. While ragdolled, `HumanoidRootPart.Velocity.y` can swing past `-40` from residual knockback
+`BodyVelocity`/`BallSocketConstraint` physics with no relation to an actual fall. The client's fall-height
+tracker (`CharacterHandler/Input.client.luau` ~2217, `u99`) had no exemption for that — it triggered
+purely off velocity, accumulated a (physics-jitter-inflated) height, and fired `Remotes.ApplyFallDamage`
+to the server with client-reported `Value` and no server-side plausibility check beyond `tonumber`.
+Server-side, that self-fires `TagHumanoid:Fire(Character,Character,{falldamage=true, downbypass=true,
+...})` (`CharacterHandler/init.server.luau` ~2118) — `downbypass=true` deliberately skips the normal
+Knocked-state early-return guards, so it reaches `TagHumanoid/init.server.luau`'s `info.falldamage`
+block (~2673), which — unlike the main damage path — has **no** clamp keeping a knocked player above
+0 HP, and calls `_G.Death(Player)` unconditionally once the (inflated) damage crosses
+`humanoid.Health + 100` (trivial when `Health` is already 3). No attacker, no combat log entry — reads
+as fully spontaneous.
+
+**Fix** (both applied, not mutually exclusive): (1) `Input.client.luau` ~2217 — don't start fall-height
+tracking while `Knocked`/`Unconscious` is present, so the bad reading is never generated. (2)
+`TagHumanoid/init.server.luau`'s `info.falldamage` block — both `_G.Death(Player)` branches now check
+`not enemy:FindFirstChild("Knocked") and not enemy:FindFirstChild("Unconscious")` first, as a
+server-side backstop in case some other path still generates a fall-damage event while a player is
+already down. Other fall-damage behavior (injury, extending `Knocked`) is untouched — only the
+unconditional-death branches were guarded, since `downbypass` still looks intentional for the softer
+tiers.
+
+`ServerScriptService/Modules/TemperatureHandler.luau`'s frostbite branch (~141) had the identical shape
+— `humanoid.Health -=`/`_G.Death(player)` on a 0.2s-per-player world tick, completely outside
+`TagHumanoid`'s clamp, no Knocked/Unconscious check — fixed the same way (early `return` if already
+Knocked/Unconscious). A third instance, the `deathplague` curse DoT (`TagHumanoid/init.server.luau` ~703,
+`Humanoid.Health = math.min(MaxHealth, Humanoid.Health - 1.25*curseCount)` over 6 ticks with no lower
+bound), has the same "no floor, no Knocked check" shape but **was left alone** — it's DoT damage that
+follows a landed hit from a real attacker, which is more plausibly intended than a background/self-fired
+system finishing someone off with nobody attacking. If reports of "spontaneous" deaths persist after
+this fix, `deathplague` and the void/`FellOutOfWorld` case (couldn't be confirmed or ruled out from
+source — check `workspace.FallenPartsDestroyHeight` and whether ragdolled bodies ever clip through
+terrain in Studio directly) are the next things to check.
+
+## Additional cleanup found (2026-07-25, poison path session) — not yet addressed
+
+Found while researching Faceless/Lethality for the poison path above; none of this was touched, it's
+flagged for whoever picks it up next.
+
+1. **Same `Backpack:FindFirstChild` trap as the already-fixed `DragonBloodUpgrade` bug, still live in
+   2 more files.** `ServerStorage/Classes/Agility/Script.server.luau:23,35` checks
+   `p2.Backpack:FindFirstChild("UpgradedAgility")`, and `ServerStorage/Classes/Bane/Script.server.luau:23`
+   checks `p2.Backpack:FindFirstChild("UpgradedBane")` — both are plain skill strings (granted via
+   `teachskill`, see `ClassData.luau` `Spy`/`Assassin`/`Faceless` entries) with no backing `Tool`
+   folder, so per the Passives section above these checks are always `nil` and silently disable
+   whatever cooldown/speed buff they're gating. `UpgradedBane` is literally in Faceless's own skill
+   list — worth fixing alongside any future Faceless work. Same anti-pattern also showed up in
+   `Lethality/Activator.luau:41` (`p2.Backpack:FindFirstChild("Chain Lethality")` — `Chain Lethality`
+   has no `Tool` folder either), which may mean the "upgraded" 12-hit Chain Lethality flurry branch is
+   currently dead code for every Faceless player, not just a balance question — confirm with Studio
+   access before assuming it fires. Lower-confidence siblings worth a spot-check with the same lens:
+   `MederiUpgrade`, `UpgradedHyperBody`/`UpgradedTitanBody` (naming pattern matches but not confirmed
+   as flag-only).
+2. **Undocumented god-files** (large, mixed-concern, not among the 3 already called out above):
+   `StarterCharacterScripts/CharacterHandler/Input.client.luau` (2384 lines, all client weapon/keybind
+   input), `WorldHandler/GameLoaded/init.server.luau` (2285 lines, mixes admin commands + class grants
+   + bootstrapping), `ServerScriptService/Modules/Commands/init.luau` (1944 lines, monolithic chat-command
+   dispatcher — this is also where `commands.UpdateSkills`/`commands.Learn` live, both touched by the
+   poison path work above), `GameLoaded/CharacterCreationGui/CharacterCreationClient.client.luau`
+   (1679 lines), `WorldHandler/MonsterControl/DecisionModules/Howler.luau` (1026 lines).
+3. **Minor dead code**: `CharacterHandler/Input.client.luau:1872-1874` and `:2290-2296`, small
+   commented-out blocks (a fog/ambient check, a stray `wait()`).
+4. TODO/FIXME/HACK sweep and a stray-backtick/syntax sweep of `src/` turned up nothing new beyond
+   what's already documented above (`ModStop/Activator.luau`) — noted here so nobody re-runs the same
+   grep expecting different results.

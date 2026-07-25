@@ -350,7 +350,7 @@ function module.Ragdoll(Character,Set, carry)
 		game.CollectionService:AddTag(Character, "GettingUp")
 		game.CollectionService:RemoveTag(Character, "IsRagdolled")
 		Humanoid.PlatformStand = false
-		Humanoid.RequiresNeck = true
+		Humanoid.RequiresNeck = false
 		Humanoid.AutoRotate = true
 		local Character_Descendants = Character:GetDescendants()
 		local noBone = false

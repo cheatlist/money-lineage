@@ -86,7 +86,7 @@ return function(Player, Humanoid, HumanoidRootPart, PlayerData, RunService, getC
 				Character:PivotTo(workspace.SolanSpawn.CFrame)
 			end
 		end
-		task.wait()
+		task.wait(1/30)
 	end)
 
 	local lastCFrame = HumanoidRootPart.CFrame

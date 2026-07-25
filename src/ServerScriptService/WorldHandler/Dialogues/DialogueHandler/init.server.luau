@@ -58,6 +58,10 @@ local function npcclick(p1,v)
 		magmax = 50
 	end
 
+	if v.Name == "Yeti" then
+		magmax = 100
+	end
+
 	if (v.HumanoidRootPart.Position-p2.HumanoidRootPart.Position).Magnitude> magmax then
 		return
 	end

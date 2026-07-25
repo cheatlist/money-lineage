@@ -19,8 +19,12 @@ script.Parent.Activated:Connect(function()
 			return
 		end
 		local p2 = game.Players:GetPlayerFromCharacter(p1)
+		local data = game.ServerStorage.PlayerData[p2.Name]
+		if data.Skills.Value:find("TheBlade") then
+			return
+		end
 		local lasts = 10
-		if p2.Backpack:FindFirstChild("UpgradedBane")then
+		if data.Skills.Value:find("UpgradedBane")then
 			lasts = 15
 		end
 		local CD = Instance.new("NumberValue")

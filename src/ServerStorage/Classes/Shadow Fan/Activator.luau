@@ -27,6 +27,11 @@ function v1.Active(p1, p2, p3, p45)
 	if game.CollectionService:HasTag(p1, "Knocked") then
 		return;
 	end;
+	local data = p2 and game.ServerStorage.PlayerData:FindFirstChild(p2.Name)
+	if data and data.Skills.Value:find("TheBlade") then
+		-- TheBlade path: Shadow Fan is removed
+		return
+	end
 	if p1.Cooldowns:FindFirstChild("Shadow Fan") then
 		return
 	end

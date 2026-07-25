@@ -20,6 +20,79 @@ local u3 = {
 local l__TagHumanoid__4 = game.ServerStorage.Requests.TagHumanoid;
 local l__TweenService__5 = game:GetService("TweenService");
 local u6 = false;
+
+local function setInvisible(character, transparency)
+	for _, v in pairs(character:GetChildren()) do
+		if v:IsA("BasePart") then
+			v.Transparency = transparency
+		elseif v:IsA("Accessory") and v:FindFirstChild("Handle") then
+			v.Handle.Transparency = transparency
+		end
+	end
+end
+
+-- TheBlade path: fast vertical slash, heavy endlag on a whiff, invisible Chain-Lethality-style
+-- flurry + a knockback finisher on a hit. `buffed` is true when this was reached via Ethereal
+-- Strike's post-dash follow-up window (see Ethereal Strike/Script.server.luau) - it skips the
+-- whiff risk (auto-targets) and hits harder.
+local function BladeLethality(p1, p2, data, buffed)
+	local HumanoidRootPart = p1.HumanoidRootPart
+	local target, targetDist = nil, buffed and 16 or 9
+	for _, v in pairs(game.Workspace.Live:GetChildren()) do
+		if v ~= p1 and v:FindFirstChild("Humanoid") and v:FindFirstChild("HumanoidRootPart") and v.Humanoid.Health > 0 then
+			local dist = (HumanoidRootPart.Position - v.HumanoidRootPart.Position).Magnitude
+			if dist < targetDist and (buffed or (HumanoidRootPart.CFrame:inverse() * v.HumanoidRootPart.CFrame).Z < 0) then
+				target, targetDist = v, dist
+			end
+		end
+	end
+	if not target then
+		-- whiffed: heavy endlag, punished for missing
+		local endlag = Instance.new("Folder")
+		endlag.Name = "Action"
+		endlag.Parent = p1
+		game.Debris:AddItem(endlag, 1.4)
+		HumanoidRootPart.DaggerSlash1:Play()
+		return
+	end
+	local mult = buffed and 1.4 or 1
+	l__TagHumanoid__4:Fire(p1, target, {
+		physical = true,
+		dagger = true,
+		damage = 3 * mult,
+		slash = true,
+		blockbreak = true,
+		nobackstab = true,
+		move = "Lethality",
+	})
+	setInvisible(p1, 1)
+	for i = 1, 6 do
+		if not target or target.Parent ~= game.Workspace.Live or target.Humanoid.Health <= 0 then
+			break
+		end
+		l__TagHumanoid__4:Fire(p1, target, {
+			physical = true,
+			dagger = true,
+			damage = 2.5 * mult,
+			slash = true,
+			executes = true,
+			nobackstab = true,
+			nobuff = true,
+			move = "Lethality",
+		})
+		task.wait(0.06)
+	end
+	setInvisible(p1, 0)
+	if target and target.Parent == game.Workspace.Live and target:FindFirstChild("HumanoidRootPart") then
+		local bv = Instance.new("BodyVelocity")
+		game.CollectionService:AddTag(bv, "AllowedBM")
+		bv.MaxForce = Vector3.new(1e9, 1e9, 1e9)
+		bv.Velocity = (target.HumanoidRootPart.Position - HumanoidRootPart.Position).Unit * 65 + Vector3.new(0, 15, 0)
+		bv.Parent = target.HumanoidRootPart
+		game.Debris:AddItem(bv, 0.3)
+	end
+end
+
 function v2.Active(p1, p2, p3, p45)
 	if ActionCheck() then
 		return;
@@ -27,6 +100,26 @@ function v2.Active(p1, p2, p3, p45)
 	if game.CollectionService:HasTag(p1, "Knocked") then
 		return;
 	end;
+	local data = game.ServerStorage.PlayerData[p2.Name]
+	if data.Skills.Value:find("TheBlade") then
+		if p1.Cooldowns:FindFirstChild("Lethality") then
+			return
+		end
+		local CD = Instance.new("NumberValue")
+		CD.Name = "Lethality"
+		CD.Value = 30
+		CD.Parent = p1.Cooldowns
+		game.Debris:AddItem(CD, 30)
+		local buffed = p1:FindFirstChild("EtherealFollowup") ~= nil
+		if buffed then
+			p1.EtherealFollowup:Destroy()
+			if p1:FindFirstChild("EtherealChain") then
+				p1.EtherealChain:Destroy()
+			end
+		end
+		BladeLethality(p1, p2, data, buffed)
+		return
+	end
 	if p1.Cooldowns:FindFirstChild("Lethality") then
 		return
 	end

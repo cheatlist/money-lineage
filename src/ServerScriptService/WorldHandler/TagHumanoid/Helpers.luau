@@ -128,6 +128,47 @@ local function getCurseCount(Character)
 	return count
 end
 
+local function getToxinStackCount(Character)
+	local count = 0
+	for i,v in pairs(Character.HumanoidRootPart:GetChildren()) do
+		if v.Name == "ToxinStack" and v.Enabled == true then
+			count += 1
+		end
+	end
+	return count
+end
+
+local function addToxinStack(enemy, maxStacks)
+	if enemy.Boosts and enemy.Boosts:FindFirstChild("CurseEffectImmune") then
+		return
+	end
+	if getToxinStackCount(enemy) >= (maxStacks or 8) then
+		return
+	end
+	local stack = game.ServerStorage.Assets.Cursey:Clone()
+	stack.Name = "ToxinStack"
+	stack.Parent = enemy.HumanoidRootPart
+	game.Debris:AddItem(stack, 10)
+	if enemy.Boosts then
+		local slowdown = Instance.new("NumberValue")
+		slowdown.Name = "SpeedBoost"
+		slowdown.Value = -3
+		slowdown.Parent = enemy.Boosts
+		game.Debris:AddItem(slowdown, 10)
+	end
+end
+
+local function clearToxinStacks(enemy)
+	local count = 0
+	for i,v in pairs(enemy.HumanoidRootPart:GetChildren()) do
+		if v.Name == "ToxinStack" then
+			count += 1
+			v:Destroy()
+		end
+	end
+	return count
+end
+
 return {
 	create = create,
 	changetransparency = changetransparency,
@@ -138,4 +179,7 @@ return {
 	soundplay = soundplay,
 	Send = Send,
 	getCurseCount = getCurseCount,
+	getToxinStackCount = getToxinStackCount,
+	addToxinStack = addToxinStack,
+	clearToxinStacks = clearToxinStacks,
 }

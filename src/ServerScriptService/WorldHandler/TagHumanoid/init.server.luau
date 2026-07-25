@@ -17,11 +17,14 @@ local hitknockback = Helpers.hitknockback
 local soundplay = Helpers.soundplay
 local Send = Helpers.Send
 local getCurseCount = Helpers.getCurseCount
+local getToxinStackCount = Helpers.getToxinStackCount
+local addToxinStack = Helpers.addToxinStack
 
 local FlowingParry = game.ServerStorage.NPCAnims.FlowingParry
 
 local DragonSlayerPaths = require(script.Procs.DragonSlayerPaths)
 local NameErasure = require(script.Procs.NameErasure)
+local FacelessPaths = require(script.Procs.FacelessPaths)
 
 function taghumanoid(character,enemy,info)
 	local stun = 0.35
@@ -2135,7 +2138,11 @@ function taghumanoid(character,enemy,info)
 								end
 								if val2:find("Emerald") then
 									if info.damage and math.random(1,10)<=1+(info.damage*0.2) then
-										game.ServerStorage.Requests.TagHumanoid:Fire(enemy,enemy,{poison = true,nododge = true})
+										if playerdata.Skills.Value:find("TheToxin") then
+											addToxinStack(enemy)
+										else
+											game.ServerStorage.Requests.TagHumanoid:Fire(enemy,enemy,{poison = true,nododge = true})
+										end
 									end
 								end
 								if val2:find("Opal") and not info.noenchant then
@@ -2630,7 +2637,13 @@ function taghumanoid(character,enemy,info)
 		if enemy:FindFirstChild("Blocking")then
 			poisoning = false
 		end
-		if not enemy:FindFirstChild("Poisoned") and poisoning then
+		if poisoning and playerdata and playerdata.Skills.Value:find("TheToxin") then
+			-- TheToxin path: poison snowballs as stacks (heavy debuff + amplified damage
+			-- taken, see Helpers.addToxinStack) instead of the legacy flat tick DoT below.
+			eroot.Poison:Play()
+			eroot.PoisonParticle:Emit(12)
+			addToxinStack(enemy)
+		elseif not enemy:FindFirstChild("Poisoned") and poisoning then
 			eroot.Poison:Play()
 			eroot.PoisonParticle:Emit(20)
 			local v1 = Instance.new("Accessory")
@@ -2710,7 +2723,11 @@ function taghumanoid(character,enemy,info)
 					create("Knocked",0.25,character)
 				end
 			elseif info.damage >= humanoid.Health + 100 then
-				_G.Death(Player)
+				-- don't let a ragdoll-physics-inflated fall reading finish off someone
+				-- who's already down from combat with no attacker to show for it
+				if not enemy:FindFirstChild("Knocked") and not enemy:FindFirstChild("Unconscious") then
+					_G.Death(Player)
+				end
 			end
 		elseif info.damage > 40 and character:FindFirstChild("FeatherFall") then
 			if not character:FindFirstChild("InjuryCooldown") then
@@ -2732,7 +2749,9 @@ function taghumanoid(character,enemy,info)
 					create("Knocked",0.25,character)
 				end
 			elseif info.damage >= humanoid.Health + 400 then
-				_G.Death(Player)
+				if not enemy:FindFirstChild("Knocked") and not enemy:FindFirstChild("Unconscious") then
+					_G.Death(Player)
+				end
 			end
 		end
 	end
@@ -2862,6 +2881,7 @@ function taghumanoid(character,enemy,info)
 		if character ~= enemy then
 			DragonSlayerPaths(character, enemy, info, humanoid)
 			NameErasure(character, enemy, info, humanoid, ehumanoid, Player, EnemyPlayer)
+			FacelessPaths(character, enemy, info, playerdata)
 		end
 		if info.physical and FindFirstChild(character,"HaseldanDamageMultiplier")then
 			info.damage *= 1.25
@@ -2874,6 +2894,10 @@ function taghumanoid(character,enemy,info)
 				else
 					info.damage *= 1 + (cursecount * 0.25)
 				end
+			end
+			local toxincount = getToxinStackCount(enemy)
+			if toxincount > 0 then
+				info.damage *= 1 + (toxincount * 0.2)
 			end
 		end
 		if FindFirstChild(character,"LifeSteal") and info.damage then
