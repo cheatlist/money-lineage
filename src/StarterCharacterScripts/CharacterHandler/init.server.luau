@@ -113,7 +113,7 @@ if string.find(PlayerData.Skills.Value,"Azure Ignition") then
 		RegeneratingInsanity.Value = true
 		RegeneratingInsanity.Name = "Regenerating"
 		spawn(function()
-			while wait(.5) do
+			while task.wait(.5) do
 				if Character:FindFirstChild("VanguardBuff") then
 				else
 					Aether.Value = math.clamp(Aether.Value + 1,1,100)
@@ -134,7 +134,7 @@ if string.find(PlayerData.Skills.Value,"TheCursedSwordsman") then
 		RegeneratingInsanity.Value = true
 		RegeneratingInsanity.Name = "Regenerating"
 		spawn(function()
-			while wait(.5) do
+			while task.wait(.5) do
 				if Character:FindFirstChild("TrueVisionEnabled") or Character:FindFirstChild("RuneBoy") then
 				else
 					Aether.Value = math.clamp(Aether.Value + 0.5,1,100)
@@ -256,7 +256,7 @@ local function changetransparency(v,transparency)
 	end
 end
 
-wait()
+task.wait()
 if PlayerData.Class.Value == "Faceless" or PlayerData.Skills.Value:find("ShadowDash") then
 	for i,v in pairs(Character.Head:GetChildren()) do
 		if (v.ClassName == "Decal" and game.ReplicatedStorage.Assets.Faces:FindFirstChild(v.Name)) or v.Name == "face" then
@@ -529,7 +529,7 @@ PlayerData:WaitForChild("Skills").Changed:Connect(function()
 			RegeneratingInsanity.Value = true
 			RegeneratingInsanity.Name = "Regenerating"
 			spawn(function()
-				while wait(.5) do
+				while task.wait(.5) do
 					if Character:FindFirstChild("VanguardBuff") then
 					else
 						Aether.Value = math.clamp(Aether.Value + 1,1,100)
@@ -550,7 +550,7 @@ PlayerData:WaitForChild("Skills").Changed:Connect(function()
 			RegeneratingInsanity.Value = true
 			RegeneratingInsanity.Name = "Regenerating"
 			spawn(function()
-				while wait(.5) do
+				while task.wait(.5) do
 					if Character:FindFirstChild("TrueVisionEnabled") or Character:FindFirstChild("RuneBoy") then
 					else
 						Aether.Value = math.clamp(Aether.Value + 0.5,1,100)
@@ -789,7 +789,7 @@ Humanoid.Died:Connect(function()
 		StoryMarker["Obelisks"] = {}
 	end
 	PlayerData.StoryMarker.Value = game:GetService("HttpService"):JSONEncode(StoryMarker)
-	wait(5)
+	task.wait(5)
 	Character:Remove()
 	PlayerData.LastPosition.Value = "N/A"
 	task.defer(Character.Destroy, Character)
@@ -809,7 +809,7 @@ if table.find(ultraclass3, PlayerData.Class.Value) or PlayerData.Hybrid.Value ~=
 end
 if PlayerData.Lives.Value>0 or Player:FindFirstChild("LichSummon") or Character:FindFirstChild("LichSummon") then
 	repeat
-		wait()
+		task.wait()
 		Character.Parent = workspace.Live
 	until Character.Parent == workspace.Live
 	Character:WaitForChild("Humanoid")
@@ -848,7 +848,7 @@ if PlayerData.Lives.Value>0 or Player:FindFirstChild("LichSummon") or Character:
 				tpcf = spawns[math.random(1,#spawns)].CFrame
 			end
 			spawn(function()
-				while wait(0.25) do
+				while task.wait(0.25) do
 					if Humanoid.MoveDirection.Magnitude > 0.8 then
 						break
 					end
@@ -862,7 +862,7 @@ if PlayerData.Lives.Value>0 or Player:FindFirstChild("LichSummon") or Character:
 			local childo = game.ServerStorage.PrivateServerArena.Spawns:GetChildren()
 			tpcf = childo[math.random(1,4)].CFrame
 			spawn(function()
-				while wait(0.25) do
+				while task.wait(0.25) do
 					if Humanoid.MoveDirection.Magnitude > 0.8 then
 						break
 					end
@@ -876,7 +876,7 @@ if PlayerData.Lives.Value>0 or Player:FindFirstChild("LichSummon") or Character:
 	else
 		tpcf = allowawda.Bed.Part.CFrame * CFrame.new(0, 2, 0)
 		spawn(function()
-			while wait(0.25) do
+			while task.wait(0.25) do
 				if Humanoid.MoveDirection.Magnitude > 0.8 then
 					break
 				end
@@ -889,7 +889,7 @@ if PlayerData.Lives.Value>0 or Player:FindFirstChild("LichSummon") or Character:
 	end
 else
 	repeat
-		wait()
+		task.wait()
 		Character.Parent = workspace.Dead
 	until Character.Parent == workspace.Dead
 	PlayerData.Lives.Value = 0
@@ -904,7 +904,7 @@ game:GetService("Debris"):AddItem(tpsafe,1)
 Character:PivotTo(tpcf *CFrame.new(0,2,0))
 -- stujpid fix
 
-repeat wait()until not FindFirstChild(Character,"NotLoaded")
+repeat task.wait()until not FindFirstChild(Character,"NotLoaded")
 
 if PlayerData.Gender.Value == "Female" then
 	local facial = game.ReplicatedStorage.Assets.FacialMarkings
@@ -1210,7 +1210,7 @@ Remotes.LeftClick.OnServerEvent:Connect(function(p,hit,target)
 		return
 	end
 	m1(Character,Player,combatanims,PlayerData)
-	wait()
+	task.wait()
 	canattack = true
 end)
 local heavycombo = 1
@@ -1497,7 +1497,7 @@ Remotes.RightClick.OnServerEvent:Connect(function(p,shiftlock)
 	animation:Play(0.1,1,speed)
 
 	spawn(function()
-		wait(0.05)
+		task.wait(0.05)
 		if not FindFirstChild(Character,"Stun")then
 			local effectpart = nil
 			local particle = Assets.ParticleArm:Clone()
@@ -1529,24 +1529,24 @@ Remotes.RightClick.OnServerEvent:Connect(function(p,shiftlock)
 			particle.TestTrail.Enabled = true
 			particle.ChargePart.Enabled = true
 			HumanoidRootPart.Charge:Play()
-			wait(0.5)
+			task.wait(0.5)
 			particle.ChargePart.Enabled = false
-			wait(0.25)
+			task.wait(0.25)
 			particle.TestTrail.Enabled = false
 			game.Debris:AddItem(particle,0.75)
 			if fire then
 				fire.Enabled = false
 				game.Debris:AddItem(fire,1)
-				wait(0.5)
+				task.wait(0.5)
 				HumanoidRootPart.MonasteryFire:Stop()
 			end
 		end
 	end)
-	wait(0.125)
+	task.wait(0.125)
 	animation:AdjustSpeed(0)
-	wait(0.1875)
+	task.wait(0.1875)
 	if not (PlayerData.Race.Value == "Ashiin" and PlayerData.Ascended.Value == true) then
-		wait(0.1875)
+		task.wait(0.1875)
 	end
 	if FindFirstChild(Character,"Stun")then
 		canattack = true
@@ -1565,9 +1565,9 @@ Remotes.RightClick.OnServerEvent:Connect(function(p,shiftlock)
 		HumanoidRootPart.HeavySwing:Play()
 		hitcheck.magnitudeCheck(Character,HumanoidRootPart.Position,9,info)
 	end
-	wait(0.35)
+	task.wait(0.35)
 	combo.Value = 1
-	wait(1.5)
+	task.wait(1.5)
 	canheavy = true
 end)
 
@@ -1849,7 +1849,7 @@ Remotes.Dodge.OnServerEvent:Connect(function(p,axis,Type)
 			end
 			wrap(function()
 				local oldtpdashes = tpdashes
-				wait(3)
+				task.wait(3)
 				if tick()-lastdash>3 and oldtpdashes == tpdashes then
 					tpdashes = 0
 				end
@@ -1889,7 +1889,7 @@ Remotes.Dodge.OnServerEvent:Connect(function(p,axis,Type)
 			end
 			wrap(function()
 				local oldtpdashes = tpdashes
-				wait(3)
+				task.wait(3)
 				if tick()-lastdash>3 and oldtpdashes == tpdashes then
 					tpdashes = 0
 				end
@@ -2011,7 +2011,7 @@ Remotes.Dodge.OnServerEvent:Connect(function(p,axis,Type)
 			end
 			wrap(function()
 				local oldtpdashes = tpdashes
-				wait(3)
+				task.wait(3)
 				if tick()-lastdash>3 and oldtpdashes == tpdashes then
 					tpdashes = 0
 				end
@@ -2076,7 +2076,7 @@ Remotes.Dodge.OnServerEvent:Connect(function(p,axis,Type)
 	if Mana.Value>0 then
 		HumanoidRootPart.EnergyDash:Play()
 		HumanoidRootPart.ManaStopParticle.Enabled = true
-		wait(0.4)
+		task.wait(0.4)
 		HumanoidRootPart.ManaStopParticle.Enabled = false
 	else
 		Sound:Play()
@@ -2179,11 +2179,11 @@ Remotes.Carry.OnServerEvent:Connect(function(p)
 				bg.Name = "beinggrabbed"
 				bg.Parent = NPC
 				Humanoid:LoadAnimation(combatanims.Pickup):Play()
-				wait()
+				task.wait()
 				local a = Instance.new("Folder")
 				a.Name = "Action"
 				a.Parent = Character
-				wait(0.45)
+				task.wait(0.45)
 				a:Destroy()
 				if Character:FindFirstChild("Knocked") then
 					for _,b in ipairs(NPC:GetChildren())do
@@ -2282,7 +2282,7 @@ Remotes.Execution.OnServerEvent:Connect(function(p)
 			end
 		end
 		cancel = true
-		wait(0.5)
+		task.wait(0.5)
 		cancel = false
 		return
 	end
@@ -2348,7 +2348,7 @@ Remotes.Execution.OnServerEvent:Connect(function(p)
 					grippedanimation:Play()
 					for i: number = 1,4 do
 						for _: number = 1,8 do
-							wait(0.1)
+							task.wait(0.1)
 							if Character:FindFirstChild("NoDam")or not(NPC:IsDescendantOf(workspace))or not ex1.Value or not ex1.Parent then
 								cancel = true
 							end
@@ -2394,7 +2394,7 @@ Remotes.Execution.OnServerEvent:Connect(function(p)
 							end
 						end
 						if i ~= 5 then
-							wait(0.2)
+							task.wait(0.2)
 							if Character:FindFirstChild("NoDam")or not(NPC:IsDescendantOf(workspace))or not ex1.Value or not ex1.Parent then
 								cancel = true
 							end
@@ -2412,7 +2412,7 @@ Remotes.Execution.OnServerEvent:Connect(function(p)
 					grippedanimation:Play()
 					for i = 1,3 do
 						for _ = 1,10 do
-							wait(0.09)
+							task.wait(0.09)
 							if Character:FindFirstChild("NoDam")or not(NPC:IsDescendantOf(workspace))or not ex1.value or not ex1.Parent then
 								cancel = true
 							end
@@ -2445,7 +2445,7 @@ Remotes.Execution.OnServerEvent:Connect(function(p)
 					grippedanimation:Play()
 					for i = 1,3 do
 						for _ = 1,10 do
-							wait(0.09)
+							task.wait(0.09)
 							if Character:FindFirstChild("NoDam")or not(NPC:IsDescendantOf(workspace))or not ex1.value or not ex1.Parent then
 								cancel = true
 							end
@@ -2656,510 +2656,6 @@ function VanguardCheck(p1)
 end
 
 --//local bardtoolmanager = false
-local function equipweapon(tool)
-	if table.find(equipped, tool) then
-		return
-	end
-	if not Character then
-		return
-	end
-	if Character:FindFirstChild("Hilt"):FindFirstChild("Trumpet") then
-		Character:FindFirstChild("Hilt"):FindFirstChild("Trumpet"):Destroy()
-	end
-	if Character:FindFirstChild("Hilt"):FindFirstChild("Lute") then
-		Character:FindFirstChild("Hilt"):FindFirstChild("Lute"):Destroy()
-	end
-
-	if Character:FindFirstChild("Hilt"):FindFirstChild("GoldenLute") then
-		Character:FindFirstChild("Hilt"):FindFirstChild("GoldenLute"):Destroy()
-	end
-
-	if tool:FindFirstChild("Song") then --// bard	
-		if tool:FindFirstChild("Song"):FindFirstChild("Trumpet") then
-			local Trumpet = game.ServerStorage.Assets.Trumpet:Clone()
-
-			if Trumpet then
-				Trumpet.Parent = Character["Hilt"]
-				Trumpet["PropWeld"].Part0= Character["Hilt"]
-				Trumpet["PropWeld"].Part1 = Trumpet
-				Trumpet["PropWeld"].C1 = CFrame.new(0.100000001, 0, 0, 0, 0, 1, 0, 1, -0, -1, 0, 0);
-				Trumpet["PropWeld"].C0 = CFrame.new(0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1)
-			else
-				warn("no trumpet!!")
-			end
-		else
-			local Lute = game.ServerStorage.Assets.Lute:Clone()
-			local GoldenLute = game.ServerStorage.Assets.GoldenLute:Clone()
-			if Player.Name == "XY_D" then
-				if GoldenLute then
-					GoldenLute.Parent = Character["Hilt"]
-					local PropWeld = Instance.new("Weld")
-					PropWeld.Name = "PropWeld"
-					PropWeld.Parent = Character["Hilt"]
-					PropWeld.Part0 = Character["Hilt"]
-					PropWeld.Part1 = GoldenLute
-					PropWeld.C1 = CFrame.new(1, 1, 0, 0.499995947, -0.866027713, 2.98917294e-05, 0.66341269, 0.382995188, -0.64280498, 0.556675434, 0.321419746, 0.766029894);
-					PropWeld.C0 = CFrame.new(0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1)
-					GoldenLute.Transparency = 0;
-					GoldenLute.Part.Transparency = 0;
-					BardIdle = Humanoid:LoadAnimation(GoldenLute.BardIdle)
-					BardIdle:Play();
-				end
-			end
-			if Lute and  Player.Name ~= ""  then
-				Lute.Parent = Character["Hilt"]
-				local PropWeld = Instance.new("Weld")
-				PropWeld.Name = "PropWeld"
-				PropWeld.Parent = Character["Hilt"]
-				PropWeld.Part0 = Character["Hilt"]
-				PropWeld.Part1 = Lute
-				PropWeld.C1 = CFrame.new(1, 1, 0, 0.499995947, -0.866027713, 2.98917294e-05, 0.66341269, 0.382995188, -0.64280498, 0.556675434, 0.321419746, 0.766029894);
-				PropWeld.C0 = CFrame.new(0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1)
-				Lute.Transparency = 0;
-				Lute.Part.Transparency = 0;
-				BardIdle = Humanoid:LoadAnimation(Lute.BardIdle)
-				BardIdle:Play();
-			end
-		end
-		return
-	end
-	local equipcdcheck = false
-	eqstackcheck+=1
-	if FindFirstChild(Character,"EquipCD")then
-		local old = eqstackcheck
-		equipcdcheck = true
-		while FindFirstChild(Character,"EquipCD")do
-			wait(0.05)
-		end
-		if eqstackcheck~=old then
-			return
-		end
-		if tool.Parent~=Character then
-			return
-		end
-	end
-	if equipcdcheck and tool.Parent~=Character then
-		return
-	end
-	table.insert(equipped,tool)
-	if not Character then
-		return
-	end
-	if Humanoid and HumanoidRootPart then
-		local hasweapon = tool:FindFirstChild("RequiresWeapon")
-		if hasweapon and hasweapon.Value=="None"then
-			hasweapon = nil
-		end
-		local dim = 0
-		local children = Boosts:GetChildren()
-		for i = 1,#children do
-			local v = children[i]
-			if v.Name == "Transparency" then
-				dim += v.Value
-			end
-		end
-		table.clear(children)
-		if WEAPON then
-			if dim >= 1 then
-				if WEAPON:IsA("MeshPart") then
-					WEAPON.Transparency = 1
-				end
-				local children = GetChildren(WEAPON)
-				for i = 1,#children do
-					local v = children[i]
-					if v.Name == "EnchantEffect" then
-						v.Enabled = false
-					end
-				end
-				table.clear(children)
-			else
-				if WEAPON:IsA("MeshPart") then
-					WEAPON.Transparency = 0
-				end
-				local children = GetChildren(WEAPON)
-				for i = 1,#children do
-					local v = children[i]
-					if v.Name == "EnchantEffect" then
-						v.Enabled = true
-					end
-				end
-				table.clear(children)
-			end
-		end
-		if FindFirstChild(tool,"PrimaryWeapon")or hasweapon then
-			if WEAPON and WEAPON:FindFirstChild("PropWeld") then
-				--local cl = WEAPON:Clone()
-				--cl.Parent = WEAPON.Parent
-				task.wait()
-				--WEAPON.Parent = nil
-				--WEAPON = cl
-				for i,v in pairs(WEAPON:GetChildren()) do
-					if v:IsA("Trail") then
-						v.Enabled = false
-					end
-				end
-				if WEAPON.Name == "Bronze Dagger" or WEAPON.Name == "Steel Dagger" or WEAPON.Name == "Mythril Dagger" then
-					WEAPON.PropWeld.Part0 = Character.Hilt
-					WEAPON.PropWeld.Part1 = WEAPON
-					WEAPON.PropWeld.C1 = CFrame.new(0.25,0,-0.800000012,0,-1,0,1,0,-0,0,0,1)
-					WEAPON.Parent = Character.Hilt
-					if #equipped <= 1 then
-						create("HasDagger",false,Character)
-					end
-				elseif WEAPON.Name == "Tanto"then
-					WEAPON.PropWeld.Part0 = Character.Hilt
-					WEAPON.PropWeld.Part1 = WEAPON
-					WEAPON.Parent = Character.Hilt
-					if #equipped <= 1 then
-						create("HasDagger",false,Character)
-					end
-				elseif WEAPON.Name == "Spirit Dagger"then
-					WEAPON.PropWeld.Part0 = Character.Hilt
-					WEAPON.PropWeld.Part1 = WEAPON
-					WEAPON.Color = Player.Backpack.ManaColor.Value
-					WEAPON.PropWeld.C1 = CFrame.new(0.25,0,-0.800000012,0,-1,0,1,0,-0,0,0,1)
-					WEAPON.Parent = Character.Hilt
-					if #equipped <= 1 then
-						create("HasDagger",false,Character)
-					end
-				elseif WEAPON.Name == "Bronze Sword" or WEAPON.Name == "Steel Sword" or WEAPON.Name == "Mythril Sword" then
-					WEAPON.Weld.Part0 = nil
-					WEAPON.Weld.Part1 = nil
-					WEAPON.PropWeld.Part0 = Character.Hilt
-					WEAPON.PropWeld.Part1 = WEAPON
-					WEAPON.PropWeld.C1 = CFrame.new(-1.85000002,0,0,0,0,-1,-1,0,0,0,1,0)
-					WEAPON.Parent = Character.Hilt
-					if PlayerData.Skills.Value:find("WraithTraining") then
-						wraithidle:Play()
-					end
-
-					if #equipped <= 1 then
-						create("HasSword",false,Character)
-					end
-				elseif WEAPON.Name == "Illusory Sword" then
-					WEAPON.Weld.Part0 = nil
-					WEAPON.Weld.Part1 = nil
-					WEAPON.PropWeld.Part0 = Character.Hilt
-					WEAPON.PropWeld.Part1 = WEAPON
-					WEAPON.PropWeld.C1 = CFrame.new(0, -2, 0, 1, 0, 0, 0, -4.37113883e-08, -1, 0, 1, -4.37113883e-08)
-					WEAPON.Parent = Character.Hilt
-					if PlayerData.Skills.Value:find("WraithTraining") then
-						wraithidle:Play()
-					end
-
-					if #equipped <= 1 then
-						create("HasSword",false,Character)
-					end
-				elseif WEAPON.Name == "Spirit Sword"then
-					WEAPON.Weld.Part0 = nil
-					WEAPON.Weld.Part1 = nil
-					WEAPON.PropWeld.Part0 = Character.Hilt
-					WEAPON.PropWeld.Part1 = WEAPON
-					WEAPON.PropWeld.C1 = CFrame.new(-1.85000002,0,0,0,0,-1,-1,0,0,0,1,0)
-					WEAPON.Color = Player.Backpack.ManaColor.Value
-					WEAPON.Parent = Character.Hilt
-					if PlayerData.Skills.Value:find("WraithTraining") then
-						wraithidle:Play()
-					end
-					if #equipped <= 1 then
-						create("HasSword",false,Character)
-					end
-				elseif WEAPON.Name == "Broom Sword"then
-					WEAPON.Weld.Part0 = nil
-					WEAPON.Weld.Part1 = nil
-					WEAPON.PropWeld.Part0 = Character.Hilt
-					WEAPON.PropWeld.Part1 = WEAPON
-					WEAPON.PropWeld.C1 = CFrame.new(0, 1, 0, -1, 0, 0, 0, 0, 1, 0, 1, -0)
-					WEAPON.Parent = Character.Hilt
-					if PlayerData.Skills.Value:find("WraithTraining") then
-						wraithidle:Play()
-					end
-					if #equipped <= 1 then
-						create("HasSword",false,Character)
-					end
-				elseif WEAPON.Name == "Dark Sword"then
-					WEAPON.Weld.Part0 = nil
-					WEAPON.Weld.Part1 = nil
-					WEAPON.PropWeld.Part0 = Character.Hilt
-					WEAPON.PropWeld.Part1 = WEAPON
-					WEAPON.Parent = Character.Hilt
-					if PlayerData.Skills.Value:find("WraithTraining") then
-						wraithidle:Play()
-					end
-					if #equipped <= 1 then
-						create("HasSword",false,Character)
-					end
-				elseif WEAPON.Name == "Katana"then
-					if WEAPON.Parent == Character:FindFirstChild("Hilt") then
-						return
-					end
-					local EquipCD = Instance.new("Folder")
-					EquipCD.Name = "EquipCD"
-					EquipCD.Parent = Character
-					game.Debris:AddItem(EquipCD,0.5)
-					if not PlayerData.Skills.Value:find("Sheathe Mastery") then
-						katanaequip:Play()
-						wait(0.4)
-					end
-					katanaidle:Play()
-					WEAPON.Weld.Part0 = nil
-					WEAPON.Weld.Part1 = nil
-					WEAPON.PropWeld.Part0 = Character.Hilt
-					WEAPON.PropWeld.Part1 = WEAPON
-					WEAPON.Parent = Character.Hilt
-					if #equipped <= 1 then
-						create("HasKatana",false,Character)
-					end
-					HumanoidRootPart.KatanaUnsheathe:Play()
-					local Katana = Character.Hilt:FindFirstChild("Katana")
-					if Katana then
-						Katana.Attachment1.Sparkle:Emit(3)
-					end
-				elseif WEAPON.Name == "Murasama"then
-					local EquipCD = Instance.new("Folder")
-					EquipCD.Name = "EquipCD"
-					EquipCD.Parent = Character
-					game.Debris:AddItem(EquipCD,0.5)
-					katanaequip:Play()
-					katanaidle:Play()
-					wait(0.4)
-					WEAPON.Weld.Part0 = nil
-					WEAPON.Weld.Part1 = nil
-					WEAPON.PropWeld.Part0 = Character.Hilt
-					WEAPON.PropWeld.Part1 = WEAPON
-					WEAPON.Parent = Character.Hilt
-					if #equipped <= 1 then
-						create("HasKatana",false,Character)
-					end
-					HumanoidRootPart.KatanaUnsheathe:Play()
-					local Katana = Character.Hilt:FindFirstChild("Murasama")
-					if Katana then
-						Katana.Attachment1.Sparkle:Emit(3)
-					end
-				elseif WEAPON.Name == "WraithSword"then
-					WEAPON.Weld.Part0 = nil
-					WEAPON.Weld.Part1 = nil
-					WEAPON.PropWeld.Part0 = Character.Hilt
-					WEAPON.PropWeld.Part1 = WEAPON
-					WEAPON.Parent = Character.Hilt
-					if PlayerData.Skills.Value:find("WraithTraining") then
-						wraithidle:Play()
-					end
-					if #equipped <= 1 then
-						create("HasSword",false,Character)
-					end
-				elseif WEAPON.Name == "DeathSword"then
-					WEAPON.Weld.Part0 = nil
-					WEAPON.Weld.Part1 = nil
-					WEAPON.PropWeld.Part0 = Character.Hilt
-					WEAPON.PropWeld.Part1 = WEAPON
-					WEAPON.Parent = Character.Hilt
-					if PlayerData.Skills.Value:find("WraithTraining") then
-						wraithidle:Play()
-					end
-					if #equipped <= 1 then
-						create("HasSword",false,Character)
-					end
-				elseif WEAPON.Name == "SealedSword"then
-					WEAPON.Weld.Part0 = nil
-					WEAPON.Weld.Part1 = nil
-					WEAPON.PropWeld.Part0 = Character.Hilt
-					WEAPON.PropWeld.Part1 = WEAPON
-					WEAPON.Parent = Character.Hilt
-					if PlayerData.Skills.Value:find("WraithTraining") then
-						wraithidle:Play()
-					end
-					if #equipped <= 1 then
-						create("HasSword",false,Character)
-					end
-				elseif WEAPON.Name == "Rapier"then
-					WEAPON.Weld.Part0 = nil
-					WEAPON.Weld.Part1 = nil
-					WEAPON.PropWeld.Part0 = Character.Hilt
-					WEAPON.PropWeld.Part1 = WEAPON
-					WEAPON.Parent = Character.Hilt
-					if #equipped <= 1 then
-						create("HasRapier",false,Character)
-					end
-				elseif WEAPON.Name == "Bronze Spear" or WEAPON.Name == "Steel Spear" or WEAPON.Name == "Mythril Spear" then
-					WEAPON.Weld.Part0 = nil
-					WEAPON.Weld.Part1 = nil
-					WEAPON.PropWeld.Part0 = Character.Hilt
-					WEAPON.PropWeld.Part1 = WEAPON
-					WEAPON.PropWeld.C1 = CFrame.new(2,0,0,0,0,1,-1,0,0,0,-1,0)
-					WEAPON.Parent = Character.Hilt
-					spearidle:Play()
-					if #equipped <= 1 then
-						create("HasSpear",false,Character)
-					end
-				elseif WEAPON.Name == "Mythril Church Spear"then
-					WEAPON.Weld.Part0 = nil
-					WEAPON.Weld.Part1 = nil
-					WEAPON.PropWeld.Part0 = Character.Hilt
-					WEAPON.PropWeld.Part1 = WEAPON
-					WEAPON.Parent = Character.Hilt
-					if #equipped <= 1 then
-						create("HasSpear",false,Character)
-						create("Prince's Favour",false,Character)
-					end
-				elseif WEAPON.Name == "Thorn Spear"then
-					WEAPON.Weld.Part0 = nil
-					WEAPON.Weld.Part1 = nil
-					WEAPON.PropWeld.Part0 = Character.Hilt
-					WEAPON.PropWeld.Part1 = WEAPON
-					WEAPON.PropWeld.C1 = CFrame.new(0, 0, 0.100000001, -1, 1.50995803e-07, -6.60023616e-15, 0, -4.37113883e-08, -1, -1.50995803e-07, -1, 4.37113883e-08)
-					WEAPON.Parent = Character.Hilt
-					if #equipped <= 1 then
-						create("HasSpear",false,Character)
-						create("Prince's Favour",false,Character)
-					end
-				elseif WEAPON.Name == "Broom Spear"then
-					WEAPON.Weld.Part0 = nil
-					WEAPON.Weld.Part1 = nil
-					WEAPON.PropWeld.Part0 = Character.Hilt
-					WEAPON.PropWeld.Part1 = WEAPON
-					WEAPON.PropWeld.C1 = CFrame.new(0, -2, 0, -1, 0, -0, 0, 0, -1, 0, -1, -0)
-					WEAPON.Parent = Character.Hilt
-					spearidle:Play()
-					if #equipped <= 1 then
-						create("HasSpear",false,Character)
-					end
-				elseif WEAPON.Name == "Hammer"then
-					WEAPON.Weld.Part0 = nil
-					WEAPON.Weld.Part1 = nil
-					WEAPON.PropWeld.Part0 = Character.Hilt
-					WEAPON.PropWeld.Part1 = WEAPON
-					WEAPON.PropWeld.C1 = CFrame.new(0, 0.899999976, 0, 0, -1, 0, 0, 0, -1, 1, 0, 0)
-					WEAPON.Parent = Character.Hilt
-					hammeridle:Play()
-					if #equipped <= 1 then
-						create("HasHammer",false,Character)
-					end
-				elseif WEAPON.Name == "Pronged Mythril Spear" then
-					WEAPON.Weld.Part0 = nil
-					WEAPON.Weld.Part1 = nil
-					WEAPON.PropWeld.Part0 = Character.Hilt
-					WEAPON.PropWeld.Part1 = WEAPON
-					WEAPON.PropWeld.C1 = CFrame.new(0, 0, -2, -1, 0, 0, 0, 1, 0, 0, 0, -1)
-					WEAPON.Parent = Character.Hilt
-					spearidle:Play()
-					if #equipped <= 1 then
-						create("HasSpear",false,Character)
-					end
-				elseif WEAPON.Name == "Fairfrozen"then
-					if WEAPON:FindFirstChild'Weld'then
-						WEAPON.Weld.Part0 = nil
-						WEAPON.Weld.Part1 = nil
-					end
-					if WEAPON:FindFirstChild'PropWeld'then
-						WEAPON.PropWeld.Part0 = Character.Hilt
-						WEAPON.PropWeld.Part1 = WEAPON
-						WEAPON.PropWeld.C1 = CFrame.new(2,0,0,0,0,1,-1,0,0,0,-1,0)
-					end
-					WEAPON.Parent = Character.Hilt
-					spearidle:Play()
-					if #equipped <= 1 then
-						create("HasSpear",false,Character)
-					end
-				elseif WEAPON.Name == "SpearFairfrozen"then
-					if WEAPON:FindFirstChild'Weld'then
-						WEAPON.Weld.Part0 = nil
-						WEAPON.Weld.Part1 = nil
-					end
-					if WEAPON:FindFirstChild'PropWeld'then
-						WEAPON.PropWeld.Part0 = Character.Hilt
-						WEAPON.PropWeld.Part1 = WEAPON
-						WEAPON.PropWeld.C1 = CFrame.new(2,0,0,0,0,1,-1,0,0,0,-1,0)
-					end
-					WEAPON.Parent = Character.Hilt
-					spearidle:Play()
-					if #equipped <= 1 then
-						create("HasSpear",false,Character)
-					end
-				elseif WEAPON.Name == "Iron Greatsword"then
-					WEAPON.Weld.Part0 = nil
-					WEAPON.Weld.Part1 = nil
-					WEAPON.PropWeld.Part0 = Character.Hilt
-					WEAPON.PropWeld.Part1 = WEAPON
-					WEAPON.PropWeld.C1 = CFrame.new(-3, 0, -0.200000003, 0, 0, -1, 1, 0, 0, 0, -1, 0)
-					WEAPON.Parent = Character.Hilt
-					greatswordidle:Play()
-					if #equipped <= 1 then
-						create("HasGreatsword",false,Character)
-						create("HasSword",false,Character)
-					end
-				elseif WEAPON.Name == "Templar Greatsword"then
-					WEAPON.Weld.Part0 = nil
-					WEAPON.Weld.Part1 = nil
-					WEAPON.PropWeld.Part0 = Character.Hilt
-					WEAPON.PropWeld.Part1 = WEAPON
-					WEAPON.PropWeld.C1 = CFrame.new(0, -5, 0, -4.37113883e-08, 1, -4.37113883e-08, -0, -4.37113883e-08, -1, -1, -4.37113883e-08, 1.91068547e-15)
-					WEAPON.Parent = Character.Hilt
-					greatswordidle:Play()
-					if #equipped <= 1 then
-						create("HasGreatsword",false,Character)
-						create("HasSword",false,Character)
-					end
-				elseif WEAPON.Name == "Lunar Greatsword"then
-					WEAPON.Weld.Part0 = nil
-					WEAPON.Weld.Part1 = nil
-					WEAPON.PropWeld.Part0 = Character.Hilt
-					WEAPON.PropWeld.Part1 = WEAPON
-					WEAPON.PropWeld.C0 = CFrame.new(0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1)
-					WEAPON.PropWeld.C1 = CFrame.new(-0.200000003, -2.9000001, 0, 0, -1, 0, 0, 0, -1, 1, 0, 0)
-					WEAPON.Parent = Character.Hilt
-					greatswordidle:Play()
-					if #equipped <= 1 then
-						create("HasGreatsword",false,Character)
-						create("HasSword",false,Character)
-					end
-				elseif WEAPON.Name == "Abyss Greatsword"then
-					WEAPON.Weld.Part0 = nil
-					WEAPON.Weld.Part1 = nil
-					WEAPON.PropWeld.Part0 = Character.Hilt
-					WEAPON.PropWeld.Part1 = WEAPON
-					--WEAPON.PropWeld.C1 = CFrame.new(-3, 0, -0.200000003, 0, 0, -1, 1, 0, 0, 0, -1, 0)
-					WEAPON.PropWeld.C0 = CFrame.new(0.00048828125, -0.399414062, -2.63232422, 0, -1.00000012, 2.98023224e-08, -5.96046448e-08, -2.98023224e-08, 1, -1, 0, 5.96046448e-08)
-					WEAPON.PropWeld.C1 = CFrame.new(0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1)
-					WEAPON.Parent = Character.Hilt
-					greatswordidle:Play()
-					if #equipped <= 1 then
-						create("HasGreatsword",false,Character)
-						create("HasSword",false,Character)
-					end
-				elseif WEAPON.Name == "Bisento"then
-					WEAPON.Weld.Part0 = nil
-					WEAPON.Weld.Part1 = nil
-					WEAPON.PropWeld.Part0 = Character.Hilt
-					WEAPON.PropWeld.Part1 = WEAPON
-					WEAPON.PropWeld.C1 = CFrame.new(2,0,0,0,0,1,-1,0,0,0,-1,0)
-					WEAPON.Parent = Character.Hilt
-					if #equipped <= 1 then
-						create("HasSpear",false,Character)
-					end
-				elseif WEAPON.Name == "EXTREME_GS" then
-					WEAPON.Weld.Part0 = nil
-					WEAPON.Weld.Part1 = nil
-					WEAPON.PropWeld.Part0 = Character.Hilt
-					WEAPON.PropWeld.Part1 = WEAPON
-					WEAPON.PropWeld.C1 = CFrame.new(2,0,0,0,0,1,-1,0,0,0,-1,0)
-					WEAPON.Parent = Character.Hilt
-					if #equipped <= 1 then
-						create("HasGreatsword",false,Character)
-						create("HasSword",false,Character)
-					end
-				end
-			end
-			if #equipped <= 1 then
-				local HasWeapon = Instance.new("ObjectValue")
-				HasWeapon.Value = WEAPON
-				HasWeapon.Name = "HasWeapon"
-				HasWeapon.Parent = Character
-
-			end
-		end
-	end
-end
 function SigilBuffCheck(p1)
 	coroutine.wrap(function()
 		if Character:FindFirstChild("SigilBuff") then
@@ -3214,390 +2710,7 @@ if Backpack:FindFirstChild("Verto") or Character:FindFirstChild("Verto") or Play
 	GetWeapon.Name = "GetWeaponSelection"
 	GetWeapon.Parent = Player
 end
-local function unequipweapon(tool)
-	if tool:FindFirstChild("Song") then	
-		if tool:FindFirstChild("Song"):FindFirstChild("Trumpet") then
-			if Character.Hilt:FindFirstChild("Trumpet") and not 
-				(Character:FindFirstChild("Joyous Dance") or
-					Character:FindFirstChild("Sweet Soothing") or
-					Character:FindFirstChild("Song of Lethargy")) 
-			then
-				Character.Hilt.Trumpet:Destroy()
-			end
-		else
-			if BardIdle and not
-				(Character:FindFirstChild("Vinifera's Song") or 
-					Character:FindFirstChild("Symphony of Horses")) 
-			then
-				BardIdle:Stop()
-			end	
-			if Character.Hilt:FindFirstChild("Lute") and not
-				(Character:FindFirstChild("Vinifera's Song") or 
-					Character:FindFirstChild("Symphony of Horses"))
-			then
-				Character.Hilt.Lute:Destroy()
-			end
-			if Character.Hilt:FindFirstChild("GoldenLute") and not
-				(Character:FindFirstChild("Vinifera's Song") or 
-					Character:FindFirstChild("Symphony of Horses"))
-			then
-				Character.Hilt.GoldenLute:Destroy()
-			end
-		end
-		return
-	end
-	if #equipped<1 then
-		if not Character then
-			return
-		end
-		local equipcdcheck = false
-		if FindFirstChild(Character,"EquipCD")then
-			local old = eqstackcheck
-			equipcdcheck = true
-			while FindFirstChild(Character,"EquipCD")do
-				wait(0.05)
-			end
-			if eqstackcheck~=old then
-				return
-			end
-		end
-		if #equipped>0 then
-			return
-		end
-		local NewTool = Character:FindFirstChildOfClass("Tool")
-		if NewTool and (NewTool:FindFirstChild("Weapon") or NewTool:FindFirstChild("PrimaryWeapon") or NewTool:FindFirstChild("RequiresWeapon")) then
-			return
-		end
-		if Humanoid and HumanoidRootPart then
-			if WEAPON and WEAPON.Parent and WEAPON:FindFirstChild("PropWeld") then
-				if WEAPON.Name == "Bronze Dagger" or WEAPON.Name == "Steel Dagger" or WEAPON.Name == "Mythril Dagger" then
-					WEAPON.Parent = nil
-					WEAPON.PropWeld.Part0 = nil
-					WEAPON.PropWeld.Part1 = nil
-				elseif WEAPON.Name == "Tanto"then
-					WEAPON.Parent = nil
-					WEAPON.PropWeld.Part0 = nil
-					WEAPON.PropWeld.Part1 = nil
-				elseif WEAPON.Name == "Spirit Dagger"then
-					WEAPON.Parent = nil
-					WEAPON.PropWeld.Part0 = nil
-					WEAPON.PropWeld.Part1 = nil
-				elseif WEAPON.Name == "Bronze Sword" or WEAPON.Name == "Steel Sword" or WEAPON.Name == "Mythril Sword" then
-					WEAPON.PropWeld.Part0 = nil
-					WEAPON.PropWeld.Part1 = nil
-					local Weld = WEAPON:FindFirstChild'Weld'
-					if Weld then
-						Weld.Part0 = Character.Torso
-						Weld.Part1 = WEAPON
-					end
-					WEAPON.Parent = Character.Torso
-					if PlayerData.Skills.Value:find("WraithTraining") then
-						wraithidle:Stop()
-					end
-					SigilBuffCheck()
-				elseif WEAPON.Name == "Illusory Sword" then
-					WEAPON.PropWeld.Part0 = nil
-					WEAPON.PropWeld.Part1 = nil
-					local Weld = WEAPON:FindFirstChild'Weld'
-					if Weld then
-						Weld.C0 = CFrame.new(0.25, 0, 0.649999976, 3.12722506e-08, 0.707106769, -0.707106829, -1.06770166e-07, -0.707106829, -0.707106769, -1, 9.76107231e-08, 5.3385083e-08)
-						Weld.Part0 = Character.Torso
-						Weld.Part1 = WEAPON
-					end
-					WEAPON.Parent = Character.Torso
-					if PlayerData.Skills.Value:find("WraithTraining") then
-						wraithidle:Stop()
-					end
-					SigilBuffCheck()
-				elseif WEAPON.Name == "Spirit Sword"then
-					WEAPON.PropWeld.Part0 = nil
-					WEAPON.PropWeld.Part1 = nil
-					WEAPON.Weld.Part0 = Character.Torso
-					WEAPON.Weld.Part1 = WEAPON
-					WEAPON.Parent = Character.Torso
-					if PlayerData.Skills.Value:find("WraithTraining") then
-						wraithidle:Stop()
-					end
-					SigilBuffCheck()
-				elseif WEAPON.Name == "Dark Sword"then
-					WEAPON.PropWeld.Part0 = nil
-					WEAPON.PropWeld.Part1 = nil
-					WEAPON.Weld.Part0 = nil
-					WEAPON.Weld.Part1 = nil
-					WEAPON.Parent = Character.Torso
-					if PlayerData.Skills.Value:find("WraithTraining") then
-						wraithidle:Stop()
-					end
-					SigilBuffCheck()
-				elseif WEAPON.Name == "Katana"then
-					local EquipCD = Instance.new("Folder")
-					EquipCD.Name = "EquipCD"
-					EquipCD.Parent = Character
-					game.Debris:AddItem(EquipCD,0.5)
-					katanaidle:Stop()
-					if not PlayerData.Skills.Value:find("Sheathe Mastery") then
-						katanaequip:Play()
-						katanaequipturn:Play()
-						spawn(function()
-							wait(0.4)
-							katanaequip:Stop()
-						end)
-						wait(0.3)
-					end
-					WEAPON.PropWeld.Part0 = nil
-					WEAPON.PropWeld.Part1 = nil
-					local Weld = WEAPON:FindFirstChild'Weld'
-					if Weld then
-						Weld.Part0 = FindFirstChild(Character.Torso,"Sheath")or Character.Torso
-						Weld.Part1 = WEAPON
-					end
-					WEAPON.Parent = Character.Torso
-					HumanoidRootPart.KatanaUnsheathe:Play()
-				elseif WEAPON.Name == "Murasama"then
-					local EquipCD = Instance.new("Folder")
-					EquipCD.Name = "EquipCD"
-					EquipCD.Parent = Character
-					game.Debris:AddItem(EquipCD,0.5)
-					katanaidle:Stop()
-					katanaequip:Play()
-					katanaequipturn:Play()
-					spawn(function()
-						wait(0.4)
-						katanaequip:Stop()
-					end)
-					wait(0.3)
-					WEAPON.PropWeld.Part0 = nil
-					WEAPON.PropWeld.Part1 = nil
-					local Weld = WEAPON:FindFirstChild'Weld'
-					if Weld then
-						Weld.Part0 = FindFirstChild(Character.Torso,"Sheath2")or Character.Torso
-						Weld.Part1 = WEAPON
-					end
-					WEAPON.Parent = Character.Torso
-					HumanoidRootPart.KatanaUnsheathe:Play()
-				elseif WEAPON.Name == "Rapier"then
-					WEAPON.PropWeld.Part0 = nil
-					WEAPON.PropWeld.Part1 = nil
-					WEAPON.Weld.Part0 = Character.Torso
-					WEAPON.Weld.Part1 = WEAPON
-					WEAPON.Parent = Character.Torso
-				elseif WEAPON.Name == "SealedSword"then
-					WEAPON.PropWeld.Part0 = nil
-					WEAPON.PropWeld.Part1 = nil
-					WEAPON.Weld.Part0 = Character.Torso
-					WEAPON.Weld.Part1 = WEAPON
-					WEAPON.Parent = Character.Torso
-					if PlayerData.Skills.Value:find("WraithTraining") then
-						wraithidle:Stop()
-					end
-					SigilBuffCheck()
-				elseif WEAPON.Name == "WraithSword"then
-					WEAPON.PropWeld.Part0 = nil
-					WEAPON.PropWeld.Part1 = nil
-					local Weld = WEAPON:FindFirstChild'Weld'
-					if Weld then
-						Weld.Part0 = Character.Torso
-						Weld.Part1 = WEAPON
-					end
-					WEAPON.Parent = Character.Torso
-					if PlayerData.Skills.Value:find("WraithTraining") then
-						wraithidle:Stop()
-					end
-					SigilBuffCheck()
-				elseif WEAPON.Name == "DeathSword"then
-					WEAPON.PropWeld.Part0 = nil
-					WEAPON.PropWeld.Part1 = nil
-					WEAPON.Weld.Part0 = Character.Torso
-					WEAPON.Weld.Part1 = WEAPON
-					WEAPON.Parent = Character.Torso
-					if PlayerData.Skills.Value:find("WraithTraining") then
-						wraithidle:Stop()
-					end
-					SigilBuffCheck()
-				elseif WEAPON.Name == "Bronze Spear" or WEAPON.Name == "Steel Spear" or WEAPON.Name == "Mythril Spear" then
-					WEAPON.PropWeld.Part0 = nil
-					WEAPON.PropWeld.Part1 = nil
-					local Weld = WEAPON:FindFirstChild'Weld'
-					if Weld then
-						Weld.Part0 = Character.Torso
-						Weld.C0 = CFrame.new(0,0.25,0.649999976,0.573557019,1.07884407e-05,-0.819165647,-0.819165647,2.07424164e-05,-0.57355696,1.07884407e-05,0.99999994,2.07424164e-05)
-						Weld.Part1 = WEAPON
-					end
-					WEAPON.Parent = Character.Torso
-					spearidle:Stop()
-				elseif WEAPON.Name == "Mythril Church Spear"then
-					WEAPON.PropWeld.Part0 = nil
-					WEAPON.PropWeld.Part1 = nil
-					local Weld = WEAPON:FindFirstChild'Weld'
-					if Weld then
-						Weld.Part0 = Character.Torso
-						Weld.Part1 = WEAPON
-					end
-					WEAPON.Parent = Character.Torso
-				elseif WEAPON.Name == "Thorn Spear"then
-					WEAPON.PropWeld.Part0 = nil
-					WEAPON.PropWeld.Part1 = nil
-					local Weld = WEAPON:FindFirstChild'Weld'
-					if Weld then
-						Weld.Part0 = Character.Torso
-						Weld.C0 = CFrame.new(0, 0.25, 0.649999976, -1.44230144e-05, -0.707106769, -0.707106769, 6.01238826e-05, 0.707106769, -0.707106769, 1, -5.27126176e-05, 3.23153945e-05)
-						Weld.Part1 = WEAPON
-						Weld.C1 = CFrame.new(0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1)
-					end
-					WEAPON.Parent = Character.Torso
-				elseif WEAPON.Name == "Hammer"then
-					WEAPON.PropWeld.Part0 = nil
-					WEAPON.PropWeld.Part1 = nil
-					WEAPON.Weld.Part0 = Character.Torso
-					WEAPON.Weld.C0 = CFrame.new(0, 0.25, 0.600000024, 0.866007268, -0.500031412, 0, 0.500031412, 0.866007268, 0, 0, 0, 1)
-					WEAPON.Weld.Part1 = WEAPON
-					WEAPON.Parent = Character.Torso
-					hammeridle:Stop()
-				elseif WEAPON.Name == "Broom Sword"then
-					WEAPON.PropWeld.Part0 = nil
-					WEAPON.PropWeld.Part1 = nil
-					WEAPON.Weld.Part0 = Character.Torso
-					WEAPON.Weld.Part1 = WEAPON
-					WEAPON.Parent = Character.Torso
-					if PlayerData.Skills.Value:find("WraithTraining") then
-						wraithidle:Stop()
-					end
-					SigilBuffCheck()
-				elseif WEAPON.Name == "Broom Spear"then
-					WEAPON.PropWeld.Part0 = nil
-					WEAPON.PropWeld.Part1 = nil
-					local Weld = WEAPON:FindFirstChild'Weld'
-					if Weld then
-						Weld.Part0 = Character.Torso
-						Weld.C0 = CFrame.new(-0.5, 1, 0.5, 0.819155693, -0.573571265, 0, 0.573571265, 0.819155693, 0, 0, 0, 1)
-						Weld.Part1 = WEAPON
-					end
-					WEAPON.Parent = Character.Torso
-					spearidle:Stop()
-				elseif WEAPON.Name == "Iron Greatsword"then
-					WEAPON.PropWeld.Part0 = nil
-					WEAPON.PropWeld.Part1 = nil
-					local Weld = WEAPON:FindFirstChild'Weld'
-					if Weld then
-						Weld.Part0 = Character.Torso
-						Weld.C0 = CFrame.new(0, 0, 0.600000024, -0.5, -4.70876694e-05, 0.866025329, -0.866025388, -4.05311584e-05, -0.5, 5.86211681e-05, -1, -2.05039978e-05)
-						Weld.Part1 = WEAPON
-					end
-					WEAPON.Parent = Character.Torso
-					greatswordidle:Stop()
-					SigilBuffCheck()
-				elseif WEAPON.Name == "Templar Greatsword"then
-					WEAPON.PropWeld.Part0 = nil
-					WEAPON.PropWeld.Part1 = nil
-					local Weld = WEAPON:FindFirstChild'Weld'
-					if Weld then
-						Weld.Part0 = Character.Torso
-						Weld.C0 = CFrame.new(0, 0, 0.600000024)
-						Weld.C1 = CFrame.new(0, -1, 0, -0.707134247, 0.707079291, 0, -0.707079291, -0.707134247, 0, 0, 0, 1)
-						Weld.Part1 = WEAPON
-					end
-					WEAPON.Parent = Character.Torso
-					greatswordidle:Stop()
-					SigilBuffCheck()
-				elseif WEAPON.Name == "Abyss Greatsword"then
-					WEAPON.PropWeld.Part0 = nil
-					WEAPON.PropWeld.Part1 = nil
-					local Weld = WEAPON:FindFirstChild'Weld'
-					if Weld then
-						Weld.Part0 = Character.Torso
-						--Weld.C0 = CFrame.new(0, 0, 0.600000024, -0.5, -4.70876694e-05, 0.866025329, -0.866025388, -4.05311584e-05, -0.5, 5.86211681e-05, -1, -2.05039978e-05)
-						Weld.C0 = CFrame.new(-0.258300781, 0.0600585938, 0.495605469, -0.610812187, 9.20891762e-06, 0.791775465, -0.791775465, -1.87158566e-05, -0.610812306, 9.20891762e-06, -1, 1.86860561e-05)
-						Weld.C1 = CFrame.new(0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1)
-						Weld.Part1 = WEAPON
-					end
-					WEAPON.Parent = Character.Torso
-					greatswordidle:Stop()
-				elseif WEAPON.Name == "Lunar Greatsword" then
-					WEAPON.PropWeld.Part0 = nil
-					WEAPON.PropWeld.Part1 = nil
-					local Weld = WEAPON:FindFirstChild'Weld'
-					if Weld then
-						Weld.Part0 = Character.Torso
-						Weld.C0 = CFrame.new(-0.0520000011, 0.345999986, 0.575999975, -0.766061664, 0.642767608, 0, -0.642767608, -0.766061664, 0, 0, 0, 1)
-						Weld.C1 = CFrame.new(0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1)
-						Weld.Part1 = WEAPON
-					end
-					WEAPON.Parent = Character.Torso
-					VanguardCheck()
-					greatswordidle:Stop()
-				elseif WEAPON.Name == "Pronged Mythril Spear" then
-					WEAPON.PropWeld.Part0 = nil
-					WEAPON.PropWeld.Part1 = nil
-					local Weld = WEAPON:FindFirstChild'Weld'
-					if Weld then
-						Weld.Part0 = Character.Torso
-						Weld.C0 = CFrame.new(-0.5, 0.75, 0.649999976, -0.819186211, -4.05311584e-06, -0.573527992, -0.573527992, 1.26957893e-05, 0.819186091, 4.05311584e-06, 1.00000012, -1.28746033e-05)
-						Weld.Part1 = WEAPON
-					end
-					WEAPON.Parent = Character.Torso
-					spearidle:Stop()
-				elseif WEAPON.Name == "Fairfrozen"then
-					WEAPON.PropWeld.Part0 = nil
-					WEAPON.PropWeld.Part1 = nil
-					local Weld = WEAPON:FindFirstChild'Weld'
-					if Weld then
-						Weld.Part0 = Character.Torso
-						Weld.C0 = CFrame.new(0,0.25,0.649999976,0.573557019,1.07884407e-05,-0.819165647,-0.819165647,2.07424164e-05,-0.57355696,1.07884407e-05,0.99999994,2.07424164e-05)
-						Weld.Part1 = WEAPON
-					end
-					WEAPON.Parent = Character.Torso
-					spearidle:Stop()
-				elseif WEAPON.Name == "SpearFairfrozen"then
-					WEAPON.PropWeld.Part0 = nil
-					WEAPON.PropWeld.Part1 = nil
-					WEAPON.Color = Player.Backpack.ManaColor.Value
-					local Weld = WEAPON:FindFirstChild'Weld'
-					if Weld then
-						Weld.Part0 = Character.Torso
-						Weld.C0 = CFrame.new(0,0.25,0.649999976,0.573557019,1.07884407e-05,-0.819165647,-0.819165647,2.07424164e-05,-0.57355696,1.07884407e-05,0.99999994,2.07424164e-05)
-						Weld.Part1 = WEAPON
-					end
-					WEAPON.Parent = Character.Torso
-					spearidle:Stop()
-				elseif WEAPON.Name == "Bisento"then
-					WEAPON.PropWeld.Part0 = nil
-					WEAPON.PropWeld.Part1 = nil
-					WEAPON.Weld.Part0 = Character.Torso
-					WEAPON.Weld.C0 = CFrame.new(0,0.25,0.649999976,0.573557019,1.07884407e-05,-0.819165647,-0.819165647,2.07424164e-05,-0.57355696,1.07884407e-05,0.99999994,2.07424164e-05)
-					WEAPON.Weld.Part1 = WEAPON
-					WEAPON.Parent = Character.Torso
-					spearidle:Stop()
-				elseif WEAPON.Name == "EXTREME_GS" then
-					WEAPON.PropWeld.Part0 = nil
-					WEAPON.PropWeld.Part1 = nil
-					WEAPON.Weld.Part0 = Character.Back
-					WEAPON.Weld.Part1 = WEAPON
-					WEAPON.Parent = Character.Torso
-					greatswordidle:Stop()
-				elseif WEAPON.Name == "norpGS" then
-					if Character:FindFirstChild("equippednorpGS") then
-						for _,v in pairs(Humanoid:GetPlayingAnimationTracks()) do
-							if v.Animation.Name == "GreatswordnorpIdle" then
-								v:Stop()
-							end
-						end
-						WEAPON.PropWeld.Part0 = nil
-						WEAPON.Weld.Part0 = Character.Back
-						WEAPON.Parent = Character.Torso
-						Character:FindFirstChild("equippednorpGS"):Destroy()
-					end
-				end
-			end
-			for _: number, Obj in ipairs(Character:GetChildren())do
-				if Obj.Name == "HasWeapon"or Obj.Name == "HasSword"or Obj.Name == "HasSpear"or Obj.Name == "HasDagger"or Obj.Name == "HasKatana" or Obj.Name == "HasHammer" or Obj.Name == "HasGreatswordnorp" or Obj.Name == "HasGreatsword"  or Obj.Name == "Prince's Favour"then
-					Obj:Destroy()
-					continue
-				end
-			end
-		end
-
-	end
-end
+local equipweapon, unequipweapon = require(script.Modules.WeaponEquip)(Character, Player, PlayerData, Humanoid, HumanoidRootPart, Boosts, create, FindFirstChild, GetChildren, equipped, function() return WEAPON end, SigilBuffCheck, VanguardCheck, spearidle, wraithidle, katanaidle, greatswordidle, hammeridle, katanaequip, katanaequipturn)
 local tpsafe: boolean = false
 local twen 
 
@@ -3656,7 +2769,7 @@ Character.ChildAdded:Connect(function(Child)
 				if not Child or not Child.Parent then
 					break
 				end
-				wait()
+				task.wait()
 			end
 			Humanoid.AutoRotate = true
 		end)
@@ -3714,7 +2827,7 @@ Character.ChildAdded:Connect(function(Child)
 		task.spawn(function()
 			local reverse = 1
 			local goback = false
-			while wait(0.1) do
+			while task.wait(0.1) do
 				for i = 1,14 do
 					game.ReplicatedStorage.Requests.Dizzy:FireClient(Player, true, reverse)
 					if goback then
@@ -3727,7 +2840,7 @@ Character.ChildAdded:Connect(function(Child)
 					elseif i == 14 and goback then
 						goback = false
 					end
-					wait(0.1)
+					task.wait(0.1)
 					if not Character:FindFirstChild("Demise") then
 						break
 					end
@@ -3851,7 +2964,7 @@ Character.ChildAdded:Connect(function(Child)
 			towalk = ((Humanoid.MoveDirection).Unit * 3000)
 		end
 		task.spawn(function()
-			repeat wait() Humanoid.WalkToPoint = towalk Humanoid:MoveTo(towalk) until not Child or not Child.Parent or not Character
+			repeat task.wait() Humanoid.WalkToPoint = towalk Humanoid:MoveTo(towalk) until not Child or not Child.Parent or not Character
 			game.ReplicatedStorage.Requests.Dominused:FireClient(Player, false)
 			Humanoid.WalkToPoint = HumanoidRootPart.Position
 			Humanoid:MoveTo(HumanoidRootPart.Position)
@@ -3904,7 +3017,7 @@ Character.ChildAdded:Connect(function(Child)
 		Mana.MaxValue = 50
 		return
 	elseif Child.Name == "FullMana"then
-		while wait(0.15) do
+		while task.wait(0.15) do
 			Mana.Value = 100
 			if not Child or not Child.Parent then
 				break
@@ -3931,9 +3044,9 @@ Character.ChildAdded:Connect(function(Child)
 	elseif Child.Name == "ActiveCast" then
 		repeat
 			Character.Mana.Value -= 1
-			wait()
+			task.wait()
 			if FindFirstChild(Character,"ActiveCast") then
-				wait(0.09)
+				task.wait(0.09)
 			end
 		until not FindFirstChild(Character,"ActiveCast") or Character.Mana.Value == 0
 		--Character.Mana.Value = 0
@@ -3951,7 +3064,7 @@ Character.ChildAdded:Connect(function(Child)
 				return
 			end
 			if Mana.Value >= Mana.MaxValue then
-				wait()
+				task.wait()
 				if FindFirstChild(Character,"Charge")then
 					FindFirstChild(Character,"Charge"):Destroy()
 				end
@@ -4034,10 +3147,10 @@ Character.ChildAdded:Connect(function(Child)
 						end
 					end
 				end
-				wait()
+				task.wait()
 			elseif Character.IsClimbing.Value == true then
 				LastCharge = tick()
-				wait(0.15)
+				task.wait(0.15)
 				Mana.Value -=1
 			else
 				task.wait(0.1)
@@ -4137,7 +3250,7 @@ Remotes.Sprint.OnServerEvent:Connect(function(plr, a)
 					manashielddown()
 					unblock(Player)
 				end
-				wait(0.01)
+				task.wait(0.01)
 			end
 		end)
 	else
@@ -4172,14 +3285,14 @@ Character.ChildRemoved:Connect(function(Child)
 							AnimCancel:Destroy()
 						end
 					end
-					wait(0.025)
+					task.wait(0.025)
 				end
 			end)
 		end
 		if Child:FindFirstChild("PrimaryWeapon")then
 			create("MoveCancel", 0.7, Character)
 		end
-		repeat wait()until Child.Parent~=Character
+		repeat task.wait()until Child.Parent~=Character
 		if WEAPON and (WEAPON.Name == "Katana" or WEAPON.Name == "Murasama") and Child:FindFirstChild("RequiresWeapon") and Child.RequiresWeapon.Value == "Katana" and not PlayerData.Skills.Value:find("Sheathe Mastery") then
 			task.wait(0.3)
 			local c = GetChildren(Character)
@@ -4269,25 +3382,25 @@ Character.ChildRemoved:Connect(function(Child)
 				return
 			end
 			--[[if CollectionService:HasTag(Character,"Casting") or FindFirstChild(Character,"ActiveCast") then
-				wait(0.1)
+				task.wait(0.1)
 				continue
 			end]]
 			Character.Mana.Value -= 1
 			--Mana.Value -= 1
-			wait()
+			task.wait()
 			if FindFirstChild(Character,"CurseBlocking")or
 				FindFirstChild(Character,"JoyousBuff") or
 				FindFirstChild(Character,"SpellBlocking") or 
 				FindFirstChild(Character, "MonShield") or 
 				FindFirstChild(Character, "ActiveCast")
 			then
-				wait(0.09)
+				task.wait(0.09)
 			end
 			if FindFirstChild(Character,"IsClimbing").Value == true then
-				wait(0.15)
+				task.wait(0.15)
 			end
 			if Character:FindFirstChild("ManaFlying") then
-				wait(0.15)
+				task.wait(0.15)
 			end
 		until FindFirstChild(Character,"Charge") or (Character.Mana.Value == 0)
 		if FindFirstChild(Character,"CurseBlocking") or FindFirstChild(Character,"SpellBlocking") or FindFirstChild(Character,"MonShield") then
@@ -4612,7 +3725,7 @@ Player.Chatted:Connect(function(Message)
 			spawn(function()
 				local anim = Humanoid:LoadAnimation(game.ServerStorage.NPCAnims.SitIdle)
 				anim:Play()
-				while wait(0.2)do
+				while task.wait(0.2)do
 					if Humanoid.MoveDirection.Magnitude > 0.6 then
 						break
 					end
@@ -4633,7 +3746,7 @@ Player.Chatted:Connect(function(Message)
 			spawn(function()
 				local anim = Humanoid:LoadAnimation(game.ServerStorage.NPCAnims.LeanIdle)
 				anim:Play()
-				while wait(0.2)do
+				while task.wait(0.2)do
 					if Humanoid.MoveDirection.Magnitude > 0.6 then
 						break
 					end
@@ -4646,7 +3759,7 @@ Player.Chatted:Connect(function(Message)
 			spawn(function()
 				local anim = Humanoid:LoadAnimation(game.ServerStorage.NPCAnims.Thinker)
 				anim:Play()
-				while wait(0.2)do
+				while task.wait(0.2)do
 					if Humanoid.MoveDirection.Magnitude > 0.6 then
 						break
 					end
@@ -4661,7 +3774,7 @@ Player.Chatted:Connect(function(Message)
 				anim:Play()
 				Character.Meditating.Value = true
 				Character.LastMeditate.Value = os.clock()
-				while wait(0.2) do
+				while task.wait(0.2) do
 					if Humanoid.MoveDirection.Magnitude > 0.6 then
 						Character.Meditating.Value = false
 						break
@@ -4709,7 +3822,7 @@ PlayerData.DaysSurvived.Changed:Connect(function()
 end)
 
 task.spawn(function()
-	while wait(1) do
+	while task.wait(1) do
 		if not Player:FindFirstChild("Ingame") then
 			break
 		end
@@ -4734,7 +3847,7 @@ local Recent = tick()
 
 PlayerData.Lives.Changed:Connect(function()
 	game.ReplicatedStorage.Requests.LivesChanged:FireClient(Player,PlayerData.Lives.Value)
-	wait()
+	task.wait()
 	if PlayerData.Lives.Value == 0 and not Player:FindFirstChild("LichSummon") then
 		Character.Parent = workspace.Dead
 		local v1 = game.ServerStorage.Assets.Permadeath:Clone()
@@ -4768,7 +3881,7 @@ PlayerData.Lives.Changed:Connect(function()
 				v3.Parent = Player.Character.Torso
 			end
 			Character.HumanoidRootPart.CameoGetUp:Play()
-			wait(0.5)
+			task.wait(0.5)
 			Character:BreakJoints()
 		end
 	end
@@ -4779,7 +3892,7 @@ end)
 require(script.Modules.Vampirism)(Character, Player, PlayerData, CollectionService, HasTag, Boosts, FindFirstChild, TagHumanoid)
 
 PlayerData.LastName.Changed:Connect(function()
-	wait()
+	task.wait()
 	Humanoid.DisplayName = tostring(PlayerData.FirstName.Value)
 	if PlayerData.UberTitle.Value ~= "" then
 		Humanoid.DisplayName = tostring(PlayerData.FirstName.Value)..", "..tostring(PlayerData.UberTitle.Value)
@@ -4817,7 +3930,7 @@ PlayerData.LastName.Changed:Connect(function()
 	)
 end)
 PlayerData.FirstName.Changed:Connect(function()
-	wait()
+	task.wait()
 	Humanoid.DisplayName = tostring(PlayerData.FirstName.Value)
 	if PlayerData.UberTitle.Value ~= "" then
 		Humanoid.DisplayName = tostring(PlayerData.FirstName.Value)..", "..tostring(PlayerData.UberTitle.Value)
@@ -4855,7 +3968,7 @@ PlayerData.FirstName.Changed:Connect(function()
 	)
 end)
 PlayerData.UberTitle.Changed:Connect(function()
-	wait()
+	task.wait()
 	Humanoid.DisplayName = tostring(PlayerData.FirstName.Value)
 	if PlayerData.UberTitle.Value ~= "" then
 		Humanoid.DisplayName = tostring(PlayerData.FirstName.Value)..", "..tostring(PlayerData.UberTitle.Value)
@@ -4909,7 +4022,7 @@ Character.Toxicity.Changed:Connect(function()
 				Health = 1;
 			}):Play()
 			create("Knocked", false, Character)
-			wait(10)
+			task.wait(10)
 			Character.Toxicity.Value = 0
 			_G.Death(Player)
 		end)
@@ -4931,7 +4044,7 @@ Character.Toxicity.Changed:Connect(function()
 				end
 			end
 		end
-		wait()
+		task.wait()
 
 
 		for _,v in pairs(Character:GetChildren())do
@@ -4948,72 +4061,9 @@ Character.Toxicity.Changed:Connect(function()
 	end
 end)
 
---// Anti-Cheat
-
-local rng = Random.new()
-local lastCFrame = nil
-local Warnings = 0
-local lastWarning = nil
-local antiAirWarnings = 0;
-local lastAirCheck, lastAirCheck2 = time(), time() - 1;
-local CFramesSaved = {}
-
-local s, Bypasses = nil, {"FlightOk", "TPSafe", "ManaFlying"}
-
-local lastCF = nil
-local alreadyTeleported = false
-
-
-local function CheckForTags()
-	local TargetTag, isTag = Player.Character, false
-	for _, BypassTag in pairs(Bypasses) do
-		if (TargetTag:FindFirstChild(BypassTag)) then
-
-			for i = 1,#CFramesSaved do
-				table.remove(CFramesSaved, math.abs(1-#CFramesSaved) + 1);
-			end
-			lastCF = Character.HumanoidRootPart.CFrame;
-			isTag = true
-			break
-		end
-	end
-	return isTag
-end
-
-local function TriggerAA()
-	coroutine.wrap(function()
-		local Alarm = Instance.new("Sound")
-		Alarm.Name = "Alarm"
-		Alarm.SoundId = "rbxassetid://8268306342"
-		Alarm.Looped = true
-		Alarm.Volume = 0.05
-		Alarm.Parent = HumanoidRootPart
-		Alarm:Play()
-
-		local Gun = Instance.new('Sound')
-		Gun.SoundId = "rbxassetid://2452480039"
-		Gun.Volume = 4
-		Gun.Parent = HumanoidRootPart
-
-		pcall(function()
-			task.wait(3.34299)
-
-			Alarm:Destroy()
-			Gun:Play()
-
-			if Player and Player.Character then
-				Player.Character:BreakJoints();
-			end
-		end)
-
-	end)()
-end
-
-local AAVariables = {
-	TimeToShoot = 60,
-	Timer = 0,
-	Shot = false
-}
+local function getCharacter() return Character end
+local function setCharacter(newCharacter) Character = newCharacter end
+require(script.Modules.AntiCheat)(Player, Humanoid, HumanoidRootPart, PlayerData, RunService, getCharacter, setCharacter)
 
 function ray(startpos, endpos, dis, partt)
 	local test = Ray.new(startpos, CFrame.new(startpos,endpos).LookVector * dis) 
@@ -5053,7 +4103,7 @@ script.Bindables.Pour.OnInvoke = function()
 
 					Player.Character.Humanoid.AutoRotate = false
 					sub(function()
-						wait(.35)
+						task.wait(.35)
 						j.Humanoid.AutoRotate = false	
 					end)
 
@@ -5161,67 +4211,6 @@ script.Bindables.Pour.OnInvoke = function()
 	end
 end
 
-s = RunService.Heartbeat:Connect(function()
-	if not Character or not Character.PrimaryPart or not Humanoid then
-		if Character then
-			Character:BreakJoints()
-		end
-		return
-	end
-	if not Character:FindFirstChild("AngelForm") then
-		local Part, endPoint = workspace:FindPartOnRayWithIgnoreList(Ray.new(HumanoidRootPart.Position, Vector3.new(0, -15, 0)), {Player.Character, workspace.Thrown, workspace.AreaMarkers}, false, false)
-		if not Part and not CheckForTags() and Humanoid:GetState() ~= Enum.HumanoidStateType.Swimming and Player.Character.IsClimbing.Value == false then
-			AAVariables.Timer = math.min(AAVariables.TimeToShoot, AAVariables.Timer+0.025)
-		else
-			AAVariables.Timer = math.max(0, AAVariables.Timer-0.025)
-		end
-		if AAVariables.Timer >= AAVariables.TimeToShoot and not AAVariables.Shot then
-			AAVariables.Shot = true
-			TriggerAA()
-		end
-	end
-	if (Character.HumanoidRootPart.Position - Vector3.new(0,100,0)).magnitude < 50 then
-		if PlayerData.Lives.Value > 0 then
-			local spawns = game.ServerStorage.SpawnPoints[PlayerData.SpawnPoint.Value]:GetChildren()
-			tpcf = spawns[math.random(1,#spawns)].CFrame
-			Character:PivotTo(tpcf * CFrame.new(0,2,0))
-		else
-			Character:PivotTo(workspace.SolanSpawn.CFrame)
-		end
-	end
-	wait()
-end)
-
-lastCFrame = HumanoidRootPart.CFrame
-
-task.spawn(function()
-	while wait(0.5) do
-		Character = Player.Character
-		if not Character or not HumanoidRootPart then
-			return
-		end
-		if not Character.PrimaryPart then
-			Character:BreakJoints()
-			return
-		end
-		if (lastCF == nil) then
-			lastCF = HumanoidRootPart.CFrame
-		end
-		if not CheckForTags() then
-			if math.floor((Vector3.new(lastCF.p.X, 0, lastCF.p.Z) - Vector3.new(HumanoidRootPart.Position.X, 0, HumanoidRootPart.Position.Z)).Magnitude) >= 150 then
-				if #CFramesSaved <= 0 then
-					return
-				end
-				Character:PivotTo(CFramesSaved[1])
-			end
-		end
-		if #CFramesSaved >= 6 then
-			table.remove(CFramesSaved, 1)
-		end
-		table.insert(CFramesSaved, HumanoidRootPart.CFrame)
-		lastCF = HumanoidRootPart.CFrame
-	end
-end)
 
 Character.Meditating.Changed:Connect(function()
 	task.wait(5)
@@ -5264,7 +4253,7 @@ Remotes.SunBurn.OnServerEvent:Connect(function(p,state)
 				suncombattag = nil
 			end
 			suncombattag = create("Danger",false,p)
-			while wait(0.2) do
+			while task.wait(0.2) do
 				if not FindFirstChild(Character,"SunBurn")then
 					break
 				end
@@ -5349,7 +4338,7 @@ task.wait(1)
 wrap(function()
 	local oldpos = Character.PrimaryPart.Position
 	local oldlastpos = PlayerData.LastPosition.Value
-	while wait(0.2) do
+	while task.wait(0.2) do
 		if Character and Character.Parent and not Humanoid.Parent then
 			if HumanoidRootPart.Parent then
 				game.ServerStorage.Requests.SendWebhook:Fire(
