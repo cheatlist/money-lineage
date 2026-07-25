@@ -3147,7 +3147,7 @@ Character.ChildAdded:Connect(function(Child)
 						end
 					end
 				end
-				task.wait()
+				task.wait(1/30)
 			elseif Character.IsClimbing.Value == true then
 				LastCharge = tick()
 				task.wait(0.15)
@@ -3387,7 +3387,7 @@ Character.ChildRemoved:Connect(function(Child)
 			end]]
 			Character.Mana.Value -= 1
 			--Mana.Value -= 1
-			task.wait()
+			task.wait(1/30)
 			if FindFirstChild(Character,"CurseBlocking")or
 				FindFirstChild(Character,"JoyousBuff") or
 				FindFirstChild(Character,"SpellBlocking") or 
