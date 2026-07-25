@@ -9703,28 +9703,64 @@ dialogues.Fang.v1 = function(p,v)
 	elseif v.page == 2 then
 		if v.choice == "I embrace the storm" then
 			commands.Learn(p.Character)
-			local randomnumber = math.random(1,3)
+			local randomnumber = math.random(1,18)
 				if randomnumber == 1 then data.UberTitle.Value = "Storm Herald"
 				elseif randomnumber == 2 then data.UberTitle.Value = "Eye of the Storm"
 				elseif randomnumber == 3 then data.UberTitle.Value = "Thunder Cry"
+				elseif randomnumber == 4 then data.UberTitle.Value = "Chain Reaction"
+				elseif randomnumber == 5 then data.UberTitle.Value = "Unchained Reaction"
+				elseif randomnumber == 6 then data.UberTitle.Value = "Playful"
+				elseif randomnumber == 7 then data.UberTitle.Value = "Poop)"
+				elseif randomnumber == 8 then data.UberTitle.Value = "Lol"
+				elseif randomnumber == 9 then data.UberTitle.Value = "Jimmy"
+				elseif randomnumber == 10 then data.UberTitle.Value = "Michael"
+				elseif randomnumber == 11 then data.UberTitle.Value = "Tesla"
+				elseif randomnumber == 12 then data.UberTitle.Value = "Alternating Current"
+				elseif randomnumber == 13 then data.UberTitle.Value = "Analogger"
+				elseif randomnumber == 14 then data.UberTitle.Value = "The Conductor"
+				elseif randomnumber == 15 then data.UberTitle.Value = "The Grounder"
+				elseif randomnumber == 16 then data.UberTitle.Value = "Overcharge"
+				elseif randomnumber == 17 then data.UberTitle.Value = "Übercharge"
+				elseif randomnumber == 18 then data.UberTitle.Value = "Crowd Shocker"
 			end
 			data.Skills.Value ..= ",StormHerald"
 			return dialogues["Fang"].stormherald
 		elseif v.choice == "I embrace the ember" then
 			commands.Learn(p.Character)
-			local randomnumber = math.random(1,3)
+			local randomnumber = math.random(1,13)
 				if randomnumber == 1 then data.UberTitle.Value = "Emberwyrm"
 				elseif randomnumber == 2 then data.UberTitle.Value = "Great Cinder"
 				elseif randomnumber == 3 then data.UberTitle.Value = "Explosivo"
+				elseif randomnumber == 4 then data.UberTitle.Value = "Detonator"
+				elseif randomnumber == 5 then data.UberTitle.Value = "Heartpopper"
+				elseif randomnumber == 6 then data.UberTitle.Value = "Shotgun"
+				elseif randomnumber == 7 then data.UberTitle.Value = "Bang Stabber"
+				elseif randomnumber == 8 then data.UberTitle.Value = "Terror Spear"
+				elseif randomnumber == 9 then data.UberTitle.Value = "Playful"
+				elseif randomnumber == 10 then data.UberTitle.Value = "Poop)"
+				elseif randomnumber == 11 then data.UberTitle.Value = "Lol"
+				elseif randomnumber == 12 then data.UberTitle.Value = "Jimmy"
+				elseif randomnumber == 13 then data.UberTitle.Value = "Michael"
 			end
 			data.Skills.Value ..= ",TheEmberWyrm"
 			return dialogues["Fang"].emberwyrm
 		elseif v.choice == "I embrace the abyss" then
 			commands.Learn(p.Character)
-			local randomnumber = math.random(1,3)
+			local randomnumber = math.random(1,14)
 				if randomnumber == 1 then data.UberTitle.Value = "The Evil Spear"
 				elseif randomnumber == 2 then data.UberTitle.Value = "Abyssdweller"
 				elseif randomnumber == 3 then data.UberTitle.Value = "Bloodleech"
+				elseif randomnumber == 4 then data.UberTitle.Value = "Life Extractor"
+				elseif randomnumber == 5 then data.UberTitle.Value = "Blood Extractor"
+				elseif randomnumber == 6 then data.UberTitle.Value = "The Extractor"
+				elseif randomnumber == 7 then data.UberTitle.Value = "Relentless"
+				elseif randomnumber == 8 then data.UberTitle.Value = "Endgame"
+				elseif randomnumber == 9 then data.UberTitle.Value = "Bloodgrabber"
+				elseif randomnumber == 10 then data.UberTitle.Value = "Playful"
+				elseif randomnumber == 11 then data.UberTitle.Value = "Poop)"
+				elseif randomnumber == 12 then data.UberTitle.Value = "Lol"
+				elseif randomnumber == 13 then data.UberTitle.Value = "Jimmy"
+				elseif randomnumber == 14 then data.UberTitle.Value = "Michael"
 			end
 			data.Skills.Value ..= ",TheAbyssalWyrm"
 			return dialogues["Fang"].abyssalwyrm
