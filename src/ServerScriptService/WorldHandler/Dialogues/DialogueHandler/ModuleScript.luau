@@ -6052,7 +6052,7 @@ dialogues["Corpse"].v1 = function(p,v)
 				_G.Death(p,nil,nil,true)
 				p.Character.Humanoid.Health = 0
 				p.Character.HumanoidRootPart.Backfire:Play()
-				task.wait(1/30)
+				task.wait()
 				coroutine.wrap(function()
 					for i,bruh in pairs(p.Character:GetChildren()) do
 						if bruh:IsA("Shirt") or bruh:IsA("Pants") then
@@ -13061,7 +13061,7 @@ function dialogues.shop(p,v)
 			dialogues.cantbuy.speaker = display.Shopkeeper.Value
 			return dialogues.cantbuy
 		end
-	elseif string.match("Twinfang", display.Item.Value) then
+	elseif display.Item.Value == "Twinfang" then
 		-- TheBlade path skill string, not a Backpack Tool - can't use RequiresBpSkill for this
 		if playerdata[p.Name].Skills.Value:find("TheBlade") then
 		else
