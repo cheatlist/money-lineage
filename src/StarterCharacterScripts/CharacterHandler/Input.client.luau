@@ -1281,6 +1281,7 @@ UserInputService.InputBegan:Connect(function(key,typing)
 	if GetFocusedTextBox(UserInputService) then
 		return
 	end
+	if typing then return end
 	local _tick = tick()
 	if key.KeyCode == Enum.KeyCode.Backspace then
 		if u17() then
