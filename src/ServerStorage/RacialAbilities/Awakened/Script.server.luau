@@ -38,6 +38,14 @@ script.Parent.Activated:Connect(function()
 	if not canuse then
 		return
 	end
+	if p1.Cooldowns:FindFirstChild("Awakened") then
+		return
+	end
+	local CD = Instance.new("NumberValue")
+	CD.Name = "Awakened"
+	CD.Value = 85
+	CD.Parent = p1.Cooldowns
+	game.Debris:AddItem(CD, 85)
 	canuse = false
 	p1.HumanoidRootPart.MoneyCharge2:Play()
 	local p2 = game.Players:GetPlayerFromCharacter(p1)
@@ -59,6 +67,6 @@ script.Parent.Activated:Connect(function()
 	if p1:IsDescendantOf(workspace)and p1:FindFirstChild'HumanoidRootPart'then
 		p1.HumanoidRootPart.MoneyDischarge:Play()
 	end
-	wait(85)
+	task.wait(85)
 	canuse = true
 end)

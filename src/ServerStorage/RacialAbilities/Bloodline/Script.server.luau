@@ -29,6 +29,14 @@ script.Parent.Activated:Connect(function()
 	end
 	if p1:FindFirstChild("Unconscious") and not game:GetService("CollectionService"):HasTag(p1, "BeingExecuted") then
 		canuse = false
+		if p1.Cooldowns:FindFirstChild("Bloodline") then
+			return
+		end
+		local CD = Instance.new("NumberValue")
+		CD.Name = "Bloodline"
+		CD.Value = 300
+		CD.Parent = p1.Cooldowns
+		game.Debris:AddItem(CD, 300)
 		local p2 = game.Players:GetPlayerFromCharacter(p1)
 		local data = game.ServerStorage.PlayerData:FindFirstChild(p2.Name)
 		game.ReplicatedStorage.Requests.AngryHaseldan:FireClient(p2)

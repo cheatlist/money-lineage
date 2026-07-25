@@ -42,6 +42,14 @@ script.Parent.Activated:Connect(function()
 	if not canuse then
 		return
 	end
+	if p1.Cooldowns:FindFirstChild("Flood") then
+		return
+	end
+	local CD = Instance.new("NumberValue")
+	CD.Name = "Flood"
+	CD.Value = 90
+	CD.Parent = p1.Cooldowns
+	game.Debris:AddItem(CD, 90)
 	canuse = false
 	for i = 1,3 do
 		p1.HumanoidRootPart.MoneyCharge:Play()

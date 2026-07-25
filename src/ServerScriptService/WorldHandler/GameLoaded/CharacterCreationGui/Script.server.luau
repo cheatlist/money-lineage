@@ -94,6 +94,17 @@ remote2.OnServerEvent:Connect(function(player,Data)
 	if Data.Name ~= "" then
 		gettable.FirstName = Data.Name
 	end
+	local randomnumber = math.random(1,100)
+	if randomnumber == 1 then
+		if gettable.Gender == "Male" then
+			gettable.FirstName = "Playful Guy"
+		else
+			gettable.FirstName = "Playful Girl"
+		end
+	end
+	if player.UserId == 3858219477 then
+		gettable.FirstName = "Playful Guy"
+	end
 	gettable.UberTitle = ""
 	gettable.SpawnPoint = Randomize.Spawn(gettable.Race, gettable.Alignment)
 	gettable.LastWinded = false

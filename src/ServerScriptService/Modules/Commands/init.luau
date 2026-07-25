@@ -439,7 +439,7 @@ commands["ChangeMoney"] = function(player,path,amount,check)
 		return true
 	end
 	local add = math.round(tonumber(amount))
-	path.Money.Value = math.round(math.clamp(path.Money.Value+add,0,10000000000000000000000000000000000000))
+	path.Money.Value = math.clamp(path.Money.Value+add,0,2147483647)
 	game.ReplicatedStorage.Requests.MoneyChanged:FireClient(player,path.Money.Value)
 	return true
 end

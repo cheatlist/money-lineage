@@ -1053,7 +1053,7 @@ Remotes.LeftClick.OnServerEvent:Connect(function(p,hit,target)
 				return
 			end
 			if module and module.Activate then
-				if FindFirstChild(Character, tool.Name.."CD") then return end
+				if FindFirstChild(Character.Cooldowns, tool.Name) then return end
 				if tool.Name == "Gate" then return end
 				--[[
 				casts = 0
@@ -1327,7 +1327,7 @@ Remotes.RightClick.OnServerEvent:Connect(function(p,shiftlock)
 				if HasTag(CollectionService,Character,"Casting")then
 					return
 				end
-				if FindFirstChild(Character, tool.Name.."SnapCD") then return end
+				if FindFirstChild(Character.Cooldowns, "Snap "..tool.Name) then return end
 				--castDebounce = true
 				local cast
 				if not tool:FindFirstChild("Rework") then
@@ -3834,7 +3834,8 @@ task.spawn(function()
 		end
 		if PlayerData.EnchantTimer.Value > 0 then
 			PlayerData.EnchantTimer.Value -= 1
-		else
+		elseif PlayerData.EnchantTimer.Value == 0 then
+			-- EnchantTimer -1 marks a permanent second enchant (Blacksmith), never strip it
 			local enchants = string.split(PlayerData.Enchant.Value, ",")
 			if #enchants > 1 then
 				PlayerData.Enchant.Value = string.gsub(PlayerData.Enchant.Value, ","..enchants[2], "")

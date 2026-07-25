@@ -16,7 +16,14 @@ script.Parent.Activated:Connect(function()
 	if game.ServerStorage.PlayerData[p1.Name].GalvExcept.Value == game.ServerStorage.PlayerData[p1.Name].DaysSurvived.Value then
 		return
 	end
-	
+	if p1.Cooldowns:FindFirstChild("Galvanize") then
+		return
+	end
+	local CD = Instance.new("NumberValue")
+	CD.Name = "Galvanize"
+	CD.Value = 600
+	CD.Parent = p1.Cooldowns
+	game.Debris:AddItem(CD, 600)
 	canuse = false
 	local p2 = game.Players:GetPlayerFromCharacter(p1)
 	local data = game.ServerStorage.PlayerData:FindFirstChild(p2.Name)

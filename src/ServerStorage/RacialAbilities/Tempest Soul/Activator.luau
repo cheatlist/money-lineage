@@ -16,6 +16,14 @@ function v1.Activate(p1, p2, p3, p4)
 	if p2:FindFirstChild("CounterSpell") then
 		return
 	end
+	if p2.Cooldowns:FindFirstChild("Tempest Soul") then
+		return
+	end
+	local CD = Instance.new("NumberValue")
+	CD.Name = "Tempest Soul"
+	CD.Value = 15.75
+	CD.Parent = p2.Cooldowns
+	game.Debris:AddItem(CD, 15.75)
 	u1 = true
 	local l__Mana__5 = p2.Mana
 	local l__Value__6 = game.ServerStorage.PlayerData[game.Players:GetPlayerFromCharacter(p2).Name].ManaColor.Value

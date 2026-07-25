@@ -75,14 +75,27 @@ script.Parent.Activated:Connect(function()
 		if ActionCheck(Character) then
 			return
 		end
+		if Character.Cooldowns:FindFirstChild("Shoulder Throw") then
+			return
+		end
 		Cooldown = true
 		local playerdata = serverstorage.PlayerData:FindFirstChild(Character.Name)
 		if playerdata then
 			if playerdata.Race.Value == "Ashiin" and playerdata.Ascended.Value == true then
+				local CD = Instance.new("NumberValue")
+				CD.Name = "Shoulder Throw"
+				CD.Value = 15
+				CD.Parent = Character.Cooldowns
+				game.Debris:AddItem(CD, 15)
 				task.delay(15, function()
 					Cooldown = false
 				end)
 			else
+				local CD = Instance.new("NumberValue")
+				CD.Name = "Shoulder Throw"
+				CD.Value = 25
+				CD.Parent = Character.Cooldowns
+				game.Debris:AddItem(CD, 25)
 				task.delay(25, function()
 					Cooldown = false
 				end)

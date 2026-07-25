@@ -43,7 +43,8 @@ return function(Player, Humanoid, HumanoidRootPart, PlayerData, RunService, getC
 				Gun:Play()
 
 				if Player and Player.Character then
-					Player.Character:BreakJoints();
+					--Player.Character:BreakJoints();
+					warn("AA Activated.")
 				end
 			end)
 

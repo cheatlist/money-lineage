@@ -58,6 +58,14 @@ function v1.Active(p2, p3, p4, p5)
 	if u1 == false then
 		return
 	end
+	if p2.Cooldowns:FindFirstChild("Flock") then
+		return
+	end
+	local CD = Instance.new("NumberValue")
+	CD.Name = "Flock"
+	CD.Value = 30
+	CD.Parent = p2.Cooldowns
+	game.Debris:AddItem(CD, 30)
 	u1 = false
 	local v4 = script.Sound1:Clone()
 	v4.Parent = p2.HumanoidRootPart

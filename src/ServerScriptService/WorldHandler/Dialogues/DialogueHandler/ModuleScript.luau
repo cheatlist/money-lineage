@@ -3454,6 +3454,12 @@ local dialogues = {
 		p1 = {
 			speaker = "Blacksmith";
 			msg = "Need anything?";
+			choices = {"Can you enchant my weapon?", "Can you add a second, permanent enchant?"};
+			endchoice = "Bye";
+		};
+		p1nosecond = {
+			speaker = "Blacksmith";
+			msg = "Need anything?";
 			choices = {"Can you enchant my weapon?"};
 			endchoice = "Bye";
 		};
@@ -3463,9 +3469,20 @@ local dialogues = {
 			choices = {"Here."};
 			endchoice = "Bye";
 		};
+		p2second = {
+			speaker = "Blacksmith";
+			msg = "A second enchant is permanent, it can never be removed or replaced. I'll need a Ruby, Opal, Emerald, Sapphire, or Diamond, plus 1,000 Money.";
+			choices = {"Add it."};
+			endchoice = "Bye";
+		};
 		p3 = {
 			speaker = "Blacksmith";
 			msg = "Enchanted yo musty weapon.";
+			endchoice = "Bye";
+		};
+		p3second = {
+			speaker = "Blacksmith";
+			msg = "There. That second enchant is bonded to you for good now.";
 			endchoice = "Bye";
 		};
 		poor = {
@@ -3476,6 +3493,11 @@ local dialogues = {
 		no = {
 			speaker = "Blacksmith";
 			msg = "SHOW GEM";
+			endchoice = "Bye";
+		};
+		wronggem = {
+			speaker = "Blacksmith";
+			msg = "That won't work for a second enchant. I need a Ruby, Opal, Emerald, Sapphire, or Diamond.";
 			endchoice = "Bye";
 		};
 	};
@@ -9429,16 +9451,43 @@ dialogues["Church Knight"].v1 = function(p,v)
 		return dialogues["Church Knight"].no
 	end
 end
+local SecondEnchantGems = {Ruby = true, Opal = true, Emerald = true, Sapphire = true, Diamond = true}
 function dialogues.Blacksmith.v1(p,v)
 	local data = game.ServerStorage.PlayerData:FindFirstChild(p.Name)
 	if not data or not p.Character then
 		return
 	end
 	if v.page == 1 then
+		local enchants = string.split(data.Enchant.Value, ",")
+		if #enchants > 1 then
+			return dialogues.Blacksmith.p1nosecond
+		end
 		return dialogues.Blacksmith.p1
 	elseif v.page == 2 then
+		if v.choice == "Can you add a second, permanent enchant?" then
+			return dialogues.Blacksmith.p2second
+		end
 		return dialogues.Blacksmith.p2
 	elseif v.page == 3 then
+		if v.choice == "Add it." then
+			local tool = p.Character:FindFirstChildWhichIsA("Tool")
+			if not tool or not tool:FindFirstChild("Gem") or not SecondEnchantGems[tool.Name] then
+				return dialogues.Blacksmith.wronggem
+			end
+			if commands.ChangeMoney(p,data,-1000)then
+				if data.Enchant.Value == ""then
+					data.Enchant.Value = tool.Name
+				else
+					data.Enchant.Value ..= ","..tool.Name
+				end
+				data.EnchantTimer.Value = -1
+				tool:Destroy()
+				commands.RemoveFromInventory(p, tool.Name)
+				return dialogues.Blacksmith.p3second
+			else
+				return dialogues.Blacksmith.poor
+			end
+		end
 		local tool = p.Character:FindFirstChildWhichIsA("Tool")
 		if tool and tool:FindFirstChild("Gem") then
 			if commands.ChangeMoney(p,data,-100)then
@@ -9460,7 +9509,7 @@ function dialogues.BlacksmithAdvanced.v1(p,v)
 		return
 	end
 	if v.page == 1 then
-		return dialogues.Blacksmith.p1
+		return dialogues.Blacksmith.p1nosecond
 	elseif v.page == 2 then
 		return dialogues.BlacksmithAdvanced.p2
 	elseif v.page == 3 then
@@ -11764,7 +11813,7 @@ local function merchant(p,v)
 			if tool:FindFirstChild("MoneyValue")then
 				local total = tool.MoneyValue.Value
 				total = math.round(total)
-				v.total = total * 1000
+				v.total = math.round(total * 1000 / 3)
 				v.tosell = {}
 				table.insert(v.tosell,tool)
 				return{
@@ -11793,6 +11842,7 @@ local function merchant(p,v)
 				return dialogues.Merchant.p3
 			end
 			total *= 2
+			total = math.round(total / 3)
 			v.total = total
 			v.tosell = tosell
 			return{

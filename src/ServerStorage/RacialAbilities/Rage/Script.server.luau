@@ -53,6 +53,14 @@ script.Parent.Activated:Connect(function()
 	if not canuse then
 		return
 	end
+	if p1.Cooldowns:FindFirstChild("Rage") then
+		return
+	end
+	local CD = Instance.new("NumberValue")
+	CD.Name = "Rage"
+	CD.Value = 1.5
+	CD.Parent = p1.Cooldowns
+	game.Debris:AddItem(CD, 1.5)
 	canuse = false
 	local p2 = game.Players:GetPlayerFromCharacter(p1)
 	local HumanoidRootPart = p1.HumanoidRootPart

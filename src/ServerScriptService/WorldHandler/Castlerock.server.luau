@@ -116,7 +116,7 @@ local function UpdateTurret(turret,v)
 				v.Humanoid.Health = 0
 				--v:BreakJoints()
 				root.SpellDeath:Play()
-				task.wait()
+				task.wait(1/30)
 				coroutine.wrap(function()
 					for i,bruh in pairs(v:GetChildren()) do
 						if bruh:IsA("Shirt") or bruh:IsA("Pants") then

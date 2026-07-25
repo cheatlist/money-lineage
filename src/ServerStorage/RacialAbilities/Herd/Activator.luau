@@ -65,6 +65,14 @@ function v1.Active(p2, p3, p4, p5)
 		task.wait(1.5)
 		p2.HumanoidRootPart.BlinkAttach.Particle:Emit(1)
 	end)
+	if p2.Cooldowns:FindFirstChild("Herd") then
+		return
+	end
+	local CD = Instance.new("NumberValue")
+	CD.Name = "Herd"
+	CD.Value = 30
+	CD.Parent = p2.Cooldowns
+	game.Debris:AddItem(CD, 30)
 	for v13, v14 in pairs(p2:GetDescendants()) do
 		if v14:IsA("BasePart") and v14.Transparency ~= 1 then
 			if v14:IsA("Part") then
@@ -114,7 +122,7 @@ function v1.Active(p2, p3, p4, p5)
 		task.wait(1.5)
 		p2.HumanoidRootPart.RiftBlink:Play()
 	end)
-	wait(20)
+	wait(30)
 	u1 = true
 end
 return v1

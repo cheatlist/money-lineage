@@ -262,14 +262,16 @@ function module.CD(character, name, length,snap)
 
 	else
 		if snap and snap == true then
-			local cooldown = Instance.new("BoolValue")
-			cooldown.Name = name.."SnapCD"
-			cooldown.Parent = character
+			local cooldown = Instance.new("NumberValue")
+			cooldown.Name = "Snap "..name
+			cooldown.Parent = character.Cooldowns
+			cooldown.Value = length.Value
 			game.Debris:AddItem(cooldown,length.Value)
 		else
-			local cooldown = Instance.new("BoolValue")
-			cooldown.Name = name.."CD"
-			cooldown.Parent = character
+			local cooldown = Instance.new("NumberValue")
+			cooldown.Name = name
+			cooldown.Parent = character.Cooldowns
+			cooldown.Value = length.Value
 			game.Debris:AddItem(cooldown,length.Value)
 		end
 	end
