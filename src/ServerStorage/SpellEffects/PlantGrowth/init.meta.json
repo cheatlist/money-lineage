@@ -1,4 +1,9 @@
 {
   "className": "Part",
-  "keepUnknowns": true
+  "keepUnknowns": true,
+  "properties": {
+    "BottomSurface": "Smooth",
+    "Size": [4, 1, 2],
+    "TopSurface": "Smooth"
+  }
 }

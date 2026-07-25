@@ -1,4 +1,8 @@
 {
   "className": "Tool",
-  "keepUnknowns": true
+  "keepUnknowns": true,
+  "properties": {
+    "ManualActivationOnly": true,
+    "RequiresHandle": false
+  }
 }

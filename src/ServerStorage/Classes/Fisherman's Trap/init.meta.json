@@ -1,4 +1,9 @@
 {
   "className": "Tool",
-  "keepUnknowns": true
+  "keepUnknowns": true,
+  "properties": {
+    "Grip": [0, -0.1204, 0.0001, 1, 0, 0, 0, -0.0008, 1.0, 0, -1.0, -0.0008],
+    "ManualActivationOnly": true,
+    "RequiresHandle": false
+  }
 }

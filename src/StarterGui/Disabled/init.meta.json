@@ -1,4 +1,9 @@
 {
   "className": "ScreenGui",
-  "keepUnknowns": true
+  "keepUnknowns": true,
+  "properties": {
+    "DisplayOrder": 4,
+    "Enabled": false,
+    "ResetOnSpawn": false
+  }
 }

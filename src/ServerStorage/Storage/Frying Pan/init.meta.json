@@ -1,4 +1,9 @@
 {
   "className": "Tool",
-  "keepUnknowns": true
+  "keepUnknowns": true,
+  "properties": {
+    "CanBeDropped": false,
+    "Grip": [-1, 0.15, 0, -0.8729, 0, -0.4879, 0, 1, 0, 0.4879, 0, -0.8729],
+    "ToolTip": "SIZZLE SIZZLE..."
+  }
 }

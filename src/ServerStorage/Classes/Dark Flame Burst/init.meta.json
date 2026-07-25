@@ -1,4 +1,8 @@
 {
   "className": "Tool",
-  "keepUnknowns": true
+  "keepUnknowns": true,
+  "properties": {
+    "CanBeDropped": false,
+    "ToolTip": "Darkest flame consumes all."
+  }
 }

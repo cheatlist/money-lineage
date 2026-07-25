@@ -1,4 +1,10 @@
 {
   "className": "Tool",
-  "keepUnknowns": true
+  "keepUnknowns": true,
+  "properties": {
+    "Attributes": {
+      "ID": ""
+    },
+    "CanBeDropped": false
+  }
 }

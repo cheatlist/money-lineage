@@ -1,4 +1,18 @@
 {
   "className": "ImageLabel",
-  "keepUnknowns": true
+  "keepUnknowns": true,
+  "properties": {
+    "AnchorPoint": [0.5, 0.5],
+    "BackgroundColor3": [0.8863, 0.8627, 0.7373],
+    "BackgroundTransparency": 1,
+    "BorderColor3": [0.4039, 0.3765, 0.3098],
+    "ImageContent": "rbxassetid://1327087642",
+    "ImageTransparency": 0.6,
+    "Position": [[0.5, 0.0], [1.0, -240.0]],
+    "ScaleType": "Slice",
+    "Size": [[0.0, 500.0], [0.0, 100.0]],
+    "SliceCenter": [20, 20, 190, 190],
+    "Visible": false,
+    "ZIndex": 6
+  }
 }

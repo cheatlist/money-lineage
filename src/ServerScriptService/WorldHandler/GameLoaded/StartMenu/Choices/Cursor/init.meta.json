@@ -1,4 +1,15 @@
 {
   "className": "ImageLabel",
-  "keepUnknowns": true
+  "keepUnknowns": true,
+  "properties": {
+    "AnchorPoint": [1, 0.5],
+    "BackgroundColor3": [1, 1, 1],
+    "BackgroundTransparency": 1,
+    "BorderSizePixel": 0,
+    "ImageColor3": [0.9608, 0.9216, 0.8588],
+    "ImageContent": "rbxassetid://3115923620",
+    "ImageRectSize": [13, 14],
+    "Position": [[0.0, 0.0], [0.0, 11.0]],
+    "Size": [[0.0, 13.0], [0.0, 14.0]]
+  }
 }

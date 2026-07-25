@@ -1,4 +1,9 @@
 {
   "className": "Tool",
-  "keepUnknowns": true
+  "keepUnknowns": true,
+  "properties": {
+    "CanBeDropped": false,
+    "Grip": [-0.1479, -0.3806, -1.0631, -0.9994, 0, 0.034, 0, 1, 0, -0.034, 0, -0.9994],
+    "ToolTip": "Heading back to delta. (by aisar)"
+  }
 }

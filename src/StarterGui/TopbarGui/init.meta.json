@@ -1,4 +1,11 @@
 {
   "className": "ScreenGui",
-  "keepUnknowns": true
+  "keepUnknowns": true,
+  "properties": {
+    "DisplayOrder": 6,
+    "Enabled": false,
+    "ResetOnSpawn": false,
+    "ScreenInsets": "DeviceSafeInsets",
+    "ZIndexBehavior": "Sibling"
+  }
 }

@@ -1,4 +1,9 @@
 {
   "className": "Tool",
-  "keepUnknowns": true
+  "keepUnknowns": true,
+  "properties": {
+    "CanBeDropped": false,
+    "Enabled": false,
+    "ToolTip": "Now you see me, now you don't..."
+  }
 }

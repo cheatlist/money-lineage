@@ -1,5 +1,9 @@
 {
   "className": "Tool",
+  "keepUnknowns": true,
   "originalName": "???",
-  "keepUnknowns": true
+  "properties": {
+    "CanBeDropped": false,
+    "RequiresHandle": false
+  }
 }

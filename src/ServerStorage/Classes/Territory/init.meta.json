@@ -1,4 +1,9 @@
 {
   "className": "Tool",
-  "keepUnknowns": true
+  "keepUnknowns": true,
+  "properties": {
+    "CanBeDropped": false,
+    "RequiresHandle": false,
+    "ToolTip": "Domain... Expansion..."
+  }
 }

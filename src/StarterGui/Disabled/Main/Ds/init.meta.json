@@ -1,4 +1,22 @@
 {
   "className": "TextButton",
-  "keepUnknowns": true
+  "keepUnknowns": true,
+  "properties": {
+    "AnchorPoint": [0.5, 0],
+    "BackgroundColor3": [0.9569, 0.8314, 0.6745],
+    "BorderSizePixel": 0,
+    "FontFace": {
+      "cachedFaceId": null,
+      "family": "rbxasset://fonts/families/SourceSansPro.json",
+      "style": "Normal",
+      "weight": "Regular"
+    },
+    "LayoutOrder": 2,
+    "Position": [[0.25, 0.0], [0.0, 130.0]],
+    "Size": [[1.0, 0.0], [0.0, 20.0]],
+    "Text": "Low Graphics",
+    "TextColor3": [0, 0, 0],
+    "TextSize": 14,
+    "ZIndex": 2
+  }
 }

@@ -10,16 +10,6 @@
       "$keepUnknowns": true,
       "$path": "src/ServerScriptService"
     },
-    "StarterPlayer": {
-      "StarterPlayerScripts": {
-        "$keepUnknowns": true,
-        "$path": "src/StarterPlayerScripts"
-      },
-      "StarterCharacterScripts": {
-        "$keepUnknowns": true,
-        "$path": "src/StarterCharacterScripts"
-      }
-    },
     "ServerStorage": {
       "$keepUnknowns": true,
       "$path": "src/ServerStorage"
@@ -27,6 +17,22 @@
     "StarterGui": {
       "$keepUnknowns": true,
       "$path": "src/StarterGui"
+    },
+    "StarterPlayer": {
+      "$properties": {
+        "CameraMaxZoomDistance": 60,
+        "DevComputerMovementMode": "KeyboardMouse",
+        "DevTouchMovementMode": "DynamicThumbstick",
+        "LoadCharacterAppearance": false
+      },
+      "StarterCharacterScripts": {
+        "$keepUnknowns": true,
+        "$path": "src/StarterCharacterScripts"
+      },
+      "StarterPlayerScripts": {
+        "$keepUnknowns": true,
+        "$path": "src/StarterPlayerScripts"
+      }
     }
   }
 }

@@ -1,4 +1,10 @@
 {
   "className": "Tool",
-  "keepUnknowns": true
+  "keepUnknowns": true,
+  "properties": {
+    "CanBeDropped": false,
+    "ManualActivationOnly": true,
+    "RequiresHandle": false,
+    "ToolTip": "The wind whistles."
+  }
 }

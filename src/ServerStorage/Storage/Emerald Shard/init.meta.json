@@ -1,4 +1,8 @@
 {
   "className": "Tool",
-  "keepUnknowns": true
+  "keepUnknowns": true,
+  "properties": {
+    "CanBeDropped": false,
+    "ToolTip": "A binding agent for protective potions."
+  }
 }
