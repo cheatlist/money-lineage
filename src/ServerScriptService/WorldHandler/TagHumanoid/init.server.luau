@@ -21,6 +21,7 @@ local getCurseCount = Helpers.getCurseCount
 local FlowingParry = game.ServerStorage.NPCAnims.FlowingParry
 
 local DragonSlayerPaths = require(script.Procs.DragonSlayerPaths)
+local NameErasure = require(script.Procs.NameErasure)
 
 function taghumanoid(character,enemy,info)
 	local stun = 0.35
@@ -2860,6 +2861,7 @@ function taghumanoid(character,enemy,info)
 	if info.damage then
 		if character ~= enemy then
 			DragonSlayerPaths(character, enemy, info, humanoid)
+			NameErasure(character, enemy, info, ehumanoid, Player, EnemyPlayer)
 		end
 		if info.physical and FindFirstChild(character,"HaseldanDamageMultiplier")then
 			info.damage *= 1.25
