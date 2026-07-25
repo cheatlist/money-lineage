@@ -28,28 +28,51 @@ tooling is Argon's CLI + VS Code extension. Practical implications:
 
 - `src/ReplicatedStorage/` — shared assets, data modules (e.g. `Info/AreaData.luau`), `Names/`, `MainModule.luau`
 - `src/ServerScriptService/`
-  - `Modules/` — `Commands/` (chat/admin commands, includes a `GetClasses.luau` class-data copy),
+  - `Modules/` — `Commands/` (chat/admin commands; `Commands/GetClasses.luau` is an unused flat
+    class→skills copy, kept in place rather than deleted, see Classes section below),
     `HitDetection.luau` (AOE/cone targeting, calls into `TagHumanoid`), `EffectModule.luau` (generic
     VFX helpers: `Lightning`, `QuickLightning`, `Explosion`, `Wings`, `Wings2`, `HeraldWings`, etc.),
-    `DataStore2`, `SpellModule`
+    `DataStore2`, `SpellModule`, `ActionCheck.luau` (shared move-guard check, see Moves section),
+    `MoveInfoSchema.luau` (documentation-only registry of every `Info` flag `TagHumanoid` reads)
   - `WorldHandler/` — the gameplay brain
-    - `GameLoaded/init.server.luau` — the authoritative `classdata` table (class trainer NPC config)
-    - `Admin/GetClasses.luau` — a second, near-duplicate flat class→skills table (admin grant tooling)
-    - `Dialogues/DialogueHandler/ModuleScript.luau` — **huge** (10k+ lines): the entire dialogue
-      engine, a third near-duplicate `classdata` table, `teachskill()`, and every path-trial NPC
+    - `ClassData.luau` — **the single source of truth** for class data (`classdata`/`supers`/`ultraclass3`
+      tables), required by both `GameLoaded` and `DialogueHandler` (see Classes section below)
+    - `ClassDataDriftCheck.luau` — startup warning if another independently-maintained class-name
+      list (currently `_G.MageClasses`) references a name `ClassData` doesn't produce
+    - `GameLoaded/init.server.luau` — `require()`s `ClassData` for its admin `/class` grant command
+    - `Admin/GetClasses.luau` — a second unused flat class→skills copy; `required` into a local that's
+      never read, kept in place rather than deleted (see Classes section below)
+    - `Dialogues/DialogueHandler/ModuleScript.luau` — **huge** (13k+ lines): the entire dialogue
+      engine, `teachskill()` (reads from the shared `ClassData`), and every path-trial NPC
       (`VoiceFromAbove`, `Heretic`, `Fang`, etc.)
     - `Dialogues/DialogueHandler/init.server.luau` — the dialogue *driver* (talking-state machine,
       NPC click wiring, remote events) — thin, doesn't contain content
-    - `TagHumanoid.server.luau` — **huge** (3000+ lines): the actual damage/stun/knockback/proc
+    - `TagHumanoid/init.server.luau` — **huge** (~3050 lines): the actual damage/stun/knockback/proc
       resolver. Every move's `Info` table flows through here. All passive procs that trigger "on
-      hit" live in this one file.
+      hit" live in this one function — except the Storm Herald/Ember Wyrm/Abyssal Wyrm proc block,
+      which was split out (see `Procs/` below). `MoveInfoSchema.luau` documents its `Info` contract.
+    - `TagHumanoid/Helpers.luau` — the 9 small shared helpers (`create`, `soundplay`, `getCurseCount`,
+      etc) `taghumanoid()` uses throughout
+    - `TagHumanoid/Procs/DragonSlayerPaths.luau` — the Storm Herald/Ember Wyrm/Abyssal Wyrm on-hit
+      proc block, the one genuinely self-contained proc in the whole file (see Refactor session below)
 - `src/ServerStorage/`
   - `Classes/<Move Name>/` — one folder per **active move**, synced as a Roblox `Tool`. Despite the
-    directory name, this is the move library, not the class library.
+    directory name, this is the move library, not the class library. Most `ActionCheck()` guards here
+    now delegate to `Modules/ActionCheck.luau` (see Moves section) — a handful still have their own
+    local definition where the shared module's shape doesn't fit, and that's intentional, not
+    leftover work.
   - `RacialAbilities/`, `Weapons/`, `Storage/` (items/scrolls), `PlayerData` (live per-player
     instance tree, not present in this repo — created at runtime)
-- `src/StarterCharacterScripts/CharacterHandler/init.server.luau` — **huge** (~5800 lines): per-character
-  server logic (class/skill grants, boosts, weapon logic, path-flag reads for shared systems like Dash)
+- `src/StarterCharacterScripts/CharacterHandler/`
+  - `init.server.luau` — **huge** (~4380 lines, down from ~5800): per-character server logic (class/skill
+    grants, boosts, weapon-input handling, path-flag reads for shared systems like Dash). Still mixes
+    several concerns — see Refactor priorities for what's still in here vs. what was extracted.
+  - `Modules/` — `ApplyInjuries.luau`, `Vampirism.luau`, `RacialFlight.luau` (Seraph/Phoenix flight
+    form), `EdictRewards.luau`, `WeaponEquip.luau` (`equipweapon`/`unequipweapon`), `AntiCheat.luau`
+    (`CheckForTags`/`TriggerAA`/air-time + position-rollback checks) — self-contained sections pulled
+    out of `init.server.luau`; each is a function taking whatever character/player state it needs as
+    explicit parameters (some via `getX()`/`setX()` closures where `init.server.luau` reassigns that
+    state elsewhere and the module needs to read/write the live value, not a stale copy)
 - `src/StarterGui/`, `src/StarterPlayerScripts/` — client UI/input
 
 Much of the codebase reads as decompiled/deobfuscated Lua (generic names like `v1`, `u2`,
@@ -60,20 +83,36 @@ editing these files rather than silently "cleaning up" unrelated code in the sam
 
 ### 1. Classes (fighting styles)
 
-A class is a named skill bundle with a price, a prerequisite class, and (for ultras) a flag. The
-**same conceptual class list is duplicated across 4 files** and must be kept in sync by hand:
+A class is a named skill bundle with a price, a prerequisite class, and (for ultras) a flag. As of
+2026-07-25 this lives in **one place**: `ServerScriptService/WorldHandler/ClassData.luau`, exporting
+`{classdata, supers, ultraclass3}`. Both real consumers `require()` it:
 
-1. `ServerScriptService/Modules/Commands/GetClasses.luau` — flat `{ClassName = {skill, skill, ...}}`
-2. `ServerScriptService/WorldHandler/Admin/GetClasses.luau` — near-duplicate, admin variant
-3. `ServerScriptService/WorldHandler/GameLoaded/init.server.luau` — richer `classdata` table (`skills`,
-   `price`, `requiredclass`, `class`, `ultra`/`isultra`) used by in-world class-trainer NPCs
-4. `ServerScriptService/WorldHandler/Dialogues/DialogueHandler/ModuleScript.luau` — a second, near-identical
-   `classdata` table, plus `teachskill(p, info, firstcheck)` which actually grants skills
+1. `ServerScriptService/WorldHandler/GameLoaded/init.server.luau` — reads `classdata` for the admin
+   `/class` grant command
+2. `ServerScriptService/WorldHandler/Dialogues/DialogueHandler/ModuleScript.luau` — reads all three
+   tables; `teachskill(p, info, firstcheck)` is what actually grants skills to players
 
-Key naming gotcha: the outer table *key* is sometimes the no-space PascalCase form (`DragonSlayer`)
-and sometimes the spaced display form (`"Dragon Slayer"`) depending on the file — and the `class`
-field (the literal string written to `PlayerData.Class.Value`) doesn't always match the outer key
-either. Check each file's existing convention before editing rather than assuming consistency.
+Two more files still exist with their own flat `{ClassName = {skill, skill, ...}}` tables —
+`ServerScriptService/Modules/Commands/GetClasses.luau` and `ServerScriptService/WorldHandler/Admin/GetClasses.luau`
+— but **neither is a real dependency**: the first has zero requires anywhere in `src/`, the second is
+`require()`d into a local (`Admin/init.server.luau`) that's never subsequently read. They were deleted
+once during the 2026-07-25 refactor and reappeared via what looked like a live Studio/Argon sync, so
+they were left in place rather than fought — if you're touching class data, `ClassData.luau` is the
+only file that matters; these two are inert.
+
+`ClassData.luau`'s content was chosen from `DialogueHandler`'s version when the two tables were
+unified (they had drifted with real gameplay differences by then — different prices, different
+`requiredclass` gates, different skill-list membership). If you need the pre-unification values for
+either side, check git history from before commit `5ad8ff2`.
+
+Key naming gotcha (still true): the outer table *key* is the no-space PascalCase form (`DragonSlayer`)
+consistently now, but the `class` field (the literal string written to `PlayerData.Class.Value`)
+doesn't always match the outer key (e.g. `SuperBlacksmith`'s key vs. its own `class` field can still
+diverge from other conventions elsewhere in the codebase — `CharacterHandler`'s `ultraclass3` check
+and `_G.MageClasses` both compare against `.Class.Value` directly, so a class string that doesn't
+match `ClassData`'s `.class` output for its own entry will silently fail those checks).
+`ClassDataDriftCheck.luau` catches exactly this for `_G.MageClasses` at startup — extend it if you
+add another independent class-name list.
 
 `teachskill()` grants **one random unowned skill per NPC visit** (for a price), not the whole class
 at once — a player must return repeatedly until `ownedskills == #info.skills` ("max").
@@ -82,16 +121,32 @@ at once — a player must return repeatedly until `ownedskills == #info.skills` 
 
 Master move library: `ServerStorage/Classes/<Move Name>/`, one folder per move (a Rojo/Argon-synced
 `Tool`). A move script (`Script.server.luau` or `Activator.luau`) typically:
-- Defines a copy-pasted `ActionCheck()` guard (stun/blocking/knocked checks) — duplicated verbatim
-  in nearly every move file
+- Calls a per-file `ActionCheck()` guard (stun/blocking/knocked checks) before acting. As of
+  2026-07-25, 118 of 130 move files delegate to `ServerScriptService/Modules/ActionCheck.luau` via a
+  small local wrapper (`local ActionCheckModule = require(...); local function ActionCheck(Parent)
+  return ActionCheckModule(Parent, {presentBlocks = {...}, ...}) end`) instead of a hand-copied body —
+  when adding a new universal stun state, add it to each file's `presentBlocks`/`presentTagBlocks`
+  list rather than editing a copy-pasted function body. The remaining 12 files intentionally still
+  have their own local `ActionCheck` because they don't fit the shared module's shape: several have
+  genuine pre-existing logic quirks (e.g. `Elegant Slash`/`Focus Slash`/`Joyous Dance`'s `Activator.luau`
+  let `Unconscious`/`Knocked` bypass the `Immortal` check instead of blocking — flagged, not "fixed"),
+  a few check something other than instance/tag presence (`Harpoon` checks `IsClimbing.Value == true`
+  not just existence; the `Jack o'Lantern Chair` variants and `Wooden Chair` check `FloorMaterial`),
+  and `Rising Dragon` has a conditional exception not expressible as a flat check list. Don't assume
+  every move file uses the shared module — grep for `function ActionCheck` to check a specific file.
 - Manages its own cooldown via a `NumberValue` under `Character.Cooldowns`, auto-cleaned with
   `game.Debris:AddItem(cd, duration)`
 - Builds an ad hoc `Info` table (`damage`, `physical`/`mana`, `aoe`, `move`, plus dozens of
   move-specific one-off flags) and either calls `HitDetection.magnitudeCheck`/`SMag` (AOE/cone
   targeting) or fires `ServerStorage.Requests.TagHumanoid` directly
-- There is **no schema** for `Info` — whatever flag a move sets, `TagHumanoid.server.luau` must
-  separately know to check for. Adding a new mechanical effect almost always means editing both
-  the move script *and* `TagHumanoid.server.luau`.
+- There is **no enforced schema** for `Info` — whatever flag a move sets, `TagHumanoid/init.server.luau`
+  must separately know to check for. `ServerScriptService/Modules/MoveInfoSchema.luau` documents all
+  128 known flags by category as a reference (damage-modifying, defense-bypassing, on-hit-proc,
+  knockback/stun, weapon dispatch, path-specific) plus a short suspected-dead list
+  (`curseshieldit`, `spearmovestack`, `dexthunder`/`nodexsound`, `bell`, the `ReturnStun` guard state)
+  — but it's documentation only, not runtime-validated. Adding a new mechanical effect still means
+  editing both the move script *and* `TagHumanoid/init.server.luau`, and checking `MoveInfoSchema.luau`
+  by eye for name collisions is on you.
 
 Cooldowns/damage are hardcoded per move script; there is no central balance table.
 
@@ -136,8 +191,9 @@ unique.
 - Added two new Dragon Slayer paths, `TheEmberWyrm` (fire) and `TheAbyssalWyrm` (void/lifesteal),
   alongside the pre-existing but previously ungranted `StormHerald` (lightning). All three are now
   choosable via Fang once Dragon Slayer is fully learned (`ServerStorage/Classes/Dragon Roar`,
-  `Thunder Spear Crash`, `Dragon Awakening`, `Wing Soar`, `Spear Crusher`, plus procs in
-  `TagHumanoid.server.luau` around the existing Storm Herald proc block).
+  `Thunder Spear Crash`, `Dragon Awakening`, `Wing Soar`, `Spear Crusher`, plus procs now in
+  `TagHumanoid/Procs/DragonSlayerPaths.luau` — see the Refactor session note below for why that
+  moved out of the old single `TagHumanoid.server.luau` file).
 - **Asset debt incurred**: `TheEmberWyrm`/`TheAbyssalWyrm` currently reuse existing generic
   effects (`ThunderZoom`, `LightningS`/`LightningP`, `DragonRoarQuiet`, `WingFlap`/`MegaFlap`)
   recolored via `.Color`/`Color3` where the property allows it, rather than bespoke assets like
@@ -145,32 +201,50 @@ unique.
   two paths, they need to be added in Studio and wired in by name — the code branches are already
   in place to swap them in.
 
-## Refactor & cleanup priorities for future sessions
+## Refactor session (2026-07-25)
 
-Ordered by risk-adjusted value — fix things that cause silent bugs before things that are just ugly.
+All 6 items below (as originally scoped) were addressed in a single dedicated session — see git log
+from `571ea73` through `aac4778` for the incremental commits. What actually landed, and what's still
+open, per item:
 
-1. **(High) Collapse the 4 duplicated class-data tables into one source of truth.** Right now a
-   class change requires editing up to 4 files by hand, and they can silently drift (this is how
-   `DragonBloodUpgrade` ended up half-wired). At minimum, make 3 of the 4 files `require()` a single
-   shared module instead of hand-copying the table.
-2. **(High) Give `Info` (the move → TagHumanoid contract) a real shape.** Even just a checked list of
-   known flag names per category (damage-modifying, defense-bypassing, on-hit-proc) would catch
-   typos like a flag being set in a move but never read in `TagHumanoid`, or vice versa.
-3. **(Medium) Split `TagHumanoid.server.luau` and `CharacterHandler/init.server.luau`.** Both are
-   several-thousand-line single files mixing unrelated concerns (damage resolution, every passive
-   proc, every path's on-hit effect, boosts, curses, life steal, etc. all in one `TagHumanoid` file;
-   class grants, boosts, weapon logic, path VFX in one `CharacterHandler`). Splitting by concern
-   (e.g. `TagHumanoid/Procs/<PathName>.luau`) would make future path/passive additions much lower-risk.
-4. **(Medium) Extract the copy-pasted `ActionCheck()` guard** from every move script into a shared
-   module. It's byte-for-byte identical in most files; a single edit (e.g. adding a new universal
-   stun state) currently requires touching every move.
-5. **(Low) Sweep deprecated `wait()` → `task.wait()`** and clean up the large number of unused-local
-   hints (`canuse`, `p2`, `TweenService`, etc.) flagged across move scripts — cosmetic, but cheap to
-   batch once other structural work touches these files anyway.
-6. **(Low) No automated tests exist.** Given the amount of cross-file coordination the class/path
-   systems require (4 files for a class, 3+ files for a path), even a lightweight script that
-   diffs the 4 class-data tables for drift would catch the exact class of bug fixed this session.
+1. **Class-data unification — done.** `ClassData.luau` is now the single source; see Classes section
+   above. The 2 genuinely-dead `GetClasses.luau` copies were left in place (inert, not worth fighting
+   the Studio sync over) rather than deleted.
+2. **`Info` schema — partial, deliberately.** `MoveInfoSchema.luau` documents all known flags as a
+   reference, but is *not* wired into any runtime validation — actually validating live would mean
+   touching all 194 move folders and `TagHumanoid` together, judged too risky for this pass. Still
+   open: a real typo-catching check (e.g. a Studio-side lint script) would need to parse/grep every
+   move file's `Info` table construction and cross-reference it against the schema automatically.
+3. **Split `TagHumanoid`/`CharacterHandler` — safe subset only, by design.** Both files' core
+   dispatch logic reassigns their central variables wholesale at several points (`TagHumanoid`
+   swaps `character`/`enemy`/`humanoid` etc. at 5 counter/reflect points; `CharacterHandler`'s
+   `Character.ChildAdded`/`ChildRemoved` and `Remotes.LeftClick`/`RightClick` read/write ~50 shared
+   upvalues). Only the genuinely self-contained pieces were extracted — see the Directory layout
+   entries for `TagHumanoid/Procs/`, `TagHumanoid/Helpers.luau`, and `CharacterHandler/Modules/`.
+   **Still open and still risky**: the ~2900-line remainder of `taghumanoid()` and the
+   `ChildAdded`/`ChildRemoved`/`LeftClick`/`RightClick`/`Chatted` handlers in `CharacterHandler` —
+   don't attempt further splitting of these without the same care (map every read/write of the
+   swapped-at-runtime variables first).
+4. **`ActionCheck()` dedup — 118 of 130 files.** See Moves section above for exactly which 12 were
+   left on their own local definition and why (each is a genuine behavioral outlier, not an
+   oversight). If you add a new move file, prefer the shared module from the start.
+5. **`wait()` → `task.wait()` sweep — scoped, not exhaustive.** Only the ~135 files already touched
+   by this session's other changes were swept (444 occurrences). Repo-wide there are roughly 1000+
+   remaining `wait()` calls, plus the flagged unused-local hints (`canuse`, `p2`, stray `TweenService`
+   requires, etc.) across move scripts — still open, same "batch it when you're already touching the
+   file" approach applies.
+6. **Drift-check script — done.** `ClassDataDriftCheck.luau` runs at `GameLoaded` startup and warns
+   (doesn't block) if `_G.MageClasses` references a class string `ClassData` doesn't produce. Already
+   caught two real pre-existing drift cases on that list (a spacing mismatch and a stale `"Druid"`
+   entry that was never a real class). No general test runner exists in this repo — this is a
+   startup-time check, not CI.
 
-Do not attempt items 1-3 opportunistically inside unrelated feature work — they touch enough
-surface area (dialogue engine, damage resolution) that they deserve their own dedicated session
-with the user's sign-off on approach first.
+**Known bug found but not fixed**: `ServerStorage/Classes/ModStop/Activator.luau` ends with a stray
+trailing backtick after `return v6` — a real syntax error, unrelated to the refactor, found
+incidentally while sweeping `ActionCheck`. Confirm with whoever has Studio access before touching it
+(it's possible this script is already known-disabled) rather than assuming it's safe to just delete
+the character.
+
+Do not attempt further work on items 2/3/5 opportunistically inside unrelated feature work — the
+same reasoning that applied before this session (dialogue engine and damage-resolution surface area)
+still applies to what's left of them.
