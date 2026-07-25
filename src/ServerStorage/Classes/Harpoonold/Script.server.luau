@@ -80,12 +80,12 @@ tool.Activated:Connect(function()
 			attFolder:Destroy()
 
 			sub(function()
-				wait(COOLDOWN)
+				task.wait(COOLDOWN)
 				en = true
 				thrown = false
 			end)
 		end
-		wait()
+		task.wait()
 	end
 end)
 
@@ -102,7 +102,7 @@ tool.Deactivated:Connect(function()
 	attFolder:Destroy()
 
 	sub(function()
-		wait(COOLDOWN)
+		task.wait(COOLDOWN)
 		en = true
 		thrown = false
 	end)
@@ -135,7 +135,7 @@ tool.Deactivated:Connect(function()
 		if currentprop then
 			currentprop.Transparency = 1
 			sub(function()
-				wait(0.3)
+				task.wait(0.3)
 				ts:Create(currentprop, TweenInfo.new(0.3), {Transparency = 0}):Play()
 			end)
 		end
@@ -164,9 +164,9 @@ tool.Deactivated:Connect(function()
 		ts:Create(copy, TweenInfo.new(travelTime), {Position = targetPos}):Play()
 
 		sub(function()
-			wait(travelTime - 0.25)
+			task.wait(travelTime - 0.25)
 			ts:Create(copy, TweenInfo.new(0.25), {Transparency = 1}):Play()
-			wait(math.min(travelTime, 0.25))
+			task.wait(math.min(travelTime, 0.25))
 			local bubbles = assets.BubbleAura:Clone()
 			bubbles.Parent = copy
 			bubbles.Enabled = false
@@ -193,7 +193,7 @@ tool.Deactivated:Connect(function()
 						end
 					end
 				end
-				wait()
+				task.wait()
 			end
 		end)
 	end)

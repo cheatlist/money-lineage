@@ -38,7 +38,7 @@ function v1.Active(p5, p6, p7, p8)
 
 	debounce = true
 	spawn(function()
-		wait(5)
+		task.wait(5)
 		debounce = false
 	end)
 
@@ -90,8 +90,8 @@ function v1.Active(p5, p6, p7, p8)
 
 	part.CFrame = cfBegin
 
-	wait()
-	wait()
+	task.wait()
+	task.wait()
 
 	local lerp = 0
 
@@ -107,7 +107,7 @@ function v1.Active(p5, p6, p7, p8)
 		pe.Speed = NumberRange.new(rt * velocityVal)
 		pe2.Speed = NumberRange.new(rt * velocityVal)
 		tLast = t
-		wait()
+		task.wait()
 	end
 	--[[u3 = false;
 	local v8 = Instance.new("Accessory");
@@ -152,7 +152,7 @@ function v1.Active(p5, p6, p7, p8)
 			delay = 0.2
 		}, true);
 	end);
-	wait(12);
+	task.wait(12);
 	u3 = true;]]
 end;
 return v1;

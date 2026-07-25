@@ -86,14 +86,14 @@ script.Parent.Activated:Connect(function()
 			end
 		end
 		local cancel = false
-		wait(0.3)
+		task.wait(0.3)
 		if not data.Skills.Value:find("TheLightning") then
 			task.wait(0.1)
 		end
 		if p1:FindFirstChild("NoDam")then
 			cancel = true
 		end
-		wait(0.3)
+		task.wait(0.3)
 		if not data.Skills.Value:find("TheLightning") then
 			task.wait(0.1)
 		end
@@ -153,12 +153,12 @@ script.Parent.Activated:Connect(function()
 			local tween = game.TweenService:Create(ring,TweenInfo.new(0.125),{
 				Size = Vector3.new(8,0.01,8)
 			}):Play()
-			wait()
+			task.wait()
 			for _,v in pairs(effects)do
 				v.TestTrail.Enabled = false
 				game.Debris:AddItem(v,1)
 			end
-			wait(0.17)
+			task.wait(0.17)
 			ring:Destroy()
 		else
 			for _,v in pairs(effects)do
@@ -166,7 +166,7 @@ script.Parent.Activated:Connect(function()
 				game.Debris:AddItem(v,1)
 			end
 		end
-		wait(12)
+		task.wait(12)
 		canuse = true
 	end)
 end)

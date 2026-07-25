@@ -67,10 +67,10 @@ function v1.Active(p2, p3, p4, p5)
 		v8.Parent = p2
 		game:GetService("Debris"):AddItem(v8, 1.2)
 		p2.Humanoid:LoadAnimation(script.Parent:FindFirstChild("Animation")):Play()
-		wait(0.5)
+		task.wait(0.5)
 		fxpart.flamecircle:Emit(5)
 		fxpart.swooshy:Emit(20)
-		wait(0.2)
+		task.wait(0.2)
 	else
 		fxpart.flamecircle:Emit(5)
 		fxpart.swooshy:Emit(20)

@@ -80,7 +80,7 @@ function v1.Active(p5, p6, p7, p8)
 			delay = 0.2
 		}, true);
 	end);
-	wait(12);
+	task.wait(12);
 	u3 = true;
 end;
 return v1;

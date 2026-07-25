@@ -75,7 +75,7 @@ function v1.Active(p1, p2, p3, p4)
 			end;
 		end;
 	end);
-	wait(10);
+	task.wait(10);
 	if not playerdata.Skills.Value:find("TheCursedSwordsman") then
 		task.wait(10)
 	end

@@ -90,11 +90,11 @@ module.Active = function(char,play,currentprop)
 		local twing = TweenInfo.new(.2,Enum.EasingStyle.Linear, Enum.EasingDirection.Out)
 		local tt1 = ts:Create(dragonwing1,twing,{Transparency = .75}):Play()
 		local tt2 = ts:Create(dragonwing2,twing,{Transparency = .75}):Play()
-		wait(.1)
+		task.wait(.1)
 		local twing = TweenInfo.new(.2,Enum.EasingStyle.Linear, Enum.EasingDirection.Out)
 		local tt1 = ts:Create(dragonwing1,twing,{CFrame=dragonwing1.CFrame*CFrame.new(2,2,0)*CFrame.Angles(0,0,-math.rad(45))}):Play()
 		local tt2 = ts:Create(dragonwing2,twing,{CFrame=dragonwing2.CFrame*CFrame.new(-2,2,0)*CFrame.Angles(0,0,math.rad(45))}):Play()
-		wait(.2)
+		task.wait(.2)
 		local twing = TweenInfo.new(.4,Enum.EasingStyle.Linear, Enum.EasingDirection.Out)
 		local tt1 = ts:Create(dragonwing1,twing,{Transparency = 1}):Play()
 		local tt2 = ts:Create(dragonwing2,twing,{Transparency = 1}):Play()
@@ -110,7 +110,7 @@ module.Active = function(char,play,currentprop)
 		end
 	end)
 
-	wait(1)
+	task.wait(1)
 	en = true
 end
 

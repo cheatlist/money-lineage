@@ -41,7 +41,7 @@ function v1.Active(p1, p2, p3, p4)
 	local prescriptc = p1.HumanoidRootPart.CFrame
 	p1.Humanoid:LoadAnimation(script.Parent.Anim):Play();
 	u2 = false;
-	wait(0.3);
+	task.wait(0.3);
 	prescriptc = prescriptc * CFrame.new(p1.HumanoidRootPart.CFrame.X - prescriptc.X, p1.HumanoidRootPart.CFrame.Y - prescriptc.Y, p1.HumanoidRootPart.CFrame.Z - prescriptc.Z)
 	p1.HumanoidRootPart.DaggerSlash1:Play();
 	p4.Transparency = 1;
@@ -129,7 +129,7 @@ function v1.Active(p1, p2, p3, p4)
 		return
 	end
 	
-	wait(10);
+	task.wait(10);
 	u2 = true;
 end;
 return v1;

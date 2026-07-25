@@ -166,7 +166,7 @@ function v1.Active(p1, p2, p3, p4)
 				}, true);
 			end;
 		end);
-		wait(20);
+		task.wait(20);
 		u2 = true;
 	elseif playerdata.Skills.Value:find("TheRunemaster") and playerdata.Runes.Value >= 2 then
 		local CD = Instance.new("NumberValue")

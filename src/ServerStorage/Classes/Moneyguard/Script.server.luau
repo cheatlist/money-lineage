@@ -31,6 +31,6 @@ script.Parent.Activated:Connect(function()
 		p1.HumanoidRootPart.MoneyEmit:Emit(5)
 		p1.HumanoidRootPart.MoneyDischarge:Play()
 	end
-	wait(1)
+	task.wait(1)
 	canuse = true
 end)

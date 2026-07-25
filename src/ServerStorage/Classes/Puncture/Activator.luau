@@ -92,7 +92,7 @@ module.Active = function(v3,player, guh, wep)
 		buff.Beamfire22.Attachment1 = buff.A6
 		buff.Beamfire2.Attachment1 = buff.A5
 		buff.Beamfire.Attachment1 = buff.A4
-		wait(.3 / divisor)
+		task.wait(.3 / divisor)
 		amin:Stop()
 		v3.Humanoid:LoadAnimation(script.Parent.stabber):Play()
 		local v2 = Instance.new("BodyVelocity")
@@ -113,7 +113,7 @@ module.Active = function(v3,player, guh, wep)
 				azurepunc = true,
 				move = "Puncture"
 			})
-			wait(.1)
+			task.wait(.1)
 		end
 		game.Debris:AddItem(v3.HumanoidRootPart.start,5)
 		buff:Destroy()
@@ -152,7 +152,7 @@ module.Active = function(v3,player, guh, wep)
 		v2.Name = "ForwardVelocity"-- you dont its how you add velocity
 		v2.Parent = v3.HumanoidRootPart
 		game:GetService("Debris"):AddItem(v2, 0.15)
-		wait(0.1)
+		task.wait(0.1)
 		v3.HumanoidRootPart.ShineStab:Play()
 		if not v3:FindFirstChild("Knocked") and not v3:FindFirstChild("Unconscious") then
 			if Nearest(v3.HumanoidRootPart.Position, v3) then
@@ -188,7 +188,7 @@ module.Active = function(v3,player, guh, wep)
 				local Action = Instance.new("Accessory")
 				Action.Name = "Action"
 				Action.Parent = v3
-				wait()
+				task.wait()
 				Nearest.Humanoid.AutoRotate = false; v3.Humanoid.AutoRotate = false
 				Nearest.HumanoidRootPart.CFrame = v3.HumanoidRootPart.CFrame 
 				local lol = Instance.new("Weld")
@@ -208,12 +208,12 @@ module.Active = function(v3,player, guh, wep)
 				bloodHit.Enabled = true
 				local lol98 = v3.Humanoid:LoadAnimation(script.Parent.hold)
 				lol98:Play()
-				wait(1)
+				task.wait(1)
 				bloodHit.Enabled = false
 				lol98:Stop()
-				wait()
+				task.wait()
 				v3.Humanoid:LoadAnimation(script.Parent.THROW):Play()
-				wait(0.48)
+				task.wait(0.48)
 				bloodHit:Destroy()
 				lol:Destroy()
 				v3.Humanoid.AutoRotate = true
@@ -236,7 +236,7 @@ module.Active = function(v3,player, guh, wep)
 	end
 	assets:Destroy()
 	--_G.System.Event:FireClient(game.Players:GetPlayerFromCharacter(v3), "SetCDIndicator", {script.Parent.Name, 15})
-	wait(15)
+	task.wait(15)
 	cd = false
 end
 return module

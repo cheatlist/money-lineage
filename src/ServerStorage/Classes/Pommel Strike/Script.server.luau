@@ -36,7 +36,7 @@ script.Parent.Activated:Connect(function()
 	game.Debris:AddItem(v1,1)
 	HumanoidRootPart.AgilityEmit:Emit(30)
 	HumanoidRootPart.SwordCharge:Play()
-	wait(0.3)
+	task.wait(0.3)
 	if not p1:FindFirstChild("NoDam")then
 		u3.magnitudeCheck(p1,HumanoidRootPart.Position,8,{
 			physical = true, 

@@ -62,7 +62,7 @@ script.Parent.Activated:Connect(function()
 
 					hum.AutoRotate = false
 					sub(function()
-						wait(.35)
+						task.wait(.35)
 						j.Humanoid.AutoRotate = false	
 					end)
 
@@ -161,7 +161,7 @@ script.Parent.Activated:Connect(function()
 
 
 					repeat 
-						wait(.5)
+						task.wait(.5)
 
 
 						root.PotionPour:Play()

@@ -34,7 +34,7 @@ function v2.Active(p1, p2, p3, p4)
 	local v8 = Instance.new("Accessory")
 	v8.Name = "Cooldown"
 	v8.Parent = v7
-	wait(0.3)
+	task.wait(0.3)
 	local v9 = game.ServerStorage.Assets.ManaGrenade:Clone()
 	local l__Value__10 = p2.Backpack.ManaColor.Value
 	v9.Color = Color3.new(l__Value__10.r, l__Value__10.g, l__Value__10.b)

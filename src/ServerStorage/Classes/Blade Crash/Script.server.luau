@@ -74,7 +74,7 @@ tool.Activated:Connect(function()
 					crash_anim:Play()
 
 					local Hit, Pos, Normal = workspace:FindPartOnRayWithIgnoreList(Ray.new(hrp.CFrame.Position, Vector3.new(0.5, -4, 0)), {workspace.Live, workspace.Thrown})
-					wait(0.15)
+					task.wait(0.15)
 
 					vg.BC.rocky.Parent = hrp
 					hrp.rocky.Weld.Part0 = hrp
@@ -164,7 +164,7 @@ tool.Activated:Connect(function()
 					crash_anim:Play()
 
 					local Hit, Pos, Normal = workspace:FindPartOnRayWithIgnoreList(Ray.new(hrp.CFrame.Position, Vector3.new(0.5, -4, 0)), {workspace.Live, workspace.Thrown})
-					wait(0.2)
+					task.wait(0.2)
 					flip_anim:Stop()
 					local cr = vg2.BC.AzureCrack
 					cr.Crack.Position = hrp.Position
@@ -227,7 +227,7 @@ tool.Activated:Connect(function()
 				end
 			end
 			--_G.System.Event:FireClient(game.Players:GetPlayerFromCharacter(char), "SetCDIndicator", {script.Parent.Name, 15})
-			wait(15)
+			task.wait(15)
 			cd = false
 		end)
 	end
@@ -418,7 +418,7 @@ tool.Activated:Connect(function()
 			Flight:Destroy()
 			vg:Destroy()
 			vg2:Destroy()
-			wait(15)
+			task.wait(15)
 			cd = false
 		end
 	end)

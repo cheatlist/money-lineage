@@ -52,7 +52,7 @@ function v2.Active(p1, p2, p3, p4)
 		spawn(function()
 			if p4 and p4:FindFirstChild("TestTrail") then
 				p4.TestTrail.Enabled = true
-				wait(0.5)
+				task.wait(0.5)
 				if p4 and p4:FindFirstChild("TestTrail") then
 					p4.TestTrail.Enabled = false
 				end
@@ -62,7 +62,7 @@ function v2.Active(p1, p2, p3, p4)
 		local v11 = script.Feathers:Clone()
 		v11.Parent = p1.Torso
 		game:GetService("Debris"):AddItem(v11, 1.5)
-		wait(0.5)
+		task.wait(0.5)
 		local v12 = script:FindFirstChild("GreatSlash"):Clone()
 		v12.CFrame = v8.HumanoidRootPart.CFrame * CFrame.new(math.random(-2, 2), math.random(-2, 2), math.random(-2, 2)) * CFrame.Angles(math.random(-10, 10), math.random(-10, 10), math.random(-10, 10))
 		v12.Parent = game.Workspace
@@ -96,7 +96,7 @@ function v2.Active(p1, p2, p3, p4)
 	else
 		return
 	end
-	wait(1)
+	task.wait(1)
 	u2 = true
 end
 return v2

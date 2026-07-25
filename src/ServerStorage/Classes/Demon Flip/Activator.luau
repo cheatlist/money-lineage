@@ -65,7 +65,7 @@ function v6.Active(p2, p3, p4, p5)
 	v14.Name = "Action"
 	v14.Parent = p2
 	l__Humanoid__7:UnequipTools()
-	wait(0.1)
+	task.wait(0.1)
 	local v15 = {}
 	table.insert(v15, p2["Left Arm"])
 	table.insert(v15, p2["Left Leg"])
@@ -84,7 +84,7 @@ function v6.Active(p2, p3, p4, p5)
 			v20.Position = Vector3.new(0, 0, -v19.Size.Z / 2)
 		end	
 	end
-	wait(0.7)
+	task.wait(0.7)
 	for v21, v22 in next, v15 do
 		for _,v27 in pairs(v22:children())do
 			if v27.Name == "StepAttach" then
@@ -94,7 +94,7 @@ function v6.Active(p2, p3, p4, p5)
 		end
 	end
 	local v28 = {}
-	wait(0.1)
+	task.wait(0.1)
 	p2.HumanoidRootPart.Swing:Play()
 	u2.magnitudeCheck(p2, l__HumanoidRootPart__8.Position, 10, {
 		physical = true,
@@ -104,7 +104,7 @@ function v6.Active(p2, p3, p4, p5)
 	})
 	v14:Destroy()
 	fixingsomething:Destroy()
-	wait(7)
+	task.wait(7)
 	u1 = true
 end
 function v6.Active2(p6, p7, p8, p9)
@@ -144,7 +144,7 @@ function v6.Active2(p6, p7, p8, p9)
 	v34.Parent = p6
 	game.Debris:AddItem(v34,1)
 	l__Humanoid__29:UnequipTools()
-	wait(0.1)
+	task.wait(0.1)
 	local v35 = {}
 	table.insert(v35, p6["Left Arm"])
 	table.insert(v35, p6["Left Leg"])
@@ -168,7 +168,7 @@ function v6.Active2(p6, p7, p8, p9)
 		if p6:FindFirstChild("Stun") then
 			v42 = true
 		end
-		wait()
+		task.wait()
 		if tick() - v41 > 0.7 then
 			break
 		end
@@ -205,7 +205,7 @@ function v6.Active2(p6, p7, p8, p9)
 			end		
 		end
 	end
-	wait(7)
+	task.wait(7)
 	u1 = true
 end
 return v6

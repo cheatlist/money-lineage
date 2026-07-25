@@ -79,7 +79,7 @@ script.Parent.Activated:Connect(function()
 			cancelat = true
 		end
 	end)
-	wait(0.35)
+	task.wait(0.35)
 	stuncheck:Disconnect()
 	HumanoidRootPart.Swing:Play()
 	if not p1:FindFirstChild("NoDam") and not cancelat then
@@ -96,6 +96,6 @@ script.Parent.Activated:Connect(function()
 			move = "Spear Crusher"
 		})
 	end
-	wait(12)
+	task.wait(12)
 	canuse = true
 end)

@@ -71,7 +71,7 @@ function v1.Activate(p3, p4, p5, p6)
 						end
 					end
 				end
-				wait();
+				task.wait();
 				if tick() - v9 > 2.5 then
 					break;
 				end;
@@ -93,7 +93,7 @@ function v1.Activate(p3, p4, p5, p6)
 			l__TweenService__2:Create(v8, TweenInfo.new(0.2, Enum.EasingStyle.Quad), {
 				Size = Vector3.new(0, 0, 0)
 			}):Play();
-			wait(0.1);
+			task.wait(0.1);
 			local v20 = game.ReplicatedStorage.Assets.Explod:Clone();
 			v20.CFrame = CFrame.new(l__p__7) * CFrame.Angles(math.rad(math.random(0, 360)), math.rad(math.random(0, 360)), math.rad(math.random(0, 360)));
 			v20.Color = v8.Color;
@@ -187,7 +187,7 @@ function v2.Activate(p8, p9, p10, p11, p12)
 						end
 					end
 				end
-				wait();
+				task.wait();
 				if tick() - v9 > 0 then
 					break;
 				end;
@@ -209,7 +209,7 @@ function v2.Activate(p8, p9, p10, p11, p12)
 			l__TweenService__2:Create(v8, TweenInfo.new(0.2, Enum.EasingStyle.Quad), {
 				Size = Vector3.new(0, 0, 0)
 			}):Play();
-			wait(0.1);
+			task.wait(0.1);
 			local v20 = game.ReplicatedStorage.Assets.Explod:Clone();
 			v20.CFrame = CFrame.new(l__p__7) * CFrame.Angles(math.rad(math.random(0, 360)), math.rad(math.random(0, 360)), math.rad(math.random(0, 360)));
 			v20.Color = v8.Color;

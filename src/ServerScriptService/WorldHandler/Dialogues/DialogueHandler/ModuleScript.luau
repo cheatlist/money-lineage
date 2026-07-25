@@ -6982,7 +6982,7 @@ function dialogues.Ezlo.v1(p,v)
 			tpsafe.Parent = p.Character
 			game:GetService("Debris"):AddItem(tpsafe,1)
 			create("NoFall",1,p.Character)
-			wait()
+			task.wait()
 			p.Character:SetPrimaryPartCFrame(game.ServerStorage.WarpPoints.Skycastle.SkyTP.CFrame)
 			return dialogues.Ezlo.exit
 		else
@@ -8454,13 +8454,13 @@ dialogues.Regnier.v1 = function(p,v)
 			table.insert(allski, "TemplarTraining")
 			game.ServerStorage.PlayerData:FindFirstChild(p.Name).Skills.Value = table.concat(allski, ",")
 			task.spawn(function()
-				wait(2)
+				task.wait(2)
 				p:LoadCharacter()
 				local v12 = Instance.new("NumberValue");
 				v12.Name = "Transparency";
 				v12.Value = 0;
 				v12.Parent = p.Character.Boosts;
-				wait(0.5)
+				task.wait(0.5)
 				commands.Learn(p)
 			end)
 			return dialogues.Regnier.p3
@@ -8991,7 +8991,7 @@ dialogues["Enibras "].v1 = function(p,v)
 				end
 				local l__Humanoid__68 = l__Parent__112.Humanoid
 				local v69 = p8.HumanoidRootPart
-				wait(0.5)
+				task.wait(0.5)
 				local v106 = Instance.new("Vector3Value")
 				v106.Name = "TPSafe"
 				v106.Parent = p8
@@ -9002,7 +9002,7 @@ dialogues["Enibras "].v1 = function(p,v)
 				end
 				local u16 = {}
 			end)
-			wait(4)
+			task.wait(4)
 			v110:Disconnect()
 			local v126 = script.Close:clone()
 			v126.Parent = v97
@@ -9116,7 +9116,7 @@ dialogues["Enibras "].v1 = function(p,v)
 					end
 					local l__Humanoid__68 = l__Parent__112.Humanoid
 					local v69 = p8.HumanoidRootPart
-					wait(0.5)
+					task.wait(0.5)
 					local v106 = Instance.new("Vector3Value")
 					v106.Name = "TPSafe"
 					v106.Parent = p8
@@ -9127,7 +9127,7 @@ dialogues["Enibras "].v1 = function(p,v)
 					end
 					local u16 = {}
 				end)
-				wait(4)
+				task.wait(4)
 				v110:Disconnect()
 				local v126 = script.Close:clone()
 				v126.Parent = v97
@@ -9704,27 +9704,27 @@ dialogues.Fang.v1 = function(p,v)
 		if v.choice == "I embrace the storm" then
 			commands.Learn(p.Character)
 			local randomnumber = math.random(1,3)
-			if randomnumber == 1 then data.UberTitle.Value = "Storm Herald"
-			elseif randomnumber == 2 then data.UberTitle.Value = "Eye of the Storm"
-			elseif randomnumber == 3 then data.UberTitle.Value = "Thunder Cry"
+				if randomnumber == 1 then data.UberTitle.Value = "Storm Herald"
+				elseif randomnumber == 2 then data.UberTitle.Value = "Eye of the Storm"
+				elseif randomnumber == 3 then data.UberTitle.Value = "Thunder Cry"
 			end
 			data.Skills.Value ..= ",StormHerald"
 			return dialogues["Fang"].stormherald
 		elseif v.choice == "I embrace the ember" then
 			commands.Learn(p.Character)
 			local randomnumber = math.random(1,3)
-			if randomnumber == 1 then data.UberTitle.Value = "Emberwyrm"
-			elseif randomnumber == 2 then data.UberTitle.Value = "Great Cinder"
-			elseif randomnumber == 3 then data.UberTitle.Value = "Explosivo"
+				if randomnumber == 1 then data.UberTitle.Value = "Emberwyrm"
+				elseif randomnumber == 2 then data.UberTitle.Value = "Great Cinder"
+				elseif randomnumber == 3 then data.UberTitle.Value = "Explosivo"
 			end
 			data.Skills.Value ..= ",TheEmberWyrm"
 			return dialogues["Fang"].emberwyrm
 		elseif v.choice == "I embrace the abyss" then
 			commands.Learn(p.Character)
 			local randomnumber = math.random(1,3)
-			if randomnumber == 1 then data.UberTitle.Value = "The Evil Spear"
-			elseif randomnumber == 2 then data.UberTitle.Value = "Abyssdweller"
-			elseif randomnumber == 3 then data.UberTitle.Value = "Bloodleech"
+				if randomnumber == 1 then data.UberTitle.Value = "The Evil Spear"
+				elseif randomnumber == 2 then data.UberTitle.Value = "Abyssdweller"
+				elseif randomnumber == 3 then data.UberTitle.Value = "Bloodleech"
 			end
 			data.Skills.Value ..= ",TheAbyssalWyrm"
 			return dialogues["Fang"].abyssalwyrm
@@ -10439,7 +10439,7 @@ dialogues["Bounty Officer"].v1 = function(p, v)
 			tokill:SetPrimaryPartCFrame(selpri.CFrame * CFrame.new(0, 0, -5))
 			game.CollectionService:AddTag(tokill, "NoRot")
 			task.spawn(function()
-				wait(120)
+				task.wait(120)
 				if tokill then
 					if (selpri.Position - tokill.HumanoidRootPart.Position).Magnitude <= 25 and (selpri.CFrame.lookVector.unit:Dot((selpri.Position - tokill.HumanoidRootPart.Position).Unit) >= 0) then
 						_G.Death(tokill, p, true)
@@ -11951,7 +11951,7 @@ dialogues["Lab Assistant"].v1 = function(p,v)
 					if math.random(1,6)<5 then
 						gotconstruct = true
 					end
-					wait(20)
+					task.wait(20)
 					Animation:Stop()
 					workspace.Map.ConstructLabMod.slop.Sound:Stop()
 					workspace.Map.ConstructLabMod.slop.Inside.Value = false

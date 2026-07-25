@@ -32,7 +32,7 @@ module.Active = function(v3,player)
 	s:Play()
 	game.Debris:AddItem(s,2)
 	game.Debris:AddItem(p,3)
-	wait(2)
+	task.wait(2)
 	p.Enabled = false
 end
 return module

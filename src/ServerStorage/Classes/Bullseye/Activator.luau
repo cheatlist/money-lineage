@@ -54,12 +54,12 @@ function v2.Active(p1, p2, p3, p4)
 	local v10 = p1.Humanoid:LoadAnimation(script.Animation)
 	v10:Play()
 	v10:AdjustSpeed(1.5)
-	wait(0.5)
+	task.wait(0.5)
 	for v11 = 1, 1 do
 		p1.Humanoid.AutoRotate = false
 		u5 = p1
 		spawn(function()
-			wait(0.3)
+			task.wait(0.3)
 			u5.Humanoid.AutoRotate = true
 		end)
 		local v12 = {}
@@ -120,7 +120,7 @@ function v2.Active(p1, p2, p3, p4)
 							v24:Play()
 							game:GetService("Debris"):AddItem(v24, 2)
 						end
-						wait(0.01)
+						task.wait(0.01)
 					end
 				elseif v14 ~= u5 then
 					u5.Torso.CFrame = CFrame.new(u5.Torso.Position, v14.HumanoidRootPart.Position)
@@ -175,7 +175,7 @@ function v2.Active(p1, p2, p3, p4)
 						v24:Play()
 						game:GetService("Debris"):AddItem(v24, 2)
 					end
-					wait(0.01)
+					task.wait(0.01)
 				end
 			end
 		end
@@ -194,17 +194,17 @@ function v2.Active(p1, p2, p3, p4)
 			if u6:FindFirstChild("Attack") then
 				u6.Attack.Exhaust:Emit(100)
 			end
-			wait(0.2)
+			task.wait(0.2)
 			if not u6 then
 				return
 			end
 			local l__WOOP__26 = u6:FindFirstChild("WOOP")
 			l__WOOP__26:Play()
-			wait(0.5)
+			task.wait(0.5)
 			l__WOOP__26:Stop()
 		end)
 	end
-	wait()
+	task.wait()
 	u2 = true
 end
 return v2

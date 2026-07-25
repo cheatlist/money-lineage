@@ -41,7 +41,7 @@ script.Parent.Activated:Connect(function()
 			cancel = true
 		end
 	end)
-	wait(0.15)
+	task.wait(0.15)
 	stuncheck:Disconnect()
 	if cancel then return end
 	if v1 then
@@ -74,7 +74,7 @@ script.Parent.Activated:Connect(function()
 		end)
 		game.Debris:AddItem(arrow,3)
 		HumanoidRootPart.Swing:Play()
-		wait(0.04)
+		task.wait(0.04)
 	end
 
 end)

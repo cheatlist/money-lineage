@@ -50,7 +50,7 @@ script.Parent.Equipped:Connect(function(Player, Character)
 			if Character.Humanoid.MoveDirection.Magnitude > 0.1 then
 				break
 			end
-			wait()
+			task.wait()
 		end
 		Character.Humanoid:UnequipTools()
 	end)

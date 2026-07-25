@@ -45,9 +45,9 @@ function v1.Active(p1, p2, p3, p4)
 	game:GetService("Debris"):AddItem(v6, 0.6);
 	u2 = false;
 	p1.HumanoidRootPart.FULLCOUNTER:Play();
-	wait(10);
+	task.wait(10);
 	if not playerdata.Skills.Value:find("TheCursedSwordsman") then
-		wait(10)
+		task.wait(10)
 	end
 	u2 = true;
 end;

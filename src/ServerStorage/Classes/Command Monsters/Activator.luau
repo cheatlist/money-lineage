@@ -43,7 +43,7 @@ function v7.Active(p2, p3, p4, p5)
 	v9.Name = "Action";
 	v9.Parent = p2;
 	game.Debris:AddItem(v9, 1);
-	wait(0.7);
+	task.wait(0.7);
 	local v10 = l__Parent__1.Shriek:Clone();
 	v10.Parent = p2.Torso;
 	v10:Play();
@@ -55,7 +55,7 @@ function v7.Active(p2, p3, p4, p5)
 			v12.Variables.Command.Value = u2[u3].comm;
 		end;
 	end;
-	wait(1);
+	task.wait(1);
 	u1 = false;
 end;
 function v7.Active2(p6, p7, p8, p9)

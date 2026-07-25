@@ -45,9 +45,9 @@ script.Parent.Activated:Connect(function()
 		v2.Value = 6
 		v2.Parent = p1.Boosts
 		game.Debris:AddItem(v2,10)
-		wait(lasts)
+		task.wait(lasts)
 		HumanoidRootPart.AgilityEmit:Emit(10)
-		wait(30-lasts)
+		task.wait(30-lasts)
 		canuse = true
 	end)
 end)

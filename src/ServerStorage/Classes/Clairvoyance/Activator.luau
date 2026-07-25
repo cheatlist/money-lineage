@@ -37,7 +37,7 @@ function v1.Active(p1, p2, p3, p4)
 	v6.Parent = p1;
 	game:GetService("Debris"):AddItem(v6, 1);
 	u2 = false;	
-	wait(20);
+	task.wait(20);
 	u2 = true;
 end;
 return v1;

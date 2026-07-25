@@ -101,7 +101,7 @@ tool.Activated:Connect(function()
 		local anim = hum:LoadAnimation(script.Animation)
 		anim:Play()
 		root.ShadowrushCharge:Play() 
-		wait(0.1) --very brief charging animation
+		task.wait(0.1) --very brief charging animation
 
 		local velocity = Instance.new("BodyVelocity")
 		game.CollectionService:AddTag(velocity,"AllowedBM")
@@ -118,12 +118,12 @@ tool.Activated:Connect(function()
 		while (root.Position - oPos).Magnitude < 2 and tick() - oTime < 0.3 and not hit do
 			oPos = root.Position
 			hit = hitCheck((tick() - oTime) < 0.1 and 15 or 20)
-			wait()
+			task.wait()
 		end
 		while (root.Position - oPos).Magnitude > 2 and tick() - oTime < 0.5 and not hit do
 			oPos = root.Position
 			hit = hitCheck(20)
-			wait()
+			task.wait()
 		end
 
 		velocity:Destroy()
@@ -197,7 +197,7 @@ tool.Activated:Connect(function()
 			while spins < 4 and groundDistance(char.HumanoidRootPart) > MIN_HEIGHT do
 				anim:Play()
 				char.HumanoidRootPart.FlyingAssaulter:Play()
-				wait(0.1)
+				task.wait(0.1)
 				hitDetection.magnitudeCheck(char,char.HumanoidRootPart.Position,15,pkt,false)
 				spins = spins + 1
 			end

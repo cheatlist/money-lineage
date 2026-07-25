@@ -278,7 +278,7 @@ function v2.Activate(p8, p9, p10, p11, p12)
 	end
 	p9.HumanoidRootPart.PerfectCast:Play()
 	p9.Humanoid:LoadAnimation(script.Snap):Play()
-	wait(0.2)
+	task.wait(0.2)
 	local HandHoldSag = game.ReplicatedStorage.Assets.HandHoldSag:Clone()
 	HandHoldSag.IllusionArm.Enabled = false
 	HandHoldSag.Parent = game.Workspace.Thrown
@@ -296,7 +296,7 @@ function v2.Activate(p8, p9, p10, p11, p12)
 		Weld.Part1 = HandHoldSag
 		Weld.Parent = HandHoldSag
 		Weld.C1 = Angle
-		wait(1)
+		task.wait(1)
 		HandHoldSag:Destroy()
 	end)()
 	local CF = CFrame.new(0, 0, -7)
@@ -315,7 +315,7 @@ function v2.Activate(p8, p9, p10, p11, p12)
 	local v49 = l__TweenService__2:Create(OrionRay.Mesh, TweenInf, {
 		Scale = Vector3.new(1, 0.8, 0.8)
 	}):Play()
-	wait(0.2)
+	task.wait(0.2)
 	l__TweenService__2:Create(OrionRay.Mesh, TweenInf, {
 		Scale = Vector3.new(1, 0, 0)
 	}):Play()
@@ -327,14 +327,14 @@ function v2.Activate(p8, p9, p10, p11, p12)
 	SwordOrion.Humanoid:LoadAnimation(l__Orion__1.SwordAttack):Play()
 
 	spawn(function()
-		wait(0.75)
+		task.wait(0.75)
 		if SwordOrion then
 			OrionRay.Sound:Play()
 			OrionRay.Position = SwordOrion.HumanoidRootPart.Position + Vector3.new(0, 5.5, 0)
 			local v51 = l__TweenService__2:Create(OrionRay.Mesh, TweenInf, {
 				Scale = Vector3.new(1, 0.8, 0.8)
 			}):Play()
-			wait(0.2)
+			task.wait(0.2)
 			SwordOrion:Destroy()
 			local OrionArrow = l__TweenService__2:Create(OrionRay.Mesh, TweenInf, {
 				Scale = Vector3.new(1, 0, 0)
@@ -359,7 +359,7 @@ function v2.Activate(p8, p9, p10, p11, p12)
 	local HitEnemy = tick()
 	while true do
 		hit = HitDetect.magnitudeCheck(p9, SwordOrion.HumanoidRootPart.Position, 12, Info, true)
-		wait(0.05)
+		task.wait(0.05)
 		if hit then
 			break
 		end

@@ -47,6 +47,6 @@ script.Parent.Activated:Connect(function()
 		enabled = false
 		HumanoidRootPart.RageParticle.Enabled = false
 	end
-	wait(1.5)
+	task.wait(1.5)
 	canuse = true
 end)

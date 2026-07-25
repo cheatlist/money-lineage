@@ -251,12 +251,12 @@ function v1.Active(p5, p6, anims, p7)
 			game.Debris:AddItem(v28,2.5)
 		end
 	end
-	wait(2)
+	task.wait(2)
 	v8:Destroy()
 	v9:Destroy()
 	v11:Stop()
 	fixingsomething:Destroy()
-	wait(14)
+	task.wait(14)
 	u2 = true
 end
 return v1

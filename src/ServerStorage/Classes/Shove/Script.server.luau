@@ -29,7 +29,7 @@ script.Parent.Activated:Connect(function()
 	v6.Name = "Action";
 	v6.Parent = p1;
 	game:GetService("Debris"):AddItem(v6, 1);
-	wait(0.425)
+	task.wait(0.425)
 	u3.magnitudeCheck(p1,HumanoidRootPart.Position,10,{
 		physical = true,
 		fist = true,
@@ -38,6 +38,6 @@ script.Parent.Activated:Connect(function()
 		knockback = true,
 		move = "Shove"
 	},nil,false)
-	wait(15)
+	task.wait(15)
 	canuse = true
 end)

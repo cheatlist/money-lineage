@@ -132,7 +132,7 @@ function v1.Active(p9, p10, p11, p12)
 			p9.HumanoidRootPart.LimitBreakActivate:Play()
 			p9.HumanoidRootPart.LimitBreakActivate.TimePosition = 0.25
 			spawn(function()
-				wait(0.25)
+				task.wait(0.25)
 				p9.HumanoidRootPart.LimitParticle.Enabled = false
 			end)
 			local v24 = game.ServerStorage.SpellEffects.sigilfire.lightninglimit:Clone()
@@ -164,7 +164,7 @@ function v1.Active(p9, p10, p11, p12)
 						if v33 ~= p9 and l__Torso__34 and l__Humanoid__35 and l__Humanoid__35.Health > 0 and not v33:FindFirstChild("ForceField") and (l__Torso__34 and (l__Torso__34.Position - l__Position__28).magnitude) < 50 then
 							local l__HumanoidRootPart__36 = l__Torso__34.Parent.HumanoidRootPart
 							u7.magnitudeCheck(p9, l__HumanoidRootPart__36.Position, 3, v27, false)
-							wait()
+							task.wait()
 							p9:SetPrimaryPartCFrame(l__HumanoidRootPart__36.CFrame * CFrame.new(0, 0, -3))
 							u9.Lightning(l__HumanoidRootPart__9.CFrame.p, l__HumanoidRootPart__9.Position, 1, 6, "White")
 							l__HumanoidRootPart__36.Thunderbolt:Play()
@@ -172,14 +172,14 @@ function v1.Active(p9, p10, p11, p12)
 							local v37 = l__Humanoid__10:LoadAnimation(script.Parent:FindFirstChild("thunderA"))
 							v37:Play()
 							v37:AdjustSpeed(1.5)
-							wait(0.1)
+							task.wait(0.1)
 						end					
 					end
 				end
 			end)
 		end
 		spawn(function()
-			wait(14)
+			task.wait(14)
 			u6 = true
 		end)
 	elseif l__Value__11 == "Flame" then
@@ -278,7 +278,7 @@ function v1.Active(p9, p10, p11, p12)
 			p9.HumanoidRootPart.LimitBreakActivate:Play()
 			p9.HumanoidRootPart.LimitBreakActivate.TimePosition = 0.25
 			spawn(function()
-				wait(0.25)
+				task.wait(0.25)
 				p9.HumanoidRootPart.LimitParticle.Enabled = false
 			end)
 			v47.KeyframeReached:connect(function(p17)
@@ -312,13 +312,13 @@ function v1.Active(p9, p10, p11, p12)
 								v49:Destroy()
 							end
 						end)
-						wait(0.25)
+						task.wait(0.25)
 					end
 				end
 			end)
 		end
 		spawn(function()
-			wait(13)
+			task.wait(13)
 			u10 = true
 		end)
 	elseif l__Value__11 == "Ice" then
@@ -389,10 +389,10 @@ function v1.Active(p9, p10, p11, p12)
 							end
 						end)
 						task.spawn(function()
-							wait(0.5)
+							task.wait(0.5)
 							u17:Disconnect()
 						end)
-						wait(0.1)
+						task.wait(0.1)
 					end
 				end
 			end)
@@ -417,7 +417,7 @@ function v1.Active(p9, p10, p11, p12)
 			p9.HumanoidRootPart.LimitBreakActivate:Play()
 			p9.HumanoidRootPart.LimitBreakActivate.TimePosition = 0.25
 			spawn(function()
-				wait(0.25)
+				task.wait(0.25)
 				p9.HumanoidRootPart.LimitParticle.Enabled = false
 			end)
 			v63.KeyframeReached:Connect(function(p21)
@@ -455,7 +455,7 @@ function v1.Active(p9, p10, p11, p12)
 			end)
 		end
 		task.spawn(function()
-			wait(13)
+			task.wait(13)
 			u12 = true
 		end)
 	elseif l__Value__11 == "White Fire" then
@@ -498,12 +498,12 @@ function v1.Active(p9, p10, p11, p12)
 						CFrame = v72.CFrame * CFrame.new(10, 0, 0), 
 						Size = Vector3.new(20, 0.2, 0.2)
 					}):Play()
-					wait(0.3)
+					task.wait(0.3)
 					local v74 = TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
 					l__TweenService__8:Create(v72, v74, {
 						Size = Vector3.new(20, 10, 0)
 					}):Play()
-					wait(0.25)
+					task.wait(0.25)
 					task.spawn(function()
 						for v76 = 1, 40 do
 							local v77 = game.ServerStorage.SpellEffects.sigilfire.WHITEBALL:Clone()
@@ -547,9 +547,9 @@ function v1.Active(p9, p10, p11, p12)
 									v77:Destroy()
 								end
 							end)
-							wait(0.15)
+							task.wait(0.15)
 						end
-						wait(1)
+						task.wait(1)
 						l__TweenService__8:Create(v72, v74, {
 							Size = Vector3.new(20, 0, 0)
 						}):Play()
@@ -558,7 +558,7 @@ function v1.Active(p9, p10, p11, p12)
 						}):Play()
 						v72.sownd.PlaybackSpeed = 2
 						v72.sownd:Play()
-						wait(0.5)
+						task.wait(0.5)
 						v72.solan:Destroy()
 						v72.solan2:Destroy()
 					end)
@@ -595,12 +595,12 @@ function v1.Active(p9, p10, p11, p12)
 						CFrame = v85.CFrame * CFrame.new(10, 0, 0), 
 						Size = Vector3.new(20, 0.2, 0.2)
 					}):Play()
-					wait(0.2)
+					task.wait(0.2)
 					local v87 = TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
 					local v88 = l__TweenService__8:Create(v85, v87, {
 						Size = Vector3.new(20, 10, 0)
 					}):Play()
-					wait(0.15)
+					task.wait(0.15)
 					spawn(function()
 						local v89 = game.ServerStorage.SpellEffects.sigilfire.WHITELASER:Clone()
 						game.Debris:AddItem(v89, 1)
@@ -630,13 +630,13 @@ function v1.Active(p9, p10, p11, p12)
 						local v92 = l__TweenService__8:Create(v89.Mesh, v91, {
 							Scale = Vector3.new(1, 1, 1)
 						}):Play()
-						wait(0.2)
+						task.wait(0.2)
 						local v93 = l__TweenService__8:Create(v89.Mesh, v91, {
 							Scale = Vector3.new(1, 0, 0)
 						}):Play()
-						wait(0.2)
+						task.wait(0.2)
 						v89.WhiteBurning.Enabled = false
-						wait(1)
+						task.wait(1)
 						local v94 = l__TweenService__8:Create(v85, v87, {
 							Size = Vector3.new(20, 0, 0)
 						}):Play()
@@ -645,7 +645,7 @@ function v1.Active(p9, p10, p11, p12)
 						}):Play()
 						v85.sownd.PlaybackSpeed = 2
 						v85.sownd:Play()
-						wait(0.5)
+						task.wait(0.5)
 						v85.solan:Destroy()
 						v85.solan2:Destroy()
 					end)
@@ -653,7 +653,7 @@ function v1.Active(p9, p10, p11, p12)
 			end)
 		end
 		spawn(function()
-			wait(13)
+			task.wait(13)
 			u13 = true
 		end)
 	elseif l__Value__11 == "Truth" then
@@ -701,7 +701,7 @@ function v1.Active(p9, p10, p11, p12)
 					Scale = Vector3.new(1, 1, 1)
 				}):Play()
 				task.spawn(function()
-					wait(1.25)
+					task.wait(1.25)
 					l__TweenService__8:Create(v104, v101, {
 						Transparency = 1
 					}):Play()
@@ -711,7 +711,7 @@ function v1.Active(p9, p10, p11, p12)
 				v107.Parent = l__HumanoidRootPart__9
 				v107:Play()
 				game.Debris:AddItem(v107, 2)
-				wait(0.1)
+				task.wait(0.1)
 				local v108
 				if v103 < 4 then
 					v108 = {
@@ -736,7 +736,7 @@ function v1.Active(p9, p10, p11, p12)
 				if not p9:FindFirstChild("Stun") then
 					u7.magnitudeCheck(p9, l__HumanoidRootPart__9.Position, 13, v108, true)
 				end
-				wait(0.1)
+				task.wait(0.1)
 			end
 		elseif u5 then
 			u4.Value = 0
@@ -760,7 +760,7 @@ function v1.Active(p9, p10, p11, p12)
 			p9.HumanoidRootPart.LimitParticle.Enabled = true
 			p9.HumanoidRootPart.LimitBreakActivate:Play()
 			p9.HumanoidRootPart.LimitBreakActivate.TimePosition = 0.25
-			wait(0.25)
+			task.wait(0.25)
 			p9.HumanoidRootPart.LimitParticle.Enabled = false
 			if not p9:FindFirstChild("Stun") then
 				p9.Humanoid.AutoRotate = false
@@ -773,7 +773,7 @@ function v1.Active(p9, p10, p11, p12)
 				local v114 = nil
 				local v115 = nil
 				for v116 = 1, 3 do
-					wait(0.1)
+					task.wait(0.1)
 					if p9:FindFirstChild("Stun") then
 						game:GetService("Debris"):AddItem(v113, 0.001)
 						break
@@ -834,7 +834,7 @@ function v1.Active(p9, p10, p11, p12)
 					v131.Attachment0 = p9.Torso.NeckAttachment
 					v131.Attachment1 = p9.Torso.WaistCenterAttachment
 					spawn(function()
-						wait(7)
+						task.wait(7)
 						v131.Enabled = false
 					end)
 					local l__p__132 = v115.p
@@ -858,7 +858,7 @@ function v1.Active(p9, p10, p11, p12)
 					game.Debris:AddItem(v135, 20)
 					spawn(function()
 						while v135.Parent == l__HumanoidRootPart__9 do
-							wait()
+							task.wait()
 							v135.CFrame = CFrame.new(l__HumanoidRootPart__9.Position, v125.Position)						
 						end
 					end)
@@ -870,7 +870,7 @@ function v1.Active(p9, p10, p11, p12)
 					v136.Position = l__p__132 + Vector3.new(0, 30, 0)
 					v136.Parent = v125
 					game.Debris:AddItem(v136, 20)
-					wait(0.5)
+					task.wait(0.5)
 					local v137 = {
 						physical = true, 
 						sword = true, 
@@ -884,7 +884,7 @@ function v1.Active(p9, p10, p11, p12)
 					for v139 = 1, 7 do
 						v134.Position = v125.CFrame * CFrame.new(math.random(-4, 4), math.random(-1, 1), math.random(-4, 4)).Position
 						l__Humanoid__10:LoadAnimation(script.Parent:FindFirstChild("truthA" .. math.random(2, 3))):Play()
-						wait(0.1)
+						task.wait(0.1)
 						local v140 = script.HardHit:Clone()
 						v140.Parent = l__HumanoidRootPart__9
 						v140.PlaybackSpeed = math.random(10, 15) / 10
@@ -902,12 +902,12 @@ function v1.Active(p9, p10, p11, p12)
 							Transparency = 1
 						}):Play()
 						l__TagHumanoid__11:Fire(p9, v114, v137)
-						wait(0.8 - v139 / 10)
+						task.wait(0.8 - v139 / 10)
 					end
 					v134.Position = v125.CFrame * CFrame.new(0, 0, -2).Position
-					wait(0.2)
+					task.wait(0.2)
 					l__Humanoid__10:LoadAnimation(script.Parent:FindFirstChild("truthB2")):Play()
-					wait(0.6)
+					task.wait(0.6)
 					local v144 = script.HardHit:Clone()
 					v144.Parent = l__HumanoidRootPart__9
 					v144.PlaybackSpeed = 1.5
@@ -938,7 +938,7 @@ function v1.Active(p9, p10, p11, p12)
 						}):Play()
 					end
 					v136:Destroy()
-					wait(0.4)
+					task.wait(0.4)
 					v134:Destroy()
 					v135:Destroy()
 				end
@@ -949,11 +949,11 @@ function v1.Active(p9, p10, p11, p12)
 			end
 		end
 		spawn(function()
-			wait(2.5)
+			task.wait(2.5)
 			u14 = true
 		end)
 	end
-	wait(0.2)
+	task.wait(0.2)
 	u3 = true
 end
 return v1

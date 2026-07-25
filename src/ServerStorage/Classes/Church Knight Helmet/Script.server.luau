@@ -81,7 +81,7 @@ script.Parent.Use.OnServerEvent:Connect(function(player, use)
 			model.Parent = nil
 			interaction = nil
 		end
-		wait(1)
+		task.wait(1)
 		canuse = true
 	else
 		if interaction ~= nil and interaction ~= "2" then return end
@@ -143,7 +143,7 @@ script.Parent.Use.OnServerEvent:Connect(function(player, use)
 			end
 			interaction = nil
 		end
-		wait(1)
+		task.wait(1)
 		canuse = true
 	end
 end)

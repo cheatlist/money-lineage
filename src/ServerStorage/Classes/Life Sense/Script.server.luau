@@ -28,6 +28,6 @@ script.Parent.Activated:Connect(function()
 		v1.Name = "LifeSense"
 		v1.Parent = p1
 	end
-	wait(1)
+	task.wait(1)
 	canuse = true
 end)

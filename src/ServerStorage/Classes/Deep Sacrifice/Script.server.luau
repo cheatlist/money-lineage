@@ -47,9 +47,9 @@ script.Parent.Activated:Connect(function()
 			cancel = true
 		end
 	end)
-	wait(0.45)
+	task.wait(0.45)
 	stuncheck:Disconnect()
-	wait(0.05)
+	task.wait(0.05)
 	if cancel then return end
 	local p3 = game.ServerStorage.Assets.DeepSacrifice:Clone()
 	local p4 = game.ServerStorage.Assets.BloodImpact:Clone()
@@ -73,11 +73,11 @@ script.Parent.Activated:Connect(function()
 	task.spawn(function()
 		for i = 1,totalheals do
 			if p1:FindFirstChild("NoRegen") or p1:FindFirstChild("Burning") then
-				wait(timeforheal)
+				task.wait(timeforheal)
 				continue
 			end
 			p1.Humanoid.Health += healing
-			wait(timeforheal)
+			task.wait(timeforheal)
 		end
 	end)
 end)

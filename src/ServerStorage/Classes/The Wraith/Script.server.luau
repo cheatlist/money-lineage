@@ -62,7 +62,7 @@ script.Parent.Activated:Connect(function()
 		wraith.CFrame = player.Character.HumanoidRootPart.CFrame-Vector3.new(0,3,0)
 		wraith.Shadows.Enabled = true
 		coroutine.wrap(function()
-			wait(1)
+			task.wait(1)
 			wraith.Shadows.Enabled = false
 		end)()
 		game.Debris:AddItem(wraith,2)
@@ -72,7 +72,7 @@ script.Parent.Activated:Connect(function()
 			wraith.CFrame = hit
 			wraith.Shadows.Enabled = true
 			coroutine.wrap(function()
-				wait(0.7)
+				task.wait(0.7)
 				wraith.Shadows.Enabled = false
 			end)()
 			game.Debris:AddItem(wraith,2)
@@ -86,20 +86,20 @@ script.Parent.Activated:Connect(function()
 					tpCheck.Name = "TPSafe"
 					tpCheck.Parent = player.Character
 					game.Debris:AddItem(tpCheck, 5);
-					wait(1)
+					task.wait(1)
 					local ts = game:GetService("TweenService")
 					ts:Create(player.Character.HumanoidRootPart,TweenInfo.new(0.5,Enum.EasingStyle.Linear),{CFrame = player.Character.HumanoidRootPart.CFrame - Vector3.new(0,6,0)}):Play()
-					wait(0.5)
+					task.wait(0.5)
 					if not stunned then
 						player.Character.Head.CFrame = hit
 					end
 						ts:Create(player.Character.HumanoidRootPart,TweenInfo.new(0.5,Enum.EasingStyle.Linear),{CFrame = player.Character.HumanoidRootPart.CFrame + Vector3.new(0,6,0)}):Play()
-					wait(0.5)
+					task.wait(0.5)
                  
 				end
 			end
 		end
-		wait(0.5)
+		task.wait(0.5)
 		canuse = false
 	end
 end)

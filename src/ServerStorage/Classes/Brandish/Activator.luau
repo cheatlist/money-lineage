@@ -55,7 +55,7 @@ module.Active = function(v3,player, p4, p5)
 		end)
 		stun:Destroy()
 		--_G.System.Event:FireClient(game.Players:GetPlayerFromCharacter(v3), "SetCDIndicator", {script.Parent.Name, 15})
-		wait(15)
+		task.wait(15)
 		cd = false
 	else
 		local windup = v3.Humanoid:LoadAnimation(game.ReplicatedStorage.CombatAnims.VgM2Windup)
@@ -118,7 +118,7 @@ module.Active = function(v3,player, p4, p5)
 			stun:Destroy()
 		end
 		--_G.System.Event:FireClient(game.Players:GetPlayerFromCharacter(v3), "SetCDIndicator", {script.Parent.Name, 15})
-		wait(15)
+		task.wait(15)
 		cd = false
 	end
 end

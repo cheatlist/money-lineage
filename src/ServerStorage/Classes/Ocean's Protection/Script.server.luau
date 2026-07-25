@@ -50,6 +50,6 @@ script.Parent.Activated:Connect(function()
 		v:Emit(v:GetAttribute("EmitCount"))
 	end
 	HumanoidRootPart.ArmorActivate:Play()
-	wait(60)
+	task.wait(60)
 	canuse = true
 end)

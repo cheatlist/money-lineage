@@ -39,7 +39,7 @@ function v1.Active(p1, p2, p3, p45)
 	local l__Humanoid__6 = p1.Humanoid;
 	p1.Humanoid:LoadAnimation(script.Parent.Anim):Play();
 	u2 = false;
-	wait(0.3);
+	task.wait(0.3);
 	p1.HumanoidRootPart.DaggerSlash1:Play();
 	local v7 = Instance.new("Folder");
 	v7.Name = "NoJump";
@@ -129,7 +129,7 @@ function v1.Active(p1, p2, p3, p45)
 			
 		end;
 	end;
-	wait(15);
+	task.wait(15);
 	u2 = true;
 end;
 return v1;

@@ -45,7 +45,7 @@ function v2.Active(p1, p2, p3, p4)
 	local v8 = Instance.new("Accessory")
 	v8.Name = "Cooldown"
 	v8.Parent = v7
-	wait(0.1)
+	task.wait(0.1)
 	local v9 = game.ServerStorage.Assets.BombBlast:Clone()
 	local l__Value__10 = p2.Backpack.ManaColor.Value
 	v9.Color = Color3.new(l__Value__10.r, l__Value__10.g, l__Value__10.b)
@@ -83,7 +83,7 @@ function v2.Active(p1, p2, p3, p4)
 			})
 		end
 	end
-	wait(5)
+	task.wait(5)
 	u2 = true
 end
 return v2

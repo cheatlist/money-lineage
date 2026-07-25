@@ -52,7 +52,7 @@ Tidal.Active = function(p1,p2,p3,p4)
 					spearmovestack = true,
 					nostun = i == 6 and true or false
 				})
-				wait(0.2)
+				task.wait(0.2)
 			end
 		end)
 	end)
@@ -67,7 +67,7 @@ Tidal.Active = function(p1,p2,p3,p4)
 	HumanoidRootPart.SpearEmit:Emit(30)
 	HumanoidRootPart.SwordCharge:Play()
 	HumanoidRootPart.Swing:Play()
-	wait(11)
+	task.wait(11)
 	canuse = true
 end
 
@@ -109,7 +109,7 @@ Tidal.Active2 = function(p1, p2, p3, p4)
 	upw.Velocity = Vector3.new(0, 55, 0)
 	upw.Name = "UpwardVelocity"
 	upw.Parent = p1.HumanoidRootPart
-	wait(0.27)
+	task.wait(0.27)
 	upw:Destroy()
 	local dwn = Instance.new("BodyVelocity")
 	game.CollectionService:AddTag(dwn,"AllowedBM")
@@ -152,7 +152,7 @@ Tidal.Active2 = function(p1, p2, p3, p4)
 		end
 	end)
 
-	wait(11)
+	task.wait(11)
 	canuse2 = true
 end
 

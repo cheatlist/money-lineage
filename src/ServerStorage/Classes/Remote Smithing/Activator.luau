@@ -22,7 +22,7 @@ module.Active = function(char,play,currentprop)
 	
 	en = false
 	squireModule.summon(char, "Forge")
-	wait(1)
+	task.wait(1)
 	en = true
 end
 
@@ -32,7 +32,7 @@ module.Active2 = function(char,play,currentprop)
 	
 	en = false
 	squireModule.summon(char, "Furnace")
-	wait(1)
+	task.wait(1)
 	en = true
 end
 

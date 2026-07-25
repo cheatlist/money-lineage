@@ -66,7 +66,7 @@ function v6.Active(p3, p4, p5)
 			game.ReplicatedStorage.Requests.ScreenFlip:FireClient(v18, false, 0.1)
 		end
 	end
-	wait(3)
+	task.wait(3)
 	u1 = true
 end
 local u4 = true
@@ -132,7 +132,7 @@ function v6.Active2(p6, p7, p8)
 			end
 		end	
 	end
-	wait(6)
+	task.wait(6)
 	u4 = true
 end
 return v6

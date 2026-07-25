@@ -140,7 +140,7 @@ function thebuff(p5, p6, p7)
 							end						
 						end
 					end
-					wait(0.5)				
+					task.wait(0.5)				
 				end
 			end)
 		end
@@ -209,7 +209,7 @@ function v1.Active(p8, p9, p10, p11)
 	v49.Parent = p8
 	game:GetService("Debris"):AddItem(v49, 1.2)
 	p8.Humanoid:LoadAnimation(script.Parent:FindFirstChild("Animation")):Play()
-	wait(1.2)
+	task.wait(1.2)
 	local l__UpgradedHyperBody__50 = p9.Backpack:FindFirstChild("UpgradedHyperBody")
 	if not p8:FindFirstChild("Stunned") then
 		local v51 = 0
@@ -242,7 +242,7 @@ function v1.Active(p8, p9, p10, p11)
 			thebuff(p8, 0, l__UpgradedHyperBody__50)
 		end
 	end
-	wait(120)
+	task.wait(120)
 	u8 = true
 end
 return v1

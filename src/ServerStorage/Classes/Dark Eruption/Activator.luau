@@ -59,7 +59,7 @@ function v1.Active(p2, p3, p4, p5)
 		v9.Name = "Action"
 		v9.Parent = p2
 		game:GetService("Debris"):AddItem(v9, 1.2)
-		wait(0.5)
+		task.wait(0.5)
 		local amount = 4
 		if cursedflame == true then
 			amount = 5
@@ -93,7 +93,7 @@ function v1.Active(p2, p3, p4, p5)
 					damageactual = 20
 				end
 				spawn(function()
-					wait(0.5)
+					task.wait(0.5)
 					v14.HitRing.Hit:Play()
 					u4.magnitudeCheck(p2, Vector3.new(v12.X, v12.Y, v12.Z), 20, {
 						mana = true,
@@ -113,7 +113,7 @@ function v1.Active(p2, p3, p4, p5)
 							v16.Enabled = true
 						end
 					end
-					wait(0.75)
+					task.wait(0.75)
 					for v17, v18 in pairs(v14.HitRing.Attachment:GetChildren()) do
 						if v18:IsA("ParticleEmitter") then
 							v18.Enabled = false
@@ -129,9 +129,9 @@ function v1.Active(p2, p3, p4, p5)
 					}):Play()
 				end)
 			end
-			wait(0.25)
+			task.wait(0.25)
 		end
-		wait(15)
+		task.wait(15)
 		u2 = true
 	end
 end

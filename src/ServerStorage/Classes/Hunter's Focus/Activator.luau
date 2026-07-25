@@ -52,11 +52,11 @@ function v1.Active(p1, p2, p3)
 		local v8 = l__Trident__3.BubbleAura:Clone();
 		v8.Parent = l__HumanoidRootPart__3;
 		v8.Enabled = true;
-		wait(20);
+		task.wait(20);
 		v8.Rate = 0;
 		game.Debris:AddItem(v8, 5);
 	end);
-	wait(40);
+	task.wait(40);
 	u2 = true;
 end;
 return v1;

@@ -54,7 +54,7 @@ script.Parent.Activated:Connect(function()
 			cancelat = true
 		end
 	end)
-	wait(0.4)
+	task.wait(0.4)
 	stuncheck:Disconnect()
 	if cancelat == true then return end
 	HumanoidRootPart.Swing:Play()

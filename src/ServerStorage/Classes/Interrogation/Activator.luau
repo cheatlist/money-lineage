@@ -67,7 +67,7 @@ function v1.Active(p1, p2, p3, p4)
 				v14.Parent = v12;
 				game:GetService("Debris"):AddItem(v14, 0.5);
 				task.spawn(function()
-					wait(30);
+					task.wait(30);
 					local v15 = Instance.new("Folder");
 					v15.Parent = p1;
 					v15.Name = "Ungrab";

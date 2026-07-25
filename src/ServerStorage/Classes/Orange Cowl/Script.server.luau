@@ -37,7 +37,7 @@ script.Parent.Activated:Connect(function()
 		end
 	end
 	animation:Play()
-	wait(0.25)
+	task.wait(0.25)
 	if equipped then
 		model.Parent = p1
 		model.Joint.Part0 = p1.Head
@@ -53,6 +53,6 @@ script.Parent.Activated:Connect(function()
 		p1.Hood.Parent = nil
 		model.Parent = nil
 	end
-	wait(0.75)
+	task.wait(0.75)
 	canuse = true
 end)

@@ -50,7 +50,7 @@ script.Parent.Activated:Connect(function()
 					stunned = true
 				end
 			end)
-			wait(3)
+			task.wait(3)
 			Opening:Destroy()
 			anim:Stop()
 			stunadded:Disconnect()
@@ -60,6 +60,6 @@ script.Parent.Activated:Connect(function()
 			stun:Destroy()
 		end
 	end
-	wait(0.4)
+	task.wait(0.4)
 	canuse = true
 end)

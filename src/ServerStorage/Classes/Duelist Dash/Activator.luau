@@ -41,16 +41,16 @@ function v2.Active(p1, p2, p3, p4)
 	v6.Parent = p1
 	u2 = false
 	p1.Humanoid:LoadAnimation(script.Animation):Play()
-	wait(0.3)
+	task.wait(0.3)
 	local v7 = Instance.new("BodyVelocity")
 	game.CollectionService:AddTag(v7, "AllowedBM")
 	v7.MaxForce = Vector3.new(100000000, 100000000, 100000000)
 	v7.Velocity = p1.HumanoidRootPart.CFrame.LookVector * Vector3.new(1, 0, 1) * 100
 	v7.Parent = p1.HumanoidRootPart
 	game.Debris:AddItem(v7, 0.25)
-	wait(0.25)
+	task.wait(0.25)
 	for v8 = 1, 15 do
-		wait()
+		task.wait()
 		local l__ManaPistol__9 = p1:FindFirstChild("ManaPistol", true)
 		if l__ManaPistol__9 then
 			local v10 = l__ManaPistol__9.Blast:Clone()
@@ -123,13 +123,13 @@ function v2.Active(p1, p2, p3, p4)
 			if u5:FindFirstChild("Attack") then
 				u5.Attack.Exhaust:Emit(100)
 			end
-			wait(0.2)
+			task.wait(0.2)
 			if not u5 then
 				return
 			end
 			local l__WOOP__22 = u5:FindFirstChild("WOOP")
 			l__WOOP__22:Play()
-			wait(0.5)
+			task.wait(0.5)
 			l__WOOP__22:Stop()
 		end)
 	end

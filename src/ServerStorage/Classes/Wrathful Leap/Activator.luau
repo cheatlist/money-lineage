@@ -68,7 +68,7 @@ function v1.Active(p1, p2, p3, p4)
 		if p1:FindFirstChild("Stun") then
 			v11 = true;
 		end;
-		wait();
+		task.wait();
 		if tick() - v10 > 0.3 then
 			break;
 		end;
@@ -79,7 +79,7 @@ function v1.Active(p1, p2, p3, p4)
 	if v11 then
 		v9:Destroy();
 		v6:Stop();
-		wait(10);
+		task.wait(10);
 		u2 = true;
 		return;
 	end;
@@ -101,7 +101,7 @@ function v1.Active(p1, p2, p3, p4)
 	local v16 = tick();
 	local v17 = nil;
 	while true do
-		wait();
+		task.wait();
 		if v12 and v12.Parent and tick() - v16 > 0.4 then
 			v6:AdjustSpeed(1);
 		end;
@@ -148,14 +148,14 @@ function v1.Active(p1, p2, p3, p4)
 		move = "Wrathful Leap",
 		aoe = true
 	}, false);
-	wait(0.1);
+	task.wait(0.1);
 	v7.Enabled = false;
 	v6:Stop();
-	wait(0.1);
+	task.wait(0.1);
 	v9:Destroy();
 	v21.BLACK.Enabled = false;
 	game.Debris:AddItem(v21, 3);
-	wait(10);
+	task.wait(10);
 	u2 = true;
 end;
 return v1;

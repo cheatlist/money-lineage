@@ -44,9 +44,9 @@ script.Parent.Activated:Connect(function()
 		if dagger then
 			p1.Humanoid:EquipTool(dagger)
 		end
-		wait(lasts)
+		task.wait(lasts)
 		HumanoidRootPart.BaneDischarge:Play()
-		wait(35 - lasts)
+		task.wait(35 - lasts)
 		canuse = true
 	end)
 end)

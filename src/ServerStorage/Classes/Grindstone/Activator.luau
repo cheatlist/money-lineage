@@ -31,7 +31,7 @@ module.Active = function(char,play,currentprop)
 		squireModule.grind(char)
 	end
 	
-	wait(1)
+	task.wait(1)
 	en = true
 end
 

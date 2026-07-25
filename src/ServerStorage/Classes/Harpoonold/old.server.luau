@@ -136,13 +136,13 @@ script.Parent.Activated:Connect(function()
 		end);
 		if Trident ~= nil then
 			game.ServerStorage.Debris:Fire(Trident, 1);
-			wait(1)
+			task.wait(1)
 			local info = TweenInfo.new(0.25,Enum.EasingStyle.Linear,Enum.EasingDirection.Out,0,false,0)
 			local goals = {Transparency = 0}
 			local tween = game:GetService("TweenService"):Create(PlayerWeapon,info,goals)
 			tween:Play()
 		end;
 	end)
-	wait(10)
+	task.wait(10)
 	Debounce = false
 end)

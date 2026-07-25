@@ -68,24 +68,24 @@ script.Parent.Activated:Connect(function()
 		wingflaps+=1
 		sub(function()
 			local old = wingflaps
-			wait(5)
+			task.wait(5)
 			canuse = false
-			wait(10)
+			task.wait(10)
 			if wingflaps == old then
 				canuse = true
 				wingflaps = 0
 			end
 		end)
-		wait(0.25)
+		task.wait(0.25)
 		local v2 = Instance.new("BodyVelocity")
 		v2.MaxForce = Vector3.new(0,math.huge,0)
 		v2.Velocity = wingflaps == 1 and Vector3.new(0,180,0) or (stormherald == true or emberwyrm == true or abyssalwyrm == true) and Vector3.new(0,100,0) or Vector3.new(0,60,0)
 		v2.Parent = HumanoidRootPart
 		game.Debris:AddItem(v2,0.2)
-		wait(0.2)
+		task.wait(0.2)
 		canuse = true
 		if wingflaps>2 then
-			wait(15)
+			task.wait(15)
 			wingflaps = 0
 			canuse = true
 		end

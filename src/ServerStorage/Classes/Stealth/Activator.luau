@@ -43,7 +43,7 @@ function v1.Active(p1, p2, p3, p4)
 	end;
 	p1.HumanoidRootPart.Stealth:Play();
 	u3.gradualTransparency(p1, 0, v7, v8);
-	wait(v8);
+	task.wait(v8);
 	local v12 = Instance.new("NumberValue");
 	v12.Name = "Transparency";
 	v12.Value = v7;
@@ -54,7 +54,7 @@ function v1.Active(p1, p2, p3, p4)
 	v13.Parent = p1.Boosts;
 	local v14 = tick();
 	while true do
-		wait();
+		task.wait();
 		local v15 = p1:FindFirstChild("Action");
 		if not v15 then
 			v15 = p1:FindFirstChild("LightAttack");
@@ -77,7 +77,7 @@ function v1.Active(p1, p2, p3, p4)
 	v16.Value = v11;
 	v16.Parent = p1.Boosts;
 	game.Debris:AddItem(v16, 3);
-	wait(10);
+	task.wait(10);
 	u2 = true;
 end;
 return v1;

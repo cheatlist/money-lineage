@@ -166,12 +166,12 @@ script.Parent.Activated:Connect(function()
 		local anim = char.Humanoid:LoadAnimation(script.Parent.Animation)
 		anim:Play()
 		if not mastery then --uber slightly faster
-			wait(0.1) --extra reaction time
+			task.wait(0.1) --extra reaction time
 		end
 		char.HumanoidRootPart.Grapple:Play()
 		shinobiModule.Change(play)
 	else
-		wait(0.1)
+		task.wait(0.1)
 		en = true
 		return	
 	end
@@ -195,7 +195,7 @@ script.Parent.Activated:Connect(function()
 		game.ServerStorage.Debris:Fire(grapple2,GRAPPLE_TIME)
 
 		if not mastery then
-			wait(GRAPPLE_TIME_1) 
+			task.wait(GRAPPLE_TIME_1) 
 		end
 
 		local failure = bestTarget:FindFirstChild("Blocking") or bestTarget:FindFirstChildOfClass("ForceField")
@@ -218,13 +218,13 @@ script.Parent.Activated:Connect(function()
 			if mastery then 
 				create("Knocked", 1.25, char)
 				spawn(function()
-					wait(2.25)
+					task.wait(2.25)
 					game.CollectionService:RemoveTag(char,"grappleblocked")
 				end)
 			else 
 				create("Knocked", 1.75, char)
 				spawn(function()
-					wait(2.75)
+					task.wait(2.75)
 					game.CollectionService:RemoveTag(char,"grappleblocked")
 				end)
 			end
@@ -262,10 +262,10 @@ script.Parent.Activated:Connect(function()
 			game.ServerStorage.Debris:Fire(g,DEBRIS_TIME)
 		end
 
-		wait(GRAPPLE_TIME_2)
+		task.wait(GRAPPLE_TIME_2)
 		bodyvel:Destroy()
 
-		if higher then wait(AIR_GRAPPLE_EXTRA_COOLDOWN) end
+		if higher then task.wait(AIR_GRAPPLE_EXTRA_COOLDOWN) end
 	else --onto a wall or something
 
 		local cordpart = Instance.new("Part")
@@ -293,7 +293,7 @@ script.Parent.Activated:Connect(function()
 		game.ServerStorage.Debris:Fire(cordpart,GRAPPLE_TIME)
 
 		if not mastery then
-			wait(GRAPPLE_TIME_1)
+			task.wait(GRAPPLE_TIME_1)
 		end
 
 		local bodyvel = Instance.new("BodyVelocity")
@@ -306,10 +306,10 @@ script.Parent.Activated:Connect(function()
 		local dist = (mouse.Hit.p - char.HumanoidRootPart.Position) 
 		local magnitude = dist.magnitude
 		bodyvel.Velocity = HEIGHT+dist*(1/GRAPPLE_TIME_2-magnitude/range)+0.25*dist*Vector3.new(1,0,1)
-		wait(GRAPPLE_TIME_2)
+		task.wait(GRAPPLE_TIME_2)
 		bodyvel:Destroy()
 
-		wait(GRAPPLING_WALL_EXTRA_COOLDOWN)
+		task.wait(GRAPPLING_WALL_EXTRA_COOLDOWN)
 	end
 	
 	en = true

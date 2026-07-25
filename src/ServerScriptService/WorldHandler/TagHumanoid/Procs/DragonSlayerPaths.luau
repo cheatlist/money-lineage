@@ -32,7 +32,7 @@ local function ApplyDragonSlayerPathProcs(character, enemy, info, humanoid)
 				game.ServerStorage.Requests.TagHumanoid:Fire(character,targ,{mana=true,damage=dam,dexthunder=true,nodexsound=true,sigilthunder=true,move = "Chain Lightning"})
 
 				coroutine.wrap(function()
-					wait(0.15)
+					task.wait(0.15)
 
 					if depth == 0 then
 						u4.QuickLightning(character.HumanoidRootPart.Position,endp,0.2,8,"Lilac")

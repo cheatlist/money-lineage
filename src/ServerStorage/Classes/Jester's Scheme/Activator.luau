@@ -41,7 +41,7 @@ _G.Debris:AddItem(v11,0.5)
 _G.Debris:AddItem(v12,3)
 	local v13 = 0
 	while true do
-		v13 = v13 + wait()
+		v13 = v13 + task.wait()
 		v7 = p2:FindFirstChild("Stun") or p2:FindFirstChild("Knocked")
 		if v13 >= 1 then
 			break
@@ -88,7 +88,7 @@ _G.Debris:AddItem(v21,5)
 	local cdd = 100
 	local plrrr = game.Players:GetPlayerFromCharacter(p2)
 	game.ReplicatedStorage.Requests.CooldownIndicator:FireClient(plrrr,cdd,ToolName)
-	wait(100)
+	task.wait(100)
 	u1 = true
 end
 return v6

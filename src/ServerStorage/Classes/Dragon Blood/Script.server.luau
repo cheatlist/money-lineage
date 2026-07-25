@@ -69,6 +69,6 @@ script.Parent.Activated:Connect(function()
 		enabled = false
 		HumanoidRootPart.DragonBloodC.Enabled = false
 	end
-	wait(1.5)
+	task.wait(1.5)
 	canuse = true
 end)

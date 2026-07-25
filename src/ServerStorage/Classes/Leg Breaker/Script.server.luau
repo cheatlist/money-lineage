@@ -36,7 +36,7 @@ script.Parent.Activated:Connect(function()
 	v3.Name = "Action"
 	v3.Parent = p1
 	game.Debris:AddItem(v3,1)
-	wait(0.4)
+	task.wait(0.4)
 	if not p1:FindFirstChild("NoDam")then
 		local hit = u3.magnitudeCheck(p1,HumanoidRootPart.Position,8.5,{
 			physical = true,
@@ -53,6 +53,6 @@ script.Parent.Activated:Connect(function()
 			end
 		end
 	end
-	wait(10)
+	task.wait(10)
 	canuse = true
 end)

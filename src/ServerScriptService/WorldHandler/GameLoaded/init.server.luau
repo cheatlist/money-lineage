@@ -55,7 +55,7 @@ local illegalRaces = {
 local classdata = require(game.ServerScriptService.WorldHandler.ClassData).classdata
 task.spawn(function()
 	local TemperatureHandler = require(game.ServerScriptService.Modules.TemperatureHandler)
-	while wait(0.2) do
+	while task.wait(0.2) do
 		if #game.Players:GetPlayers() > 0 then
 			for i = 1,#game.Players:GetPlayers() do
 				if workspace.Live:FindFirstChild(game.Players:GetPlayers()[i].Name) then
@@ -262,7 +262,7 @@ end
 local playerSessions = {}
 
 task.spawn(function()
-	while wait(10) do
+	while task.wait(10) do
 		for i,v in pairs(workspace.Live:GetChildren()) do
 			if not game.Players:FindFirstChild(v.Name) and v:FindFirstChild("MonsterInfo") and not v.MonsterInfo.Master.Value then
 				if tick() - v.MonsterInfo.LastAggrod.Value >= 120 or tick() - v.MonsterInfo.SpawnedTime.Value >= 1000 then
@@ -925,7 +925,7 @@ local function PlayerAdded(Player)
 			end
 			Root.SpearAttach:Clone().Parent = WaitForChild(Character,"Right Arm")
 			Root.SpearAttach:Clone().Parent = WaitForChild(Character,"Left Arm")
-			wait()
+			task.wait()
 			Humanoid.DisplayName = tostring(PlayerData[Player.Name].FirstName.Value)
 			if PlayerData[Player.Name].UberTitle.Value ~= "" then
 				Humanoid.DisplayName = tostring(PlayerData[Player.Name].FirstName.Value)..", "..tostring(PlayerData[Player.Name].UberTitle.Value)
@@ -1079,7 +1079,7 @@ local function PlayerAdded(Player)
 			if NotLoaded then
 				NotLoaded:Destroy()
 			end
-			wait(0.2)
+			task.wait(0.2)
 			task.spawn(function()
 				local tool = Player.Backpack:FindFirstChild("Vocare") or Character:FindFirstChild("Vocare")
 				if tool and tool:FindFirstChild("Quantity") then
@@ -1339,7 +1339,7 @@ remote.OnServerEvent:Connect(function(player, keyPressed, pool)
 						partTween.Completed:Connect(function()
 							while part.Parent do
 								motion(part)
-								wait(0.35)
+								task.wait(0.35)
 							end
 						end)
 					end
@@ -1351,7 +1351,7 @@ remote.OnServerEvent:Connect(function(player, keyPressed, pool)
 				for _, v in geyser.foamparts:GetChildren() do
 					v.Enabled = true
 				end
-				wait(1)
+				task.wait(1)
 				game.Debris:AddItem(pool, .01)
 				game.Debris:AddItem(geyser, .01)
 				game.Debris:AddItem(debris, .01)
@@ -1408,7 +1408,7 @@ remote.OnServerEvent:Connect(function(player, keyPressed, pool)
 					fisherpullTo = water.Position,
 					aoe = true
 				})
-				wait(0.25)
+				task.wait(0.25)
 				pool:Destroy()
 			end)
 		end
@@ -1714,7 +1714,7 @@ task.spawn(function()
 	local starttime = tick()-(Lighting:GetMinutesAfterMidnight()/minutesinaday)*daylength
 	local endtime = starttime+daylength
 	local ratio = minutesinaday/daylength
-	while wait(timewait)do
+	while task.wait(timewait)do
 		if not nightstone then
 			local currenttime = tick()
 			if currenttime>endtime then
@@ -1737,7 +1737,7 @@ game.ServerStorage.Requests.CROpen.Event:Connect(function()
 	tween02:Play()
 
 	spawn(function()
-		wait(16)
+		task.wait(16)
 		game.Workspace.ROCKGATE.Open:Play()
 		local tweenInfo01 = TweenInfo.new(6,Enum.EasingStyle.Linear,Enum.EasingDirection.Out)
 		local tween02 = TweenService:Create(game.Workspace.ROCKGATE,tweenInfo01,{CFrame=game.Workspace.ROCKGATE.CFrame*CFrame.new(-95,0,0)})
@@ -1965,7 +1965,7 @@ end)
 game.ServerStorage.Requests.Respawn.Event:Connect(function(p)
 	if p.Character then
 		p.Character:Remove()
-		wait()
+		task.wait()
 		if p and p.Parent then
 			p:LoadCharacter()
 			local v12 = Instance.new("NumberValue");
@@ -2274,7 +2274,7 @@ task.spawn(function()
 				campfire2s(Char)
 			end
 		end
-		wait(1)
+		task.wait(1)
 	end
 end)
 

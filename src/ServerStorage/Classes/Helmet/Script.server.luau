@@ -39,7 +39,7 @@ script.Parent.Activated:Connect(function()
 	end
 	animation:Play()
 	
-	wait(0.25)
-	wait(0.75)
+	task.wait(0.25)
+	task.wait(0.75)
 	canuse = true
 end)

@@ -37,12 +37,12 @@ function v1.Active(p1, p2, p3, p4)
 			cancelat = true
 		end
 	end)
-	wait(0.1)
+	task.wait(0.1)
 	anim:AdjustSpeed(0)
-	wait(0.2)
+	task.wait(0.2)
 	anim:AdjustSpeed(1)
 	anim:GetMarkerReachedSignal("swing"):Connect(function()
-		wait(0.1)
+		task.wait(0.1)
 		if not p12:FindFirstChild("FireHit") then
 			script.Parent:FindFirstChild("FireHit"):Clone().Parent = p12
 		end
@@ -66,11 +66,11 @@ function v1.Active(p1, p2, p3, p4)
 					sigilwhitefire = true,
 					move = "Cleave"
 				})
-				wait(0.1)
+				task.wait(0.1)
 				p4.TestTrail.Enabled = false
 			end
 	end)
-	wait(15)
+	task.wait(15)
 	canuse = true
 end;
 return v1;

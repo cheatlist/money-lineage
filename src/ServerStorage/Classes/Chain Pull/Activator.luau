@@ -34,9 +34,9 @@ function v1.Active(p5, p6, p7, p8)
 	game:GetService("Debris"):AddItem(v8, 1)
 	p5.Humanoid:LoadAnimation(script.Parent.Anim):Play()
 	p5.HumanoidRootPart.SwordCharge:Play()
-	wait(0.2)
+	task.wait(0.2)
 	p5.HumanoidRootPart.Swing:Play()
-	wait(0.05)
+	task.wait(0.05)
 	local l__HumanoidRootPart__9 = p5.HumanoidRootPart
 	if not p5:FindFirstChild("Stun") then
 		u4.magnitudeCheck(p5,l__HumanoidRootPart__9.Position,20,{
@@ -48,7 +48,7 @@ function v1.Active(p5, p6, p7, p8)
 			move = "Chain Pull"
 		}, true, false, true);
 	end
-	wait(0.2)
+	task.wait(0.2)
 	p5.HumanoidRootPart.Swing:Play()
 	if not p5:FindFirstChild("Stun") then
 		u4.magnitudeCheck(p5,l__HumanoidRootPart__9.Position,18,{
@@ -62,7 +62,7 @@ function v1.Active(p5, p6, p7, p8)
 		}, true, false, true);
 	end
 	
-	wait(17)
+	task.wait(17)
 	u3 = true
 end
 return v1

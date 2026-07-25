@@ -49,9 +49,9 @@ script.Parent.Activated:Connect(function()
 		WindupAnimation.Priority = Enum.AnimationPriority.Action4
 		WindupAnimation:Play()
 		WindupAnimation:AdjustSpeed(0.25)
-		wait(0.2)
+		task.wait(0.2)
 		WindupAnimation:AdjustSpeed(0.75)
-		wait(0.3)
+		task.wait(0.3)
 		if not Character:FindFirstChild("Knocked") and not Character:FindFirstChild("Unconscious") then
 			if Nearest(Character.HumanoidRootPart.Position, Character) then
 				
@@ -96,7 +96,7 @@ script.Parent.Activated:Connect(function()
 				local Action = Instance.new("Accessory")
 				Action.Name = "Action"
 				Action.Parent = Character
-				wait()
+				task.wait()
 				Nearest.Humanoid.AutoRotate = false; Character.Humanoid.AutoRotate = false
 				Anchor(Character, true)
 				Nearest.HumanoidRootPart.CFrame = Character.HumanoidRootPart.CFrame * CFrame.new(0, -1, 0) * CFrame.Angles(0, math.pi, 0)
@@ -105,10 +105,10 @@ script.Parent.Activated:Connect(function()
 				local ThrowingAnimation = Character.Humanoid:LoadAnimation(script.Parent.Animations.Throwed)
 				local ThrownAnimation = Nearest.Humanoid:LoadAnimation(script.Parent.Animations.BeingThrowed)
 				ThrowingAnimation:Play(); ThrownAnimation:Play()
-				wait(0.1)
+				task.wait(0.1)
 				ThrowingAnimation:AdjustSpeed(0)
 				ThrownAnimation:AdjustSpeed(0)
-				wait(0.1)
+				task.wait(0.1)
 				ThrowingAnimation:AdjustSpeed(1)
 				ThrownAnimation:AdjustSpeed(1)
 				ThrowingAnimation:GetMarkerReachedSignal("pause"):Connect(function()
@@ -155,7 +155,7 @@ script.Parent.Activated:Connect(function()
 								Stun:Destroy()
 							end
 							if i~= 4 then
-								wait(0.2)
+								task.wait(0.2)
 							end
 						end
 					end

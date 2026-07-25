@@ -82,9 +82,9 @@ function v2.Active(p1, p2, p3, p45)
 				v7.Enabled = false;
 			end;
 		end);
-		wait(0.55);
+		task.wait(0.55);
 		spawn(function()
-			wait(0.1);
+			task.wait(0.1);
 			v7.Enabled = false;
 		end);
 		local v10 = {};
@@ -124,7 +124,7 @@ function v2.Active(p1, p2, p3, p45)
 						local v23 = l__TweenService__5:Create(v20, v21, {
 							Transparency = 1
 						}):Play();
-						wait(0.04);
+						task.wait(0.04);
 					end;
 					p1.HumanoidRootPart.CFrame = v16.HumanoidRootPart.CFrame;
 					if u8 then
@@ -155,7 +155,7 @@ function v2.Active(p1, p2, p3, p45)
 									local v30 = l__TweenService__5:Create(v27, v28, {
 										Transparency = 1
 									}):Play();
-									wait(0.04);
+									task.wait(0.04);
 								end;
 							end;
 						end;
@@ -212,9 +212,9 @@ function v2.Active(p1, p2, p3, p45)
 				v33.Enabled = false;
 			end;
 		end);
-		wait(0.55);
+		task.wait(0.55);
 		spawn(function()
-			wait(0.1);
+			task.wait(0.1);
 			v33.Enabled = false;
 		end);
 		for v39, v40 in pairs(game.Workspace.Live:GetChildren()) do
@@ -246,7 +246,7 @@ function v2.Active(p1, p2, p3, p45)
 						local v47 = l__TweenService__5:Create(v44, v45, {
 							Transparency = 1
 						}):Play();
-						wait(0.04);
+						task.wait(0.04);
 					end;
 				end);
 				p1.Torso.CFrame = p1.Torso.CFrame * CFrame.new(0, 0, -8);
@@ -259,7 +259,7 @@ function v2.Active(p1, p2, p3, p45)
 		u6 = false;
 	end;
 	
-	wait(30);
+	task.wait(30);
 	u2 = true;
 end;
 return v2;

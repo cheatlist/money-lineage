@@ -34,7 +34,7 @@ function v2.Active(p1, p2, p3, p4)
 	game:GetService("Debris"):AddItem(v7, 1)
 	v7.Parent = p1
 	p1.Humanoid:LoadAnimation(script.Animation):Play()
-	wait(0.5)
+	task.wait(0.5)
 	for v8, v9 in pairs(p2.Backpack:GetDescendants()) do
 		if v9:FindFirstChild("Cooldown") then
 			v9:Destroy()
@@ -50,16 +50,16 @@ function v2.Active(p1, p2, p3, p4)
 		if p4:FindFirstChild("Attack") then
 			p4.Attack.Exhaust:Emit(100)
 		end
-		wait(0.2)
+		task.wait(0.2)
 		if not p4 then
 			return
 		end
 		local l__WOOP__10 = p4:FindFirstChild("WOOP")
 		l__WOOP__10:Play()
-		wait(0.5)
+		task.wait(0.5)
 		l__WOOP__10:Stop()
 	end)
-	wait(30)
+	task.wait(30)
 	u2 = true
 end
 return v2

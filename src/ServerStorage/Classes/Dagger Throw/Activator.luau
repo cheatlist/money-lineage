@@ -33,7 +33,7 @@ function v1.Active(p1, p2, p3, p4)
 		p1.Humanoid:LoadAnimation(script.Parent.Anim):Play()
 	end
 	u2 = false
-	wait(0.3)
+	task.wait(0.3)
 	p1.HumanoidRootPart.DaggerSlash1:Play()
 	local v8 = Instance.new("Accessory")
 	v8.Name = "NoJump"
@@ -125,7 +125,7 @@ function v1.Active(p1, p2, p3, p4)
 			game:GetService("Debris"):AddItem(v10, 0.4)
 		end
 	end)
-		wait(10)
+		task.wait(10)
 	if v10 then
 		game:GetService("Debris"):AddItem(v10, 1)
 		if p1:FindFirstChild("Disarm") then

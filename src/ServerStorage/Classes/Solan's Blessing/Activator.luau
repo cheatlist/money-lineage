@@ -52,7 +52,7 @@ function v1.Active(p5, p6, anims, p7)
 	v10.Name = "Action"
 	v10.Parent = p5
 	game.Debris:AddItem(v10,0.3)
-	wait(0.3)
+	task.wait(0.3)
 	
 	local v11 = p5.Humanoid:LoadAnimation(script.Parent.finishjump)
 	local v12 = p5.Humanoid:LoadAnimation(script.Parent.midjump)
@@ -78,7 +78,7 @@ function v1.Active(p5, p6, anims, p7)
 		task.delay(0.44, function()
 			stuncheck:Disconnect()
 		end)
-		wait(0.5)
+		task.wait(0.5)
 		local mousepos = _G.MouseData(plr)
 		if not mousepos then
 			cancelat = true
@@ -142,7 +142,7 @@ function v1.Active(p5, p6, anims, p7)
 			game.Debris:AddItem(v28,1)
 		end
 	end
-	wait(14)
+	task.wait(14)
 	u2 = true
 end
 return v1

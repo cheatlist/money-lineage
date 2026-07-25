@@ -32,7 +32,7 @@ script.Parent.Activated:Connect(function()
 	game.Debris:AddItem(v1,1)
 	HumanoidRootPart.SpearEmit:Emit(30)
 	HumanoidRootPart.SwordCharge:Play()
-	wait(0.3)
+	task.wait(0.3)
 	HumanoidRootPart.Swing:Play()
 	if not p1:FindFirstChild("NoDam")then
 		u1.magnitudeCheck(p1,HumanoidRootPart.Position,11,{
@@ -47,6 +47,6 @@ script.Parent.Activated:Connect(function()
 			move = "Impale"
 		})
 	end
-	wait(11)
+	task.wait(11)
 	canuse = true
 end)

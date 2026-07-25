@@ -39,7 +39,7 @@ function v2.Active(p3, p4, p5, p6)
 	u2 = false
 	local v9 = p3.Humanoid:LoadAnimation(script.Parent:FindFirstChild("Animation"))
 	v9:Play()
-	wait(0.4)
+	task.wait(0.4)
 	if not p3:FindFirstChild("Stun") and not game.CollectionService:HasTag(p3, "Knocked") then
 		local v10 = Instance.new("Accessory")
 		v10.Name = "WalkThrough"
@@ -52,7 +52,7 @@ function v2.Active(p3, p4, p5, p6)
 				end)
 			end		
 		end
-		wait(0.1)
+		task.wait(0.1)
 		local l__Position__16 = l__HumanoidRootPart__7.Position
 		p3.HumanoidRootPart.OwlSlash:Play()
 		local v17 = Instance.new("BodyVelocity")
@@ -62,7 +62,7 @@ function v2.Active(p3, p4, p5, p6)
 		v17.Velocity = l__HumanoidRootPart__7.CFrame.lookVector * 150
 		v17.Parent = p3.HumanoidRootPart
 		game.Debris:AddItem(v17, 0.2)
-		wait(0.25)
+		task.wait(0.25)
 		local l__Position__18 = l__HumanoidRootPart__7.Position
 		local l__magnitude__19 = (l__Position__16 - l__Position__18).magnitude
 		local v20 = CFrame.new(l__Position__16, l__Position__18)
@@ -92,7 +92,7 @@ function v2.Active(p3, p4, p5, p6)
 							Scale = Vector3.new(1, 1, 5)
 						}):Play()
 						l__TagHumanoid__4:Fire(p3, v28, v23)
-						wait(0.1)
+						task.wait(0.1)
 					end
 				end)
 			end		
@@ -101,7 +101,7 @@ function v2.Active(p3, p4, p5, p6)
 		v9:Stop()
 	end
 	game:GetService("Debris"):AddItem(v8, 0.25)
-	wait(10)
+	task.wait(10)
 	u2 = true
 end
 return v2

@@ -35,6 +35,6 @@ script.Parent.Activated:Connect(function()
 	HumanoidRootPart.DragonRoarPtcl:Emit(1)
 	p1.Humanoid:LoadAnimation(script.Parent.Anim):Play(0.1,1,2)
 	u3.magnitudeCheck(p1,HumanoidRootPart.Position,45,info,nil,false)
-	wait(0.01)
+	task.wait(0.01)
 	canuse = true
 end)

@@ -56,7 +56,7 @@ function v1.Active(p2, p3, p4, p5)
 			v8.Parent = p2
 			game:GetService("Debris"):AddItem(v8, 1.2)
 			p2.Humanoid:LoadAnimation(script.Parent:FindFirstChild("Animation")):Play()
-			wait(0.5)
+			task.wait(0.5)
 		end
 		local v9 = Instance.new("Accessory")
 		v9.Name = "Sigil"
@@ -170,7 +170,7 @@ function v1.Active(p2, p3, p4, p5)
 		v16.Parent = p5
 		game.Debris:AddItem(v16, 30)
 		spawn(function()
-			wait(5)
+			task.wait(5)
 			u2 = true
 		end)
 	end)

@@ -49,7 +49,7 @@ function v6.Active(p6, p7, p8, p9)
 	game.Debris:AddItem(v9, 0.7)
 	p6.Humanoid:LoadAnimation(l__Parent__2.Anim):Play()
 	p6.HumanoidRootPart.EpicDemon:Play()
-	wait(0.175)
+	task.wait(0.175)
 	local v10 = Instance.new("Attachment")
 	v10.Name = "AxeAttach"
 	v10.Position = Vector3.new(0, -1, 0)
@@ -62,7 +62,7 @@ function v6.Active(p6, p7, p8, p9)
 			v12 = true
 			p6.HumanoidRootPart.Swing:Play()
 		end
-		wait()
+		task.wait()
 		if tick() - v11 >= 0.5 then
 			break
 		end	
@@ -75,7 +75,7 @@ function v6.Active(p6, p7, p8, p9)
 	v13.Sound:Play()
 	game.Debris:AddItem(v13, 1)
 	v10:Destroy()
-	wait(0.05)
+	task.wait(0.05)
 	u3.magnitudeCheck(p6,p6.HumanoidRootPart.Position,15,{
 		fist = true,
 		damage = 10,
@@ -88,7 +88,7 @@ function v6.Active(p6, p7, p8, p9)
 		axe = true,
 		move = "Axe Kick"
 	}, true)
-	wait(8)
+	task.wait(8)
 	u1 = true
 end
 return v6

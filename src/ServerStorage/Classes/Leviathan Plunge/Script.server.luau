@@ -52,7 +52,7 @@ script.Parent.Activated:Connect(function()
 	tween:Play()
 	
 	game.Debris:AddItem(v1,1)
-	wait(0.5)
+	task.wait(0.5)
 	tweenservice:Create(part, tweeninfo, {Size = Vector3.new(0.1, 0.1, 0.1)}):Play()
 	local value = 10
 	local lifestealnum = 35
@@ -75,6 +75,6 @@ script.Parent.Activated:Connect(function()
 	lifesteal.Name = "LifeSteal"
 	lifesteal.Parent = p1
 	game.Debris:AddItem(lifesteal,lifestealnum)
-	wait(60)
+	task.wait(60)
 	canuse = true
 end)

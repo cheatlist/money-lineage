@@ -100,7 +100,7 @@ function taghumanoid(character,enemy,info)
 	end
 	if FindFirstChild(enemy,"TimeStopped")then
 		info.downbypass = true
-		repeat wait() until not FindFirstChild(enemy,"TimeStopped")
+		repeat task.wait() until not FindFirstChild(enemy,"TimeStopped")
 	end
 	if FindFirstChild(enemy, "Expansion") then
 		if info.damage and info.damage > 0 then
@@ -271,8 +271,8 @@ function taghumanoid(character,enemy,info)
 			end
 		elseif character:FindFirstChild("decomposingrn") then
 			task.spawn(function()
-				repeat wait() until not character:FindFirstChild("decomposingrn")
-				wait(1)
+				repeat task.wait() until not character:FindFirstChild("decomposingrn")
+				task.wait(1)
 				for i,v in pairs(character:GetDescendants()) do
 					if v.Name == "FreezeRoot" or v.Name == "Planted" or v.Name == "Hardened" or v.Name == "Action" or (v.Name == "HealthRegen" and v.Parent == character.Boosts) or (v.Name == "ClickDetector" and v.Parent == character.Head)  then
 						v:Destroy()
@@ -382,7 +382,7 @@ function taghumanoid(character,enemy,info)
 		BP.D = 500
 		BP.Parent = eroot
 		BP.Position = info.pullTo
-		wait(1)
+		task.wait(1)
 		BP:Destroy()
 	end;
 	if info.waterspikes then
@@ -411,7 +411,7 @@ function taghumanoid(character,enemy,info)
 			BP.D = 500
 			BP.Parent = eroot
 			BP.Position = info.fisherpullTo
-			wait(1)
+			task.wait(1)
 			BP:Destroy()
 		end
 	end
@@ -849,7 +849,7 @@ function taghumanoid(character,enemy,info)
 				if awakening.Value == 0 then
 					awakening.Parent = nil
 					task.spawn(function()
-						wait(1)
+						task.wait(1)
 						if awakening and awakening.Parent then
 							awakening:Destroy()
 						end
@@ -1118,7 +1118,7 @@ function taghumanoid(character,enemy,info)
 				v29.Part1 = v28
 				v29.Parent = v28
 				game.Debris:AddItem(v28, 2)
-				wait(2)
+				task.wait(2)
 				game.ServerStorage.Requests.TagHumanoid:Fire(character, enemy, {
 					mana = true, 
 					damage = 12, 
@@ -1176,7 +1176,7 @@ function taghumanoid(character,enemy,info)
 					if awakening.Value == 0 then
 						awakening.Parent = nil
 						task.spawn(function()
-							wait(1)
+							task.wait(1)
 							if awakening and awakening.Parent then
 								awakening:Destroy()
 							end
@@ -1424,11 +1424,11 @@ function taghumanoid(character,enemy,info)
 					root.counterparticle:Emit(50)
 					countered = true
 					game.ReplicatedStorage.Requests.ScreenFlip:FireClient(Player)
-					wait(0.125)
+					task.wait(0.125)
 					for _,v in pairs(humanoid:GetPlayingAnimationTracks())do
 						v:AdjustSpeed(0)
 					end
-					wait(0.7)
+					task.wait(0.7)
 					for _,v in pairs(humanoid:GetPlayingAnimationTracks())do
 						v:AdjustSpeed(1.5)
 					end
@@ -1684,7 +1684,7 @@ function taghumanoid(character,enemy,info)
 						if enemy.WindDodges.Value > 0 then
 							local start = tick()
 							if FindFirstChild(enemy, "DodgeCancel") then
-								wait(.1)
+								task.wait(.1)
 								for i,v in pairs(enemy:GetChildren()) do
 									if v.Name == "DodgeCancel" then
 										v:Destroy()
@@ -1722,16 +1722,16 @@ function taghumanoid(character,enemy,info)
 							end
 							changetransparency(enemy,i)
 							old = enemy.Torso.Transparency
-							wait(0.0455)
+							task.wait(0.0455)
 						end
-						wait()
+						task.wait()
 						for i = 0.3,0,-0.1 do
 							if enemy.Torso.Transparency ~= old then
 								break
 							end
 							changetransparency(enemy,i)
 							old = enemy.Torso.Transparency
-							wait(0.0455)
+							task.wait(0.0455)
 						end
 						changetransparency(enemy,0)
 					end)
@@ -2643,7 +2643,7 @@ function taghumanoid(character,enemy,info)
 				end
 				local damage = totaldam/20
 				for i: number = 1,20 do
-					wait(0.2)
+					task.wait(0.2)
 					game.ServerStorage.Requests.TagHumanoid:Fire(enemy,enemy,{damage = damage,nododge = true,nobuff = true, noenchant = true})
 					eroot.PoisonParticle:Emit(8)
 					create("NoRegen", 0.2, enemy)
@@ -2944,7 +2944,7 @@ function taghumanoid(character,enemy,info)
 						end
 					end
 				end
-				wait()
+				task.wait()
 
 
 				for _,v in pairs(enemy:GetChildren())do
@@ -3003,7 +3003,7 @@ function taghumanoid(character,enemy,info)
 		})
 		tweenRight:Play()
 		tweenLeft:Play()
-		wait(1)
+		task.wait(1)
 		tweenRight:Destroy()
 		tweenLeft:Destroy()
 		local tweenInfo2 = TweenInfo.new(0.2, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut)
@@ -3015,7 +3015,7 @@ function taghumanoid(character,enemy,info)
 		})
 		tweenRight4:Play()
 		tweenLeft3:Play()
-		wait(0.2)
+		task.wait(0.2)
 		tridentl:Destroy()
 		tridentr:Destroy()
 		game.ServerStorage.Requests.TagHumanoid:Fire(character,enemy,{damage = 3, spear = true, physical = true, blade = true})

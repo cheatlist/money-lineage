@@ -35,7 +35,7 @@ function v1.Active(p1, p2, p3, p4)
 	v18.Parent = p1.HumanoidRootPart;
 	p1.Humanoid:LoadAnimation(script.Parent.Anim):Play()
 	p1.HumanoidRootPart.Snap:Play()
-	wait(v8);
+	task.wait(v8);
 	p1.HumanoidRootPart.fe:Play();
 	p1.HumanoidRootPart.MoneyEmit:Emit(5);
 	v18:Destroy()
@@ -53,7 +53,7 @@ function v1.Active(p1, p2, p3, p4)
 	v15.Parent = p1.Boosts
 	local v14 = tick();
 	while true do
-		wait();
+		task.wait();
 		local v15 = p1:FindFirstChild("Action");
 		if not v15 then
 			v15 = p1:FindFirstChild("LightAttack");
@@ -77,7 +77,7 @@ function v1.Active(p1, p2, p3, p4)
 	v16.Value = 1.3;
 	v16.Parent = p1.Boosts;
 	game.Debris:AddItem(v16, 3);
-	wait(17.5);
+	task.wait(17.5);
 	u2 = true;
 end;
 return v1;

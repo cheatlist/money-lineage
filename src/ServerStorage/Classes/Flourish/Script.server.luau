@@ -58,7 +58,7 @@ script.Parent.Activated:Connect(function()
 		while t < 0.5 do
 			v16.CFrame *= CFrame.Angles(0, math.rad(10), 0)
 			b17.CFrame *= CFrame.Angles(0, math.rad(10), 0)
-			t += wait()
+			t += task.wait()
 		end
 	end)
 	p1.Humanoid:LoadAnimation(script.Parent.Anim):Play()
@@ -85,10 +85,10 @@ script.Parent.Activated:Connect(function()
 					slash = true, 
 					move = "Flourish"
 				});
-				wait(0.05)
+				task.wait(0.05)
 			end;
 		end;
 	end;
-	wait(12)
+	task.wait(12)
 	canuse = true
 end)

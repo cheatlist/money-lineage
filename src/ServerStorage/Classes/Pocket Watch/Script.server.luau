@@ -43,7 +43,7 @@ Tool.Activated:Connect(function()
 			Active = false
 			cool = true
 			task.spawn(function()
-				wait(600)
+				task.wait(600)
 				cool = false
 			end)
 		else
@@ -56,7 +56,7 @@ Tool.Activated:Connect(function()
 			cool = true
 			Activated = true
 			task.spawn(function()
-				wait(20)
+				task.wait(20)
 				cool = false
 			end)
 		end

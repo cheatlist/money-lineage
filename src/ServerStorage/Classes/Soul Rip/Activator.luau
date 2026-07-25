@@ -164,7 +164,7 @@ function v1.Active(p1, p2, p3, p4)
 				require(game.ServerScriptService.Modules.Commands).ChangeInsight(p2, v3, 1)
 			end
 		end
-		wait(3)
+		task.wait(3)
 		u1 = false
 	end
 end
@@ -295,14 +295,14 @@ function v1.Active2(p5, p6, p7, p8)
 			guaranteedcast.Parent = l__Boosts__19
 			game:GetService("Debris"):AddItem(guaranteedcast, 30)
 		end
-		wait(30)
+		task.wait(30)
 		if v23 then
 			local v2 = Instance.new("Accessory")
 			v2.Name = "HalfSoul"
 			v2.Parent = zzzzzzzzzz
 			game.Debris:AddItem(v2,15)
 		end
-		wait(15)
+		task.wait(15)
 	end
 	u4 = false
 end

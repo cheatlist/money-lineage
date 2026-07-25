@@ -33,7 +33,7 @@ function module.Active(character)
 	game.Debris:AddItem(CD, 35)
 
 	task.spawn(function()
-		wait(35)
+		task.wait(35)
 
 		used = false
 	end)

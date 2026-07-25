@@ -41,13 +41,13 @@ script.Parent.Activated:Connect(function()
 	Instance.new("Folder", v1).Name = "NoDelete"
 	HumanoidRootPart.SpearEmit:Emit(30)
 	HumanoidRootPart.SwordCharge:Play()
-	wait(0.3)
+	task.wait(0.3)
 	for i = 1,3 do
 		info.knockback = i == 3
 		HumanoidRootPart.Swing:Play()
 		u3.magnitudeCheck(p1,HumanoidRootPart.Position,10,info)
-		wait(0.2)
+		task.wait(0.2)
 	end
-	wait(11)
+	task.wait(11)
 	canuse = true
 end)

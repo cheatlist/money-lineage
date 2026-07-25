@@ -52,7 +52,7 @@ script.Parent.Activated:Connect(function()
 	end
 	v2.Parent = HumanoidRootPart
 	game.Debris:AddItem(v2,0.415)
-	wait()
+	task.wait()
 	coroutine.wrap(function()
 		for _,v in pairs(p1:GetChildren()) do
 			if v:IsA("BasePart") then
@@ -104,9 +104,9 @@ script.Parent.Activated:Connect(function()
 	game.Debris:AddItem(v5,0.375)
 	m1(p1,p2,p1.CharacterHandler.CombatAnims,game.ServerStorage.PlayerData[p2.Name])
 	if p3 then
-		wait(0.2)
+		task.wait(0.2)
 	end
-	wait(0.3)
+	task.wait(0.3)
 	for v21, v22 in next, v15 do
 		for _,v27 in pairs(v22:children())do
 			if v27.Name == "StepAttach" then

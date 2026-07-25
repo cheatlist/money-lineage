@@ -35,6 +35,6 @@ script.Parent.Activated:Connect(function()
 	u3.aoeCombatTag(p1,HumanoidRootPart.Position, 40);
 	u3.magnitudeCheck(p1,HumanoidRootPart.Position,40,{aoe = true,deathplague = true, move = "Death's Plague"},nil,false)
 	HumanoidRootPart.DeathPlague.Enabled = false
-	wait(15)
+	task.wait(15)
 	canuse = true
 end)
