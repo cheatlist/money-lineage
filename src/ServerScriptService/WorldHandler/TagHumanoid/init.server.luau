@@ -2861,7 +2861,7 @@ function taghumanoid(character,enemy,info)
 	if info.damage then
 		if character ~= enemy then
 			DragonSlayerPaths(character, enemy, info, humanoid)
-			NameErasure(character, enemy, info, ehumanoid, Player, EnemyPlayer)
+			NameErasure(character, enemy, info, humanoid, ehumanoid, Player, EnemyPlayer)
 		end
 		if info.physical and FindFirstChild(character,"HaseldanDamageMultiplier")then
 			info.damage *= 1.25
