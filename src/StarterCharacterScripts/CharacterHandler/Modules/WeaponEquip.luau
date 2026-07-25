@@ -153,6 +153,22 @@ return function(Character, Player, PlayerData, Humanoid, HumanoidRootPart, Boost
 						if #equipped <= 1 then
 							create("HasDagger",false,Character)
 						end
+					elseif WEAPON.Name == "Twinfang"then
+						WEAPON.PropWeld.Part0 = Character.Hilt
+						WEAPON.PropWeld.Part1 = WEAPON
+						WEAPON.PropWeld.C1 = CFrame.new(0.25,0,-0.800000012,0,-1,0,1,0,-0,0,0,1)
+						WEAPON.Parent = Character.Hilt
+						local offhandRef = WEAPON:FindFirstChild("OffhandPiece")
+						local offhand = offhandRef and offhandRef.Value
+						if offhand and Character:FindFirstChild("LeftHilt") then
+							offhand.PropWeld.Part0 = Character.LeftHilt
+							offhand.PropWeld.Part1 = offhand
+							--offhand.PropWeld.C1 = CFrame.new(-0.25,0,-0.800000012,0,1,0,-1,0,0,0,0,1)
+							offhand.Parent = Character.LeftHilt
+						end
+						if #equipped <= 1 then
+							create("HasDagger",false,Character)
+						end
 					elseif WEAPON.Name == "Tanto"then
 						WEAPON.PropWeld.Part0 = Character.Hilt
 						WEAPON.PropWeld.Part1 = WEAPON
@@ -569,6 +585,17 @@ return function(Character, Player, PlayerData, Humanoid, HumanoidRootPart, Boost
 						WEAPON.Parent = nil
 						WEAPON.PropWeld.Part0 = nil
 						WEAPON.PropWeld.Part1 = nil
+					elseif WEAPON.Name == "Twinfang"then
+						WEAPON.Parent = nil
+						WEAPON.PropWeld.Part0 = nil
+						WEAPON.PropWeld.Part1 = nil
+						local offhandRef = WEAPON:FindFirstChild("OffhandPiece")
+						local offhand = offhandRef and offhandRef.Value
+						if offhand then
+							offhand.Parent = nil
+							offhand.PropWeld.Part0 = nil
+							offhand.PropWeld.Part1 = nil
+						end
 					elseif WEAPON.Name == "Tanto"then
 						WEAPON.Parent = nil
 						WEAPON.PropWeld.Part0 = nil

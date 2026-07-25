@@ -101,10 +101,19 @@ function v1.Active(p1, p2, p45, p3)
 	end;
 	v11:Play(0.1, 1, v12 * 1.6);
 	local l__HumanoidRootPart__8 = p1.HumanoidRootPart;
+	-- p3 (mainhand, mounted at Character.Hilt) rides the normal WEAPON/clone pipeline, same as
+	-- every other weapon's Activator - but Twinfang's off-hand blade doesn't have a
+	-- p3-equivalent slot to ride along on, so it's mounted separately at Character.LeftHilt
+	-- (Commands.ChangeWeapon's "Twinfang" branch, named "TwinfangOffhand") and looked up here
+	-- directly instead.
+	local offhand = p1:FindFirstChild("LeftHilt") and p1.LeftHilt:FindFirstChild("TwinfangOffhand");
 	v11.KeyframeReached:Connect(function(p4)
 		if p4 == "slash" then
 			if p3:FindFirstChild("TestTrail") then
 				p3.TestTrail.Enabled = true;
+			end;
+			if offhand and offhand:FindFirstChild("TestTrail") then
+				offhand.TestTrail.Enabled = true;
 			end;
 			if math.random(1, 2) == 1 then
 				l__HumanoidRootPart__8.DaggerSlash2:Play();
@@ -112,8 +121,13 @@ function v1.Active(p1, p2, p45, p3)
 				l__HumanoidRootPart__8.DaggerSlash1:Play();
 			end;
 		end;
-		if p4 == "lastframe" and p3:FindFirstChild("TestTrail") then
-			p3.TestTrail.Enabled = false;
+		if p4 == "lastframe" then
+			if p3:FindFirstChild("TestTrail") then
+				p3.TestTrail.Enabled = false;
+			end;
+			if offhand and offhand:FindFirstChild("TestTrail") then
+				offhand.TestTrail.Enabled = false;
+			end;
 		end;
 	end);
 	wait(0.16);
