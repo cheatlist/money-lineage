@@ -13061,7 +13061,7 @@ function dialogues.shop(p,v)
 			dialogues.cantbuy.speaker = display.Shopkeeper.Value
 			return dialogues.cantbuy
 		end
-	elseif display.Item.Value == "Twinfang" then
+	elseif string.match("Twinfang", display.Item.Value) then
 		-- TheBlade path skill string, not a Backpack Tool - can't use RequiresBpSkill for this
 		if playerdata[p.Name].Skills.Value:find("TheBlade") then
 		else
