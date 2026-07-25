@@ -134,7 +134,7 @@ GateRequest.OnClientInvoke = function(locationNames)
 
 	-- Wait until resolved
 	while not resolved do
-		task.wait()
+		task.wait(1/30)
 	end
 
 	screenGui:Destroy()

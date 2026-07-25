@@ -118,12 +118,12 @@ tool.Activated:Connect(function()
 		while (root.Position - oPos).Magnitude < 2 and tick() - oTime < 0.3 and not hit do
 			oPos = root.Position
 			hit = hitCheck((tick() - oTime) < 0.1 and 15 or 20)
-			task.wait()
+			task.wait(1/30)
 		end
 		while (root.Position - oPos).Magnitude > 2 and tick() - oTime < 0.5 and not hit do
 			oPos = root.Position
 			hit = hitCheck(20)
-			task.wait()
+			task.wait(1/30)
 		end
 
 		velocity:Destroy()

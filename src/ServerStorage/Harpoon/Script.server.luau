@@ -163,7 +163,7 @@ script.Parent.Activated:Connect(function()
 		local Action = Instance.new("Accessory")
 		Action.Name = "Action"
 		Action.Parent = Character
-		if not _G.Debris then repeat task.wait() until _G.Debris end
+		if not _G.Debris then repeat task.wait(1/30) until _G.Debris end
 		_G.Debris:AddItem(Action,1)
 		local Mouse = _G.MouseData(Player)
 		if not Mouse then
@@ -205,13 +205,13 @@ script.Parent.Activated:Connect(function()
 							WeldThing.Parent = Trident
 							local antihit = Instance.new("Accessory", lasttarget)
 							antihit.Name = Character.Name.. "Harpoon"
-							if not _G.Debris then repeat task.wait() until _G.Debris end
+							if not _G.Debris then repeat task.wait(1/30) until _G.Debris end
 							_G.Debris:AddItem(antihit, 3)
 							local harpooned = Instance.new("Accessory", lasttarget)
 							harpooned.Name = Character.Name.. "Harpooned"
-							if not _G.Debris then repeat task.wait() until _G.Debris end
+							if not _G.Debris then repeat task.wait(1/30) until _G.Debris end
 							_G.Debris:AddItem(harpooned, 30)
-							if not _G.Debris then repeat task.wait() until _G.Debris end
+							if not _G.Debris then repeat task.wait(1/30) until _G.Debris end
 							_G.Debris:AddItem(Trident, 40)
 							task.delay(20, function()
 								if Trident.Parent == nil then
@@ -224,16 +224,16 @@ script.Parent.Activated:Connect(function()
 								BubbleAura.Lifetime = NumberRange.new(1.5, 2)
 								BubbleAura.Speed = NumberRange.new(20, 100)
 								BubbleAura:Emit(30)
-								if not _G.Debris then repeat task.wait() until _G.Debris end
+								if not _G.Debris then repeat task.wait(1/30) until _G.Debris end
 								_G.Debris:AddItem(BubbleAura,1)
-								if not _G.Debris then repeat task.wait() until _G.Debris end
+								if not _G.Debris then repeat task.wait(1/30) until _G.Debris end
 								_G.Debris:AddItem(Trident,3)
 							end)
 							break
 						else
 							local antihit = Instance.new("Accessory", v)
 							antihit.Name = Character.Name.. "Harpoon"
-							if not _G.Debris then repeat task.wait() until _G.Debris end
+							if not _G.Debris then repeat task.wait(1/30) until _G.Debris end
 							_G.Debris:AddItem(antihit, 3)
 							TagHumanoid:Fire(Character,v, dmgtable)
 							break
@@ -261,9 +261,9 @@ script.Parent.Activated:Connect(function()
 			BubbleAura.Lifetime = NumberRange.new(1.5, 2)
 			BubbleAura.Speed = NumberRange.new(20, 100)
 			BubbleAura:Emit(30)
-			if not _G.Debris then repeat task.wait() until _G.Debris end
+			if not _G.Debris then repeat task.wait(1/30) until _G.Debris end
 			_G.Debris:AddItem(BubbleAura,1)
-			if not _G.Debris then repeat task.wait() until _G.Debris end
+			if not _G.Debris then repeat task.wait(1/30) until _G.Debris end
 			_G.Debris:AddItem(Trident,3)
 		end)
 	end)

@@ -83,7 +83,7 @@ local Sound = car.Chassis.Sound
 
 spawn(function()
 	while true do
-		task.wait()
+		task.wait(1/30)
 		for _, thruster in next, Thrusters do
 			UpdateThruster(thruster)
 		end

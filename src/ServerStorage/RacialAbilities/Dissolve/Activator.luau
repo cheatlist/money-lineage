@@ -97,7 +97,7 @@ function v1.Active(p2, p3, p4, p5)
 			v14:Play();
 			local v16 = 0;
 			while true do
-				v16 += task.wait();
+				v16 += task.wait(1/30);
 				v4 = p2:FindFirstChild("Stun") or game.CollectionService:HasTag(p2, "Knocked");
 				if v16 >= 2 then
 					break;

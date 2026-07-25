@@ -71,7 +71,7 @@ function v1.Activate(p3, p4, p5, p6)
 						end
 					end
 				end
-				task.wait();
+				task.wait(1/30);
 				if tick() - v9 > 2.5 then
 					break;
 				end;
@@ -187,7 +187,7 @@ function v2.Activate(p8, p9, p10, p11, p12)
 						end
 					end
 				end
-				task.wait();
+				task.wait(1/30);
 				if tick() - v9 > 0 then
 					break;
 				end;

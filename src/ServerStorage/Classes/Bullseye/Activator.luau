@@ -204,7 +204,7 @@ function v2.Active(p1, p2, p3, p4)
 			l__WOOP__26:Stop()
 		end)
 	end
-	task.wait()
+	task.wait(1/30)
 	u2 = true
 end
 return v2

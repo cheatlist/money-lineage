@@ -168,7 +168,7 @@ function v6.Active2(p6, p7, p8, p9)
 		if p6:FindFirstChild("Stun") then
 			v42 = true
 		end
-		task.wait()
+		task.wait(1/30)
 		if tick() - v41 > 0.7 then
 			break
 		end

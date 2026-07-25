@@ -68,7 +68,7 @@ function v1.Active(p1, p2, p3, p4)
 		if p1:FindFirstChild("Stun") then
 			v11 = true;
 		end;
-		task.wait();
+		task.wait(1/30);
 		if tick() - v10 > 0.3 then
 			break;
 		end;
@@ -101,7 +101,7 @@ function v1.Active(p1, p2, p3, p4)
 	local v16 = tick();
 	local v17 = nil;
 	while true do
-		task.wait();
+		task.wait(1/30);
 		if v12 and v12.Parent and tick() - v16 > 0.4 then
 			v6:AdjustSpeed(1);
 		end;

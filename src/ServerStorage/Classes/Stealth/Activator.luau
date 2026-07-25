@@ -54,7 +54,7 @@ function v1.Active(p1, p2, p3, p4)
 	v13.Parent = p1.Boosts;
 	local v14 = tick();
 	while true do
-		task.wait();
+		task.wait(1/30);
 		local v15 = p1:FindFirstChild("Action");
 		if not v15 then
 			v15 = p1:FindFirstChild("LightAttack");

@@ -90,8 +90,8 @@ function v1.Active(p5, p6, p7, p8)
 
 	part.CFrame = cfBegin
 
-	task.wait()
-	task.wait()
+	task.wait(1/30)
+	task.wait(1/30)
 
 	local lerp = 0
 
@@ -107,7 +107,7 @@ function v1.Active(p5, p6, p7, p8)
 		pe.Speed = NumberRange.new(rt * velocityVal)
 		pe2.Speed = NumberRange.new(rt * velocityVal)
 		tLast = t
-		task.wait()
+		task.wait(1/30)
 	end
 	--[[u3 = false;
 	local v8 = Instance.new("Accessory");

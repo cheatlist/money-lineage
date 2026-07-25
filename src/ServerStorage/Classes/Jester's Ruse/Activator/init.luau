@@ -33,16 +33,16 @@ function v7.Active(p2, p3, p4, p5)
 	local v12 = Instance.new("Accessory")
 	v12.Name = "Action"
 	v12.Parent = p2
-	if not _G.Debris then repeat task.wait() until _G.Debris end
+	if not _G.Debris then repeat task.wait(1/30) until _G.Debris end
 _G.Debris:AddItem(v12, 0.5)
 	local v13 = l__Parent__1.Windup:Clone()
 	v13.Parent = l__HumanoidRootPart__11
 	v13:Play()
-	if not _G.Debris then repeat task.wait() until _G.Debris end
+	if not _G.Debris then repeat task.wait(1/30) until _G.Debris end
 _G.Debris:AddItem(v13, 3)
 	local v14 = 0
 	while true do
-		v14 = v14 + task.wait()
+		v14 = v14 + task.wait(1/30)
 		v8 = p2:FindFirstChild("Stun") or game.CollectionService:HasTag(p2, "Knocked")
 		if v14 >= 1 then
 			break
@@ -55,17 +55,17 @@ _G.Debris:AddItem(v13, 3)
 		local v16 = Instance.new("Accessory")
 		v16.Name = "ErasingTime"
 		v16.Parent = p2
-		if not _G.Debris then repeat task.wait() until _G.Debris end
+		if not _G.Debris then repeat task.wait(1/30) until _G.Debris end
 		_G.Debris:AddItem(v16,8)
 		local antikill = Instance.new("Folder",v19)
 		antikill.Name = "NoKill"
-		if not _G.Debris then repeat task.wait() until _G.Debris end
+		if not _G.Debris then repeat task.wait(1/30) until _G.Debris end
 		_G.Debris:AddItem(antikill,120)
 		local v17 = Instance.new("ObjectValue")
 		v17.Name = "TIMEERASEDBY"
 		v17.Value = p2
 		v17.Parent = game.ReplicatedStorage
-		if not _G.Debris then repeat task.wait() until _G.Debris end
+		if not _G.Debris then repeat task.wait(1/30) until _G.Debris end
 		_G.Debris:AddItem(v17,8)
 		for _,v22 in pairs(workspace.Live:GetChildren())do
 			if v22:FindFirstChild("HumanoidRootPart") and (v22.HumanoidRootPart.Position - l__HumanoidRootPart__11.Position).Magnitude <= 100 and game.Players:GetPlayerFromCharacter(v22) then
@@ -78,19 +78,19 @@ _G.Debris:AddItem(v13, 3)
 					local abc = Instance.new("Accessory")
 					abc.Name = "Action"
 					abc.Parent = v22
-					if not _G.Debris then repeat task.wait() until _G.Debris end
+					if not _G.Debris then repeat task.wait(1/30) until _G.Debris end
 					_G.Debris:AddItem(abc,8)
 
 					local abc = Instance.new("Accessory")
 					abc.Name = "TimeEraseVictim"
 					abc.Parent = v22
-					if not _G.Debris then repeat task.wait() until _G.Debris end
+					if not _G.Debris then repeat task.wait(1/30) until _G.Debris end
 					_G.Debris:AddItem(abc,8)
 					
 					local abc = Instance.new("Accessory")
 					abc.Name = "MustSprint"
 					abc.Parent = v22
-					if not _G.Debris then repeat task.wait() until _G.Debris end
+					if not _G.Debris then repeat task.wait(1/30) until _G.Debris end
 					_G.Debris:AddItem(abc,8)
 				end
 			end		

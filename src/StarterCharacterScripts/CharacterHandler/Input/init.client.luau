@@ -54,7 +54,7 @@ end)
 game.ReplicatedStorage.Requests.ClearDashVelo.OnClientEvent:Connect(function()
 	for i,v in pairs(LocalPlayer.Character.HumanoidRootPart:GetChildren()) do
 		if v:IsA("BodyVelocity") then
-			task.wait()
+			task.wait(1/30)
 			v:Destroy()
 		end
 	end
@@ -1640,7 +1640,7 @@ Requests.JesterRuse.OnClientEvent:Connect(function(duration)
 		Humanoid:MoveTo((Origin * CFrame.new(0,0,-10)).Position)
 		Origin = Origin * CFrame.Angles(0,math.rad(5),0)
 		Sprint(true)
-		task.wait()
+		task.wait(1/30)
 		local num = math.random(1,15)
 		if num == 2 then
 			Humanoid.Jump = true
@@ -2218,7 +2218,7 @@ RenderStepLoop = RunService.RenderStepped:Connect(function()
 	end
 	--debug.profileend("Overlay ESP")
 	local v371 = u97()
-	if HumanoidRootPart.Velocity.y < -40 and not FallDamage and not v371 and not Climbing and not FindFirstChild(Character,"Knocked") and not FindFirstChild(Character,"Unconscious") then
+	if HumanoidRootPart.Velocity.y < -40 and not FallDamage and not v371 and not Climbing and not FindFirstChild(Character,"Knocked") and not FindFirstChild(Character,"Unconscious") and not FindFirstChild(Character,"NoStun") then
 		u99(true)
 	elseif (HumanoidRootPart.Velocity.y > -2 or v371) and FallDamage then
 		u99(false)

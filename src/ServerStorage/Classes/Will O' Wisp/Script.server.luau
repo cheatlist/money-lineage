@@ -96,7 +96,7 @@ script.Parent.Activated:Connect(function()
 				local Action = Instance.new("Accessory")
 				Action.Name = "Action"
 				Action.Parent = Character
-				task.wait()
+				task.wait(1/30)
 				Nearest.Humanoid.AutoRotate = false; Character.Humanoid.AutoRotate = false
 				Anchor(Character, true)
 				Nearest.HumanoidRootPart.CFrame = Character.HumanoidRootPart.CFrame * CFrame.new(0, -1, 0) * CFrame.Angles(0, math.pi, 0)

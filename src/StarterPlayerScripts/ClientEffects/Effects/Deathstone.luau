@@ -14,7 +14,7 @@ local function Curve(Part, Start, Mid, End)
 
 			game.TweenService:Create(Part, TweenInfo.new(0.1), {CFrame = Next}):Play()
 
-			task.wait()
+			task.wait(1/30)
 		end
 
 		-- Part.Attachment.TestTrail1.Enabled = false

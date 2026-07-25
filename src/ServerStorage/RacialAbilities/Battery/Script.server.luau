@@ -48,7 +48,7 @@ script.Parent.Activated:Connect(function()
 			end
 			local cantgetragdolled = p1.ChildAdded:Connect(function(v)
 				if v.Name == "Knocked"or v.Name == "Unconscious"or v.Name == "Action"or v.Name == "NoDam"or v.Name == "FreezeRoot"then
-					task.wait()
+					task.wait(1/30)
 					v:Destroy()
 				end
 			end)

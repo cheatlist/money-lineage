@@ -176,7 +176,7 @@ if PlayerData.Lives.Value>0 then
 					ic:Clone().Parent = Player.Backpack
 				else
 					Commands.RemoveFromInventory(Player,ic.Name)
-					task.wait()
+					task.wait(1/30)
 				end
 			else
 				if not game.ServerStorage.Alchemy.Models:FindFirstChild(inventory[i]) then continue end
@@ -205,7 +205,7 @@ if PlayerData.Lives.Value>0 then
 				ingTool.Parent = Player.Backpack
 			end
 			if i > 60 then
-				task.wait()
+				task.wait(1/30)
 			end
 		end
 	end
@@ -256,7 +256,7 @@ local function changetransparency(v,transparency)
 	end
 end
 
-task.wait()
+task.wait(1/30)
 if PlayerData.Class.Value == "Faceless" or PlayerData.Skills.Value:find("ShadowDash") then
 	for i,v in pairs(Character.Head:GetChildren()) do
 		if (v.ClassName == "Decal" and game.ReplicatedStorage.Assets.Faces:FindFirstChild(v.Name)) or v.Name == "face" then
@@ -827,7 +827,7 @@ if table.find(ultraclass3, PlayerData.Class.Value) or PlayerData.Hybrid.Value ~=
 end
 if PlayerData.Lives.Value>0 or Player:FindFirstChild("LichSummon") or Character:FindFirstChild("LichSummon") then
 	repeat
-		task.wait()
+		task.wait(1/30)
 		Character.Parent = workspace.Live
 	until Character.Parent == workspace.Live
 	Character:WaitForChild("Humanoid")
@@ -907,7 +907,7 @@ if PlayerData.Lives.Value>0 or Player:FindFirstChild("LichSummon") or Character:
 	end
 else
 	repeat
-		task.wait()
+		task.wait(1/30)
 		Character.Parent = workspace.Dead
 	until Character.Parent == workspace.Dead
 	PlayerData.Lives.Value = 0
@@ -922,7 +922,7 @@ game:GetService("Debris"):AddItem(tpsafe,1)
 Character:PivotTo(tpcf *CFrame.new(0,2,0))
 -- stujpid fix
 
-repeat task.wait()until not FindFirstChild(Character,"NotLoaded")
+repeat task.wait(1/30)until not FindFirstChild(Character,"NotLoaded")
 
 if PlayerData.Gender.Value == "Female" then
 	local facial = game.ReplicatedStorage.Assets.FacialMarkings
@@ -1228,7 +1228,7 @@ Remotes.LeftClick.OnServerEvent:Connect(function(p,hit,target)
 		return
 	end
 	m1(Character,Player,combatanims,PlayerData)
-	task.wait()
+	task.wait(1/30)
 	canattack = true
 end)
 local heavycombo = 1
@@ -1890,7 +1890,7 @@ Remotes.Dodge.OnServerEvent:Connect(function(p,axis,Type)
 			else
 				Character:SetPrimaryPartCFrame(HumanoidRootPart.CFrame*CFrame.new(0,1.5,0)+Humanoid.MoveDirection*dashRange)
 			end
-			task.wait()
+			task.wait(1/30)
 			HumanoidRootPart.ShadowEmitter:Emit(30)
 		else
 			--ban
@@ -2148,7 +2148,7 @@ Remotes.ApplyFallDamage.OnServerEvent:Connect(function(p,Value)
 		downbypass = true,
 		nododge = true,
 	}
-	task.wait()
+	task.wait(1/30)
 	TagHumanoid:Fire(Character,Character, falltable)
 end)
 if PlayerData.Ascended.Value == true then
@@ -2206,7 +2206,7 @@ Remotes.Carry.OnServerEvent:Connect(function(p)
 				bg.Name = "beinggrabbed"
 				bg.Parent = NPC
 				Humanoid:LoadAnimation(combatanims.Pickup):Play()
-				task.wait()
+				task.wait(1/30)
 				local a = Instance.new("Folder")
 				a.Name = "Action"
 				a.Parent = Character
@@ -2338,7 +2338,7 @@ Remotes.Execution.OnServerEvent:Connect(function(p)
 						v:Destroy()
 					end
 				end
-				task.wait()
+				task.wait(1/30)
 				CollectionService:AddTag(NPC, "BeingExecuted")
 				local cframe = HumanoidRootPart.CFrame
 				--Character:SetPrimaryPartCFrame(cframe)
@@ -2796,7 +2796,7 @@ Character.ChildAdded:Connect(function(Child)
 				if not Child or not Child.Parent then
 					break
 				end
-				task.wait()
+				task.wait(1/30)
 			end
 			Humanoid.AutoRotate = true
 		end)
@@ -2904,7 +2904,7 @@ Character.ChildAdded:Connect(function(Child)
 			create("Ungrab", 0.5, Character.Interrogated.Value)
 		end
 		if Character:FindFirstChild("AntiBurn") then
-			task.wait()
+			task.wait(1/30)
 			Commands.StopBurn(Character)
 		end
 	end
@@ -2991,7 +2991,7 @@ Character.ChildAdded:Connect(function(Child)
 			towalk = ((Humanoid.MoveDirection).Unit * 3000)
 		end
 		task.spawn(function()
-			repeat task.wait() Humanoid.WalkToPoint = towalk Humanoid:MoveTo(towalk) until not Child or not Child.Parent or not Character
+			repeat task.wait(1/30) Humanoid.WalkToPoint = towalk Humanoid:MoveTo(towalk) until not Child or not Child.Parent or not Character
 			game.ReplicatedStorage.Requests.Dominused:FireClient(Player, false)
 			Humanoid.WalkToPoint = HumanoidRootPart.Position
 			Humanoid:MoveTo(HumanoidRootPart.Position)
@@ -3071,7 +3071,7 @@ Character.ChildAdded:Connect(function(Child)
 	elseif Child.Name == "ActiveCast" then
 		repeat
 			Character.Mana.Value -= 1
-			task.wait()
+			task.wait(1/30)
 			if FindFirstChild(Character,"ActiveCast") then
 				task.wait(0.09)
 			end
@@ -3091,7 +3091,7 @@ Character.ChildAdded:Connect(function(Child)
 				return
 			end
 			if Mana.Value >= Mana.MaxValue then
-				task.wait()
+				task.wait(1/30)
 				if FindFirstChild(Character,"Charge")then
 					FindFirstChild(Character,"Charge"):Destroy()
 				end
@@ -3201,7 +3201,7 @@ Character.ChildAdded:Connect(function(Child)
 			RagdollModule.Ragdoll(Character,true)
 		elseif Child.Name == "Knocked" and not Character:FindFirstChild("Unconscious") and Character:FindFirstChild("HyperArmor") and not Character:FindFirstChild("Grabbed") and not Character:FindFirstChild("antinostun") then
 			RagdollModule.Ragdoll(Character,false)
-			task.wait()
+			task.wait(1/30)
 			Child:Destroy()
 			if Character:FindFirstChild("truehyper") then
 				local children = GetChildren(HumanoidRootPart)
@@ -3259,7 +3259,7 @@ Remotes.Sprint.OnServerEvent:Connect(function(plr, a)
 		for i = 1,#children do
 			local v = children[i]
 			if v.Name == "SpellBlocking" or v.Name == "MonShield" then
-				task.wait()
+				task.wait(1/30)
 				manashielddown()
 				unblock(Player)
 			end
@@ -3268,12 +3268,12 @@ Remotes.Sprint.OnServerEvent:Connect(function(plr, a)
 		spawn(function()
 			for i = 1,4 do
 				if FindFirstChild(Character, "SpellBlocking") then
-					task.wait()
+					task.wait(1/30)
 					manashielddown()
 					unblock(Player)
 				end
 				if FindFirstChild(Character, "MonShield") then
-					task.wait()
+					task.wait(1/30)
 					manashielddown()
 					unblock(Player)
 				end
@@ -3319,7 +3319,7 @@ Character.ChildRemoved:Connect(function(Child)
 		if Child:FindFirstChild("PrimaryWeapon")then
 			create("MoveCancel", 0.7, Character)
 		end
-		repeat task.wait()until Child.Parent~=Character
+		repeat task.wait(1/30)until Child.Parent~=Character
 		if WEAPON and (WEAPON.Name == "Katana" or WEAPON.Name == "Murasama") and Child:FindFirstChild("RequiresWeapon") and Child.RequiresWeapon.Value == "Katana" and not PlayerData.Skills.Value:find("Sheathe Mastery") then
 			task.wait(0.3)
 			local c = GetChildren(Character)
@@ -3815,7 +3815,7 @@ Player.Chatted:Connect(function(Message)
 end)
 Character.HumanoidRootPart.ChildAdded:Connect(function(child)
 	if child.ClassName == "BodyVelocity" and Character:FindFirstChild("noveloc") then
-		task.wait()
+		task.wait(1/30)
 		child:Destroy()
 	end
 end)
@@ -3875,7 +3875,7 @@ local Recent = tick()
 
 PlayerData.Lives.Changed:Connect(function()
 	game.ReplicatedStorage.Requests.LivesChanged:FireClient(Player,PlayerData.Lives.Value)
-	task.wait()
+	task.wait(1/30)
 	if PlayerData.Lives.Value == 0 and not Player:FindFirstChild("LichSummon") then
 		Character.Parent = workspace.Dead
 		local v1 = game.ServerStorage.Assets.Permadeath:Clone()
@@ -3920,7 +3920,7 @@ end)
 require(script.Modules.Vampirism)(Character, Player, PlayerData, CollectionService, HasTag, Boosts, FindFirstChild, TagHumanoid)
 
 PlayerData.LastName.Changed:Connect(function()
-	task.wait()
+	task.wait(1/30)
 	Humanoid.DisplayName = tostring(PlayerData.FirstName.Value)
 	if PlayerData.UberTitle.Value ~= "" then
 		Humanoid.DisplayName = tostring(PlayerData.FirstName.Value)..", "..tostring(PlayerData.UberTitle.Value)
@@ -3958,7 +3958,7 @@ PlayerData.LastName.Changed:Connect(function()
 	)
 end)
 PlayerData.FirstName.Changed:Connect(function()
-	task.wait()
+	task.wait(1/30)
 	Humanoid.DisplayName = tostring(PlayerData.FirstName.Value)
 	if PlayerData.UberTitle.Value ~= "" then
 		Humanoid.DisplayName = tostring(PlayerData.FirstName.Value)..", "..tostring(PlayerData.UberTitle.Value)
@@ -3996,7 +3996,7 @@ PlayerData.FirstName.Changed:Connect(function()
 	)
 end)
 PlayerData.UberTitle.Changed:Connect(function()
-	task.wait()
+	task.wait(1/30)
 	Humanoid.DisplayName = tostring(PlayerData.FirstName.Value)
 	if PlayerData.UberTitle.Value ~= "" then
 		Humanoid.DisplayName = tostring(PlayerData.FirstName.Value)..", "..tostring(PlayerData.UberTitle.Value)
@@ -4072,7 +4072,7 @@ Character.Toxicity.Changed:Connect(function()
 				end
 			end
 		end
-		task.wait()
+		task.wait(1/30)
 
 
 		for _,v in pairs(Character:GetChildren())do

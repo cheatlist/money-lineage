@@ -111,7 +111,7 @@ function v1.Activate(p4, p5, p6, p7)
 			if p12.Name == "ContrariumTag" then
 				if u6 then
 					while true do
-						task.wait();
+						task.wait(1/30);
 						if not u6 then
 							break;
 						end;					

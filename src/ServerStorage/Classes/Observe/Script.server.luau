@@ -88,7 +88,7 @@ script.Parent.Activated:Connect(function()
 		local observeplr = nil
 
 		task.spawn(function()
-			repeat task.wait() until not observestate 
+			repeat task.wait(1/30) until not observestate 
 				or ActionCheck(char) 
 				or script.Parent.Parent ~= char 
 			game.ReplicatedStorage.Observe:FireClient(player, nil, true)

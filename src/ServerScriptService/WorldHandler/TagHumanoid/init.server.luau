@@ -104,7 +104,7 @@ function taghumanoid(character,enemy,info)
 	end
 	if FindFirstChild(enemy,"TimeStopped")then
 		info.downbypass = true
-		repeat task.wait() until not FindFirstChild(enemy,"TimeStopped")
+		repeat task.wait(1/30) until not FindFirstChild(enemy,"TimeStopped")
 	end
 	if FindFirstChild(enemy, "Expansion") then
 		if info.damage and info.damage > 0 then
@@ -275,7 +275,7 @@ function taghumanoid(character,enemy,info)
 			end
 		elseif character:FindFirstChild("decomposingrn") then
 			task.spawn(function()
-				repeat task.wait() until not character:FindFirstChild("decomposingrn")
+				repeat task.wait(1/30) until not character:FindFirstChild("decomposingrn")
 				task.wait(1)
 				for i,v in pairs(character:GetDescendants()) do
 					if v.Name == "FreezeRoot" or v.Name == "Planted" or v.Name == "Hardened" or v.Name == "Action" or (v.Name == "HealthRegen" and v.Parent == character.Boosts) or (v.Name == "ClickDetector" and v.Parent == character.Head)  then
@@ -588,7 +588,7 @@ function taghumanoid(character,enemy,info)
 		task.delay(1.5, function()
 			for i,v in pairs(enemy:GetChildren()) do
 				if v.Name == "WakingUp" then
-					task.wait()
+					task.wait(1/30)
 					v:Destroy()
 				end
 			end
@@ -617,7 +617,7 @@ function taghumanoid(character,enemy,info)
 		task.delay(1.5, function()
 			for i,v in pairs(enemy:GetChildren()) do
 				if v.Name == "WakingUp" then
-					task.wait()
+					task.wait(1/30)
 					v:Destroy()
 				end
 			end
@@ -643,7 +643,7 @@ function taghumanoid(character,enemy,info)
 		create("Knocked", 1.5, enemy)
 		for i,v in pairs(enemy:GetChildren()) do
 			if v.Name == "WakingUp" then
-				task.wait()
+				task.wait(1/30)
 				v:Destroy()
 			end
 		end
@@ -701,7 +701,7 @@ function taghumanoid(character,enemy,info)
 
 					for i = 1, 6 do
 						Humanoid.Health = math.min(Humanoid.MaxHealth, Humanoid.Health - 1.25 * curseCount)
-						task.wait()
+						task.wait(1/30)
 					end
 				end)()
 				for i,v in pairs(enemy.HumanoidRootPart:GetChildren()) do
@@ -726,11 +726,11 @@ function taghumanoid(character,enemy,info)
 		local Action = FindFirstChild(enemy,"HeavyAttack")
 		local Stun = FindFirstChild(enemy, "Action")
 		if Action then
-			task.wait()
+			task.wait(1/30)
 			Action:Destroy()
 		end
 		if Stun then
-			task.wait()
+			task.wait(1/30)
 			Stun:Destroy()
 		end
 		info = {damage = 10, physical = true, manabreaker = true, slash = true, blade = true}
@@ -749,11 +749,11 @@ function taghumanoid(character,enemy,info)
 		local COUNTERED = humanoid:LoadAnimation(Assets.Sword.FULLPARRY.COUNTERED)
 		COUNTERED:Play()
 		if Action then
-			task.wait()
+			task.wait(1/30)
 			Action:Destroy()
 		end
 		if Stun then
-			task.wait()
+			task.wait(1/30)
 			Stun:Destroy()
 		end
 		enemy = character
@@ -1258,7 +1258,7 @@ function taghumanoid(character,enemy,info)
 
 						for i = 1, 6 do
 							Humanoid.Health = math.min(Humanoid.MaxHealth, Humanoid.Health + 1.5)
-							task.wait()
+							task.wait(1/30)
 						end
 					end)()
 				end
@@ -1708,7 +1708,7 @@ function taghumanoid(character,enemy,info)
 								if enemy:FindFirstChild("DodgeCancel") then
 									break
 								end
-								task.wait()
+								task.wait(1/30)
 							end
 
 						else
@@ -1728,7 +1728,7 @@ function taghumanoid(character,enemy,info)
 							old = enemy.Torso.Transparency
 							task.wait(0.0455)
 						end
-						task.wait()
+						task.wait(1/30)
 						for i = 0.3,0,-0.1 do
 							if enemy.Torso.Transparency ~= old then
 								break
@@ -2225,7 +2225,7 @@ function taghumanoid(character,enemy,info)
 
 													for i = 1, 6 do
 														Humanoid.Health = math.min(Humanoid.MaxHealth, Humanoid.Health + 1.5)
-														task.wait()
+														task.wait(1/30)
 													end
 												end)()
 											end
@@ -2685,7 +2685,7 @@ function taghumanoid(character,enemy,info)
 		if FindFirstChild(enemy, "Dissolved") then
 			for i,v in pairs(enemy:GetChildren()) do
 				if v.Name == "Dissolved" then
-					task.wait()
+					task.wait(1/30)
 					v:Destroy()
 				end
 			end
@@ -2724,8 +2724,10 @@ function taghumanoid(character,enemy,info)
 				end
 			elseif info.damage >= humanoid.Health + 100 then
 				-- don't let a ragdoll-physics-inflated fall reading finish off someone
-				-- who's already down from combat with no attacker to show for it
-				if not enemy:FindFirstChild("Knocked") and not enemy:FindFirstChild("Unconscious") then
+				-- who's already down from combat with no attacker to show for it -- NoStun
+				-- is the same brief post-wakeup grace tag CharacterHandler creates the instant
+				-- Knocked clears, since a stale/queued reading can still land in that gap too
+				if not enemy:FindFirstChild("Knocked") and not enemy:FindFirstChild("Unconscious") and not enemy:FindFirstChild("NoStun") then
 					_G.Death(Player)
 				end
 			end
@@ -2749,7 +2751,7 @@ function taghumanoid(character,enemy,info)
 					create("Knocked",0.25,character)
 				end
 			elseif info.damage >= humanoid.Health + 400 then
-				if not enemy:FindFirstChild("Knocked") and not enemy:FindFirstChild("Unconscious") then
+				if not enemy:FindFirstChild("Knocked") and not enemy:FindFirstChild("Unconscious") and not enemy:FindFirstChild("NoStun") then
 					_G.Death(Player)
 				end
 			end
@@ -2970,7 +2972,7 @@ function taghumanoid(character,enemy,info)
 						end
 					end
 				end
-				task.wait()
+				task.wait(1/30)
 
 
 				for _,v in pairs(enemy:GetChildren())do

@@ -6052,7 +6052,7 @@ dialogues["Corpse"].v1 = function(p,v)
 				_G.Death(p,nil,nil,true)
 				p.Character.Humanoid.Health = 0
 				p.Character.HumanoidRootPart.Backfire:Play()
-				task.wait()
+				task.wait(1/30)
 				coroutine.wrap(function()
 					for i,bruh in pairs(p.Character:GetChildren()) do
 						if bruh:IsA("Shirt") or bruh:IsA("Pants") then
@@ -11300,34 +11300,25 @@ function dialogues.Knight.v1(p,v)
 	elseif v.page == 2 then
 		if v.choice == "I embrace the venom." then
 			commands.Learn(p.Character)
-			local randomnumber = math.random(1,10)
-			if randomnumber == 1 then data.UberTitle.Value = "The Plaguebearer"
-			elseif randomnumber == 2 then data.UberTitle.Value = "Rotwalker"
-			elseif randomnumber == 3 then data.UberTitle.Value = "Venomkin"
-			elseif randomnumber == 4 then data.UberTitle.Value = "The Withering"
-			elseif randomnumber == 5 then data.UberTitle.Value = "Toxinbound"
-			elseif randomnumber == 6 then data.UberTitle.Value = "The Sepsis"
-			elseif randomnumber == 7 then data.UberTitle.Value = "Blightcaller"
-			elseif randomnumber == 8 then data.UberTitle.Value = "The Contagion"
-			elseif randomnumber == 9 then data.UberTitle.Value = "Miasma"
-			elseif randomnumber == 10 then data.UberTitle.Value = "The Festering"
+			local randomnumber = math.random(1,6)
+			if randomnumber == 1 then data.UberTitle.Value = "Mamba"
+			elseif randomnumber == 2 then data.UberTitle.Value = "Suffocator"
+			elseif randomnumber == 3 then data.UberTitle.Value = "Strangler"
+			elseif randomnumber == 4 then data.UberTitle.Value = "Breathtaker"
+			elseif randomnumber == 5 then data.UberTitle.Value = "Pathogen"
+			elseif randomnumber == 6 then data.UberTitle.Value = "Hazardous"
 			end
 			data.Skills.Value ..= ",TheToxin,Septic Burst"
 			commands.UpdateSkills(p)
 			return dialogues.Knight.venomembrace
 		elseif v.choice == "Show me the blade." then
 			commands.Learn(p.Character)
-			local randomnumber = math.random(1,10)
-			if randomnumber == 1 then data.UberTitle.Value = "The Fangbearer"
-			elseif randomnumber == 2 then data.UberTitle.Value = "Twinblade"
-			elseif randomnumber == 3 then data.UberTitle.Value = "The Unseen"
-			elseif randomnumber == 4 then data.UberTitle.Value = "Bladedancer"
-			elseif randomnumber == 5 then data.UberTitle.Value = "The Flurry"
-			elseif randomnumber == 6 then data.UberTitle.Value = "Silverfang"
-			elseif randomnumber == 7 then data.UberTitle.Value = "The Whisperblade"
-			elseif randomnumber == 8 then data.UberTitle.Value = "Duskrunner"
-			elseif randomnumber == 9 then data.UberTitle.Value = "The Severing"
-			elseif randomnumber == 10 then data.UberTitle.Value = "Nightfang"
+			local randomnumber = math.random(1,5)
+			if randomnumber == 1 then data.UberTitle.Value = "Psycho"
+			elseif randomnumber == 2 then data.UberTitle.Value = "Maniac"
+			elseif randomnumber == 3 then data.UberTitle.Value = "Curtain of Red"
+			elseif randomnumber == 4 then data.UberTitle.Value = "Perforator"
+			elseif randomnumber == 5 then data.UberTitle.Value = "Bladedancer"
 			end
 			-- no Tool grant here: Twinfang is bought, not taught (see dialogues.shop's
 			-- "Twinfang" gate above, which checks this exact skill string)
@@ -11337,7 +11328,13 @@ function dialogues.Knight.v1(p,v)
 			commands.Learn(p.Character)
 			-- TheMaster path gets no random UberTitle like the other two paths - just a fixed
 			-- nickname replacing whatever "Faceless One"/"Fungless One" page 3 set
-			data.FirstName.Value = "The Faceless"
+			local randomnumber = math.random(1,5)
+			if randomnumber == 1 then data.UberTitle.Value = "Master Assassin"
+			elseif randomnumber == 2 then data.UberTitle.Value = "Blade for Hire"
+			elseif randomnumber == 3 then data.UberTitle.Value = "Sharpest Dressed"
+			elseif randomnumber == 4 then data.UberTitle.Value = "Stalker"
+			elseif randomnumber == 5 then data.UberTitle.Value = "Ambusher"
+			end
 			data.Skills.Value ..= ",TheMaster"
 			commands.UpdateSkills(p)
 			return dialogues.Knight.masterembrace

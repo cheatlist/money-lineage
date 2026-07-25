@@ -136,7 +136,7 @@ function v1.Activate(p1, p2, p3, p4)
 			end
 		end
 		v16 = v29
-		task.wait()
+		task.wait(1/30)
 	end
 	sub(function()
 		v7:Destroy()

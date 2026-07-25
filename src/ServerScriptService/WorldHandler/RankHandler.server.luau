@@ -115,7 +115,7 @@ local function UpdateRankData()
 				end
 			end
 		end
-		task.wait()
+		task.wait(1/30)
 	end
 	Updating = false
 end

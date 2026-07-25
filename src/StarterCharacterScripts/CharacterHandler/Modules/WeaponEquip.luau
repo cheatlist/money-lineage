@@ -137,7 +137,7 @@ return function(Character, Player, PlayerData, Humanoid, HumanoidRootPart, Boost
 				if WEAPON and WEAPON:FindFirstChild("PropWeld") then
 					--local cl = WEAPON:Clone()
 					--cl.Parent = WEAPON.Parent
-					task.wait()
+					task.wait(1/30)
 					--WEAPON.Parent = nil
 					--WEAPON = cl
 					for i,v in pairs(WEAPON:GetChildren()) do

@@ -240,7 +240,7 @@ function v1.Activate(p1, p2, p3, p4)
 				v49 = p2:FindFirstChild("Stun") or (p2:FindFirstChild("Knocked") or (p2:FindFirstChild("Unconscious")and l__Parent__3.Parent ~= p2))
 			end
 			v15 = v49		
-			task.wait()
+			task.wait(1/30)
 		end
 	end
 	sub(function()

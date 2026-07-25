@@ -58,7 +58,7 @@ local function generatecode(): string
 	local codetojoin: string = generatetext()
 	if servers:GetAsync(codetojoin)then
 		while servers:GetAsync(codetojoin)do
-			task.wait()
+			task.wait(1/30)
 			codetojoin = generatetext()
 		end
 	end

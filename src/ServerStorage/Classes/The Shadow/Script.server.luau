@@ -19,7 +19,7 @@ local function invis(Target, Transparency, State)
 	if not State then
 		for i,v in pairs(Target.Boosts:GetChildren()) do
 			if v.Name == "Transparency" then
-				task.wait()
+				task.wait(1/30)
 				v:Destroy()
 			end
 		end
@@ -50,7 +50,7 @@ script.Parent.Equipped:Connect(function(Player, Character)
 			if Character.Humanoid.MoveDirection.Magnitude > 0.1 then
 				break
 			end
-			task.wait()
+			task.wait(1/30)
 		end
 		Character.Humanoid:UnequipTools()
 	end)

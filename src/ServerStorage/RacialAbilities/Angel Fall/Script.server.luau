@@ -72,7 +72,7 @@ script.Parent.Activated:Connect(function()
 	game.Debris:AddItem(v2,4)
 	p1.Humanoid:UnequipTools()
 	HumanoidRootPart.STRIKE:Play()
-	task.wait()
+	task.wait(1/30)
 	local RCP: RaycastParams = RaycastParams.new()
 	RCP.IgnoreWater = false
 	RCP.FilterType = Enum.RaycastFilterType.Whitelist
@@ -109,7 +109,7 @@ script.Parent.Activated:Connect(function()
 			p1:SetPrimaryPartCFrame(CFrame.new(Hit.Position)+Vector3.new(0,5,0))
 			p1.HumanoidRootPart.Velocity = Vector3.new()
 			p1.PrimaryPart.Velocity = Vector3.new()
-			task.wait()
+			task.wait(1/30)
 		end
 	end)
 	u3.magnitudeCheck(p1,HumanoidRootPart.Position,32,{

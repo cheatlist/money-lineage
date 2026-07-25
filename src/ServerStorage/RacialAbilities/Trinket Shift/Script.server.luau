@@ -58,7 +58,7 @@ script.Parent.Activated:Connect(function(Player, Character, Data)
 			unequipping = true
 			for i,v in pairs(Character.Boosts:GetChildren()) do
 				if v.Name == "Transparency" then
-					task.wait()
+					task.wait(1/30)
 					v:Destroy()
 				end
 			end
@@ -107,7 +107,7 @@ script.Parent.Activated:Connect(function(Player, Character, Data)
 		unequipping = true
 		for i,v in pairs(Character.Boosts:GetChildren()) do
 			if v.Name == "Transparency" then
-				task.wait()
+				task.wait(1/30)
 				v:Destroy()
 			end
 		end

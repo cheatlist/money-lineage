@@ -197,7 +197,7 @@ script.Parent.Activated:Connect(function()
 						
 						local v53 = (v46.Position - v52.HumanoidRootPart.Position).magnitude / 5;
 						for v54 = 1, math.ceil(v53) do
-							task.wait();
+							task.wait(1/30);
 							v46.CFrame = v46.CFrame:lerp(CFrame.new(v52.HumanoidRootPart.Position, PositionOriginal) * rot, v54 / v53);
 						end;
 						u8:Fire(p1, v52, {

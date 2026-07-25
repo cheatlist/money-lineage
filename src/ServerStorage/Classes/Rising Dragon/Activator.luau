@@ -300,7 +300,7 @@ function v4.Active2(p5, p6, p7, p8)
 		local v54 = tick()
 		while true do
 			v48 = not (not p5:FindFirstChild("Stun"))
-			task.wait()
+			task.wait(1/30)
 			if tick() - v54 > 0.4 then
 				break
 			end

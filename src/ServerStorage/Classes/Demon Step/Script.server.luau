@@ -52,7 +52,7 @@ script.Parent.Activated:Connect(function()
 	end
 	v2.Parent = HumanoidRootPart
 	game.Debris:AddItem(v2,0.415)
-	task.wait()
+	task.wait(1/30)
 	coroutine.wrap(function()
 		for _,v in pairs(p1:GetChildren()) do
 			if v:IsA("BasePart") then

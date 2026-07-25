@@ -32,16 +32,16 @@ function v6.Active(p2, p3, p4)
 	local v11 = Instance.new("Accessory")
 	v11.Name = "Action"
 	v11.Parent = p2
-	if not _G.Debris then repeat task.wait() until _G.Debris end
+	if not _G.Debris then repeat task.wait(1/30) until _G.Debris end
 _G.Debris:AddItem(v11,0.5)
 	local v12 = l__Parent__1.Windup:Clone()
 	v12.Parent = l__HumanoidRootPart__10
 	v12:Play()
-	if not _G.Debris then repeat task.wait() until _G.Debris end
+	if not _G.Debris then repeat task.wait(1/30) until _G.Debris end
 _G.Debris:AddItem(v12,3)
 	local v13 = 0
 	while true do
-		v13 = v13 + task.wait()
+		v13 = v13 + task.wait(1/30)
 		v7 = p2:FindFirstChild("Stun") or p2:FindFirstChild("Knocked")
 		if v13 >= 1 then
 			break
@@ -54,25 +54,25 @@ _G.Debris:AddItem(v12,3)
 		local v14 = l__Parent__1.Sound:Clone()
 		v14.Parent = l__HumanoidRootPart__10
 		v14:Play()
-		if not _G.Debris then repeat task.wait() until _G.Debris end
+		if not _G.Debris then repeat task.wait(1/30) until _G.Debris end
 _G.Debris:AddItem(v14,3)
 		for _,v19 in pairs(workspace.Live:GetChildren())do
 			if v19 ~= p2 and v19:FindFirstChild("HumanoidRootPart") and v19:FindFirstChild("Humanoid") and v19.Humanoid.Health > 0 and (l__HumanoidRootPart__10.Position - v19.HumanoidRootPart.Position).Magnitude <= 150 then
 				local v20 = Instance.new("Folder",v19)
 				v20.Name = "Action"
-				if not _G.Debris then repeat task.wait() until _G.Debris end
+				if not _G.Debris then repeat task.wait(1/30) until _G.Debris end
 _G.Debris:AddItem(v20,5)
 				local v21 = Instance.new("Folder",v19)
 				v21.Name = "TimeStopped"
-				if not _G.Debris then repeat task.wait() until _G.Debris end
+				if not _G.Debris then repeat task.wait(1/30) until _G.Debris end
 _G.Debris:AddItem(v21,5)
 				local v22 = Instance.new("Folder",v19)
 				v22.Name = "Stun"
-				if not _G.Debris then repeat task.wait() until _G.Debris end
+				if not _G.Debris then repeat task.wait(1/30) until _G.Debris end
 				_G.Debris:AddItem(v22,5)
 				local antikill = Instance.new("Folder",v19)
 				antikill.Name = "NoKill"
-				if not _G.Debris then repeat task.wait() until _G.Debris end
+				if not _G.Debris then repeat task.wait(1/30) until _G.Debris end
 				_G.Debris:AddItem(antikill,120)
 				local v23 = game.Players:GetPlayerFromCharacter(v19)
 				if v23 then

@@ -106,7 +106,7 @@ function v1.Active(p2, p3, p4, p5)
 				else
 					v17.C1 = CFrame.new(v15 + v14 / 2, 0, 0)
 				end
-				task.wait()
+				task.wait(1/30)
 			end
 			--]]
 		end)

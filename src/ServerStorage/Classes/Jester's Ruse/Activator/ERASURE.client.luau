@@ -32,7 +32,7 @@ function erasureEffect()
 			Position = UDim2.new(-1, v11.Size.X.Offset, v11.Position.Y.Scale, -v11.Size.Y.Offset / 2)
 		}):Play()
 		v11.Parent = game.Players.LocalPlayer.PlayerGui.EraseTimeGui
-		if not _G.Debris then repeat task.wait() until _G.Debris end
+		if not _G.Debris then repeat task.wait(1/30) until _G.Debris end
 _G.Debris:AddItem(v11, v12)
 		game:GetService("RunService").RenderStepped:Wait()
 		if 0 <= 1 then
@@ -73,7 +73,7 @@ _G.Debris:AddItem(v11, v12)
 						Scale = Vector3.new(0, 0, 0), 
 						Offset = Vector3.new(math.random(-1, 1) * 5, 10, math.random(-5, 5))
 					}):Play()
-					if not _G.Debris then repeat task.wait() until _G.Debris end
+					if not _G.Debris then repeat task.wait(1/30) until _G.Debris end
 _G.Debris:AddItem(v19, 8 - (tick() - v3))
 					if v17 % 8 == 0 then
 						game:GetService("RunService").RenderStepped:Wait()
@@ -133,7 +133,7 @@ _G.Debris:AddItem(v19, 8 - (tick() - v3))
 			Position = UDim2.new(-1, v25.Size.X.Offset, v25.Position.Y.Scale, -v25.Size.Y.Offset / 2)
 		}):Play()
 		v25.Parent = game.Players.LocalPlayer.PlayerGui.EraseTimeGui
-		if not _G.Debris then repeat task.wait() until _G.Debris end
+		if not _G.Debris then repeat task.wait(1/30) until _G.Debris end
 _G.Debris:AddItem(v25, v26)
 		game:GetService("RunService").RenderStepped:Wait()
 		if 0 <= 1 then

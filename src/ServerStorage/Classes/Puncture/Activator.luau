@@ -188,7 +188,7 @@ module.Active = function(v3,player, guh, wep)
 				local Action = Instance.new("Accessory")
 				Action.Name = "Action"
 				Action.Parent = v3
-				task.wait()
+				task.wait(1/30)
 				Nearest.Humanoid.AutoRotate = false; v3.Humanoid.AutoRotate = false
 				Nearest.HumanoidRootPart.CFrame = v3.HumanoidRootPart.CFrame 
 				local lol = Instance.new("Weld")
@@ -211,7 +211,7 @@ module.Active = function(v3,player, guh, wep)
 				task.wait(1)
 				bloodHit.Enabled = false
 				lol98:Stop()
-				task.wait()
+				task.wait(1/30)
 				v3.Humanoid:LoadAnimation(script.Parent.THROW):Play()
 				task.wait(0.48)
 				bloodHit:Destroy()

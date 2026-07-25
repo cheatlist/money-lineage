@@ -162,7 +162,7 @@ local RankLevels = {
 _G.GetAdminLevel = function(UserId)
 	if game:GetService("RunService"):IsStudio() then return 100 end
 	local targRank = false
-	repeat task.wait() until type(_G.AdminData) == "table"
+	repeat task.wait(1/30) until type(_G.AdminData) == "table"
 	for Rank,Members in pairs(_G.AdminData) do
 		if Members[tostring(UserId)] then
 			targRank = Rank
@@ -183,7 +183,7 @@ function hasAccess(player)
 end
 
 task.spawn(function()
-	repeat task.wait() until #game.Players:GetPlayers() > 0
+	repeat task.wait(1/30) until #game.Players:GetPlayers() > 0
 	task.wait(.15)
 	if game.ServerStorage:FindFirstChild("ReservedServer") then return end
 	if game.PlaceId == 11513319796 and game.PrivateServerId ~= "" then
@@ -923,7 +923,7 @@ local function PlayerAdded(Player)
 			end
 			Root.SpearAttach:Clone().Parent = WaitForChild(Character,"Right Arm")
 			Root.SpearAttach:Clone().Parent = WaitForChild(Character,"Left Arm")
-			task.wait()
+			task.wait(1/30)
 			Humanoid.DisplayName = tostring(PlayerData[Player.Name].FirstName.Value)
 			if PlayerData[Player.Name].UberTitle.Value ~= "" then
 				Humanoid.DisplayName = tostring(PlayerData[Player.Name].FirstName.Value)..", "..tostring(PlayerData[Player.Name].UberTitle.Value)
@@ -1656,7 +1656,7 @@ for _,v in pairs(workspace.Live:GetChildren())do
 					RagdollModule.Ragdoll(v,true)
 				elseif Child.Name == "Knocked" and not v:FindFirstChild("Unconscious") and (v:FindFirstChild("wakingup") or v:FindFirstChild("HyperArmor") and not v:FindFirstChild("antinostun")) then
 					RagdollModule.Ragdoll(v,false)
-					task.wait()
+					task.wait(1/30)
 					Child:Destroy()
 					if v:FindFirstChild("truehyper") then
 						for i,n in pairs(v:GetDescendants()) do
@@ -1707,7 +1707,7 @@ end)
 
 task.spawn(function()
 	local bypas = false
-	repeat task.wait() until #game.Players:GetPlayers() > 0 
+	repeat task.wait(1/30) until #game.Players:GetPlayers() > 0 
 	task.wait(.15)
 	local brightnessValue = game.Lighting:FindFirstChild('TimeBrightness')
 	if not brightnessValue then
@@ -1969,7 +1969,7 @@ end)
 game.ServerStorage.Requests.Respawn.Event:Connect(function(p)
 	if p.Character then
 		p.Character:Remove()
-		task.wait()
+		task.wait(1/30)
 		if p and p.Parent then
 			p:LoadCharacter()
 			local v12 = Instance.new("NumberValue");

@@ -73,7 +73,7 @@ local function giveunusedname()
 			break
 		end
 		local r = math.random(1,5)
-		if r == 3 then task.wait() end
+		if r == 3 then task.wait(1/30) end
 		iterations += 1
 		if iterations >= 200 then break end
 	end
@@ -155,7 +155,7 @@ game.ReplicatedStorage.Requests.ReturnToMenu.OnServerEvent:Connect(function(Play
 		f.Name = "ReturnToMenu"
 		f.Parent = Player
 
-		task.wait()
+		task.wait(1/30)
 		for _,v in pairs(Char:GetDescendants()) do
 			if v:IsA("Script") or v:IsA("LocalScript") then
 				v.Disabled = true

@@ -62,7 +62,7 @@ function v6.Active(p6, p7, p8, p9)
 			v12 = true
 			p6.HumanoidRootPart.Swing:Play()
 		end
-		task.wait()
+		task.wait(1/30)
 		if tick() - v11 >= 0.5 then
 			break
 		end	

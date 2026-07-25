@@ -391,7 +391,7 @@ function Janitor:LinkToInstance(Object: Instance, AllowMultiple: boolean?): RbxS
 						self:Cleanup()
 					else
 						while IsNilParented and Connection.Connected and ManualDisconnect.Connected do
-							task.wait()
+							task.wait(1/30)
 						end
 
 						if ManualDisconnect.Connected and IsNilParented then

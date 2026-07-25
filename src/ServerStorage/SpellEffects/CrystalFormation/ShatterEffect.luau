@@ -33,7 +33,7 @@ function module.spindulys(Character,p4,color)
 	local startpos = beam.Position
 	local bl = {Character}
 	beam.Touched:Connect(function() end)
-	while true do task.wait()
+	while true do task.wait(1/30)
 		beam.Size = beam.Size + Vector3.new(0,0,8)
 		beam.Size = Vector3.new(beam.Valuee.Value,beam.Valuee.Value,beam.Size.Z)
 		beam.CFrame = beam.CFrame + beam.CFrame.LookVector * 4
@@ -54,7 +54,7 @@ function module.spindulys(Character,p4,color)
 		end
 		if beam.Size.X <= 0.01 or beam.Size.Z >= (startpos-u9.Hit.p).magnitude or part then
 			coroutine.wrap(function()
-				while true do task.wait()
+				while true do task.wait(1/30)
 					beam.Size = Vector3.new(beam.Valuee.Value,beam.Valuee.Value,beam.Size.Z)
 					if beam.Size.X <= 0.01 then 
 						beam:Destroy()

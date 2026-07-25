@@ -153,7 +153,7 @@ script.Parent.Activated:Connect(function()
 			local tween = game.TweenService:Create(ring,TweenInfo.new(0.125),{
 				Size = Vector3.new(8,0.01,8)
 			}):Play()
-			task.wait()
+			task.wait(1/30)
 			for _,v in pairs(effects)do
 				v.TestTrail.Enabled = false
 				game.Debris:AddItem(v,1)

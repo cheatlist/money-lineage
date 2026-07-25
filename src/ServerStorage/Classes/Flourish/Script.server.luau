@@ -58,7 +58,7 @@ script.Parent.Activated:Connect(function()
 		while t < 0.5 do
 			v16.CFrame *= CFrame.Angles(0, math.rad(10), 0)
 			b17.CFrame *= CFrame.Angles(0, math.rad(10), 0)
-			t += task.wait()
+			t += task.wait(1/30)
 		end
 	end)
 	p1.Humanoid:LoadAnimation(script.Parent.Anim):Play()

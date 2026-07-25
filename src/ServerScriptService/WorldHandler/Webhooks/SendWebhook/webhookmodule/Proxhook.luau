@@ -85,7 +85,7 @@ function UpdateCache() : nil
 	--
 	--//  Cycle through the remaining requests  //--
 	for _, Data : Array<string> in ipairs(Cache) do
-		task.wait()
+		task.wait(1/30)
 		--
 		--//  Check if we are under the rate limit  //--
 		if (0 < RateLimit.Limit) then

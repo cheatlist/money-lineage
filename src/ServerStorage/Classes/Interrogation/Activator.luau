@@ -172,7 +172,7 @@ function carry(p11, p12)
 		});
 	end;
 	task.spawn(function()
-		while task.wait() do
+		while task.wait(1/30) do
 			if p11:FindFirstChild("Ungrab") or p12:FindFirstChild("Ungrab") then
 				break;
 			end;

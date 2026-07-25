@@ -85,7 +85,7 @@ tool.Activated:Connect(function()
 				thrown = false
 			end)
 		end
-		task.wait()
+		task.wait(1/30)
 	end
 end)
 
@@ -193,7 +193,7 @@ tool.Deactivated:Connect(function()
 						end
 					end
 				end
-				task.wait()
+				task.wait(1/30)
 			end
 		end)
 	end)

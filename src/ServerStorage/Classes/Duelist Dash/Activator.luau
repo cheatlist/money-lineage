@@ -50,7 +50,7 @@ function v2.Active(p1, p2, p3, p4)
 	game.Debris:AddItem(v7, 0.25)
 	task.wait(0.25)
 	for v8 = 1, 15 do
-		task.wait()
+		task.wait(1/30)
 		local l__ManaPistol__9 = p1:FindFirstChild("ManaPistol", true)
 		if l__ManaPistol__9 then
 			local v10 = l__ManaPistol__9.Blast:Clone()

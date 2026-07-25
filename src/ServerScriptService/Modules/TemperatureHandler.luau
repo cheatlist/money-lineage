@@ -138,7 +138,7 @@ function module.changeTemperature(character, max, add)
 			danger.Parent = player
 			debris:AddItem(danger, 30)
 
-			if character:FindFirstChild("Knocked") or character:FindFirstChild("Unconscious") then
+			if character:FindFirstChild("Knocked") or character:FindFirstChild("Unconscious") or character:FindFirstChild("NoStun") then
 				return
 			end
 			humanoid.Health -= humanoid.MaxHealth*0.02

@@ -164,7 +164,7 @@ function v1.Active(p9, p10, p11, p12)
 						if v33 ~= p9 and l__Torso__34 and l__Humanoid__35 and l__Humanoid__35.Health > 0 and not v33:FindFirstChild("ForceField") and (l__Torso__34 and (l__Torso__34.Position - l__Position__28).magnitude) < 50 then
 							local l__HumanoidRootPart__36 = l__Torso__34.Parent.HumanoidRootPart
 							u7.magnitudeCheck(p9, l__HumanoidRootPart__36.Position, 3, v27, false)
-							task.wait()
+							task.wait(1/30)
 							p9:SetPrimaryPartCFrame(l__HumanoidRootPart__36.CFrame * CFrame.new(0, 0, -3))
 							u9.Lightning(l__HumanoidRootPart__9.CFrame.p, l__HumanoidRootPart__9.Position, 1, 6, "White")
 							l__HumanoidRootPart__36.Thunderbolt:Play()
@@ -858,7 +858,7 @@ function v1.Active(p9, p10, p11, p12)
 					game.Debris:AddItem(v135, 20)
 					spawn(function()
 						while v135.Parent == l__HumanoidRootPart__9 do
-							task.wait()
+							task.wait(1/30)
 							v135.CFrame = CFrame.new(l__HumanoidRootPart__9.Position, v125.Position)						
 						end
 					end)

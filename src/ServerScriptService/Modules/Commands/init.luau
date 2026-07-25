@@ -1555,7 +1555,7 @@ commands["UpdateSkills"] = function(player)
 				end
 				local sc = tool:Clone()
 				create("Emulated",false,sc)
-				task.wait()
+				task.wait(1/30)
 				sc.Parent = player.Backpack
 			end
 		end

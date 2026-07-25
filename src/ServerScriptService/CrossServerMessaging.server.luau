@@ -57,7 +57,7 @@ end
 
 task.spawn(function()
 	local function inception()
-		task.wait()
+		task.wait(1/30)
 		local function dryhands()
 			map = ms:GetSortedMap("CrossServerMessaging")
 			while true do

@@ -484,7 +484,7 @@ open, per item:
 4. **`ActionCheck()` dedup — 118 of 130 files.** See Moves section above for exactly which 12 were
    left on their own local definition and why (each is a genuine behavioral outlier, not an
    oversight). If you add a new move file, prefer the shared module from the start.
-5. **`wait()` → `task.wait()` sweep — scoped, not exhaustive.** Only the ~135 files already touched
+5. **`wait()` → `task.wait(1/30)` sweep — scoped, not exhaustive.** Only the ~135 files already touched
    by this session's other changes were swept (444 occurrences). Repo-wide there are roughly 1000+
    remaining `wait()` calls, plus the flagged unused-local hints (`canuse`, `p2`, stray `TweenService`
    requires, etc.) across move scripts — still open, same "batch it when you're already touching the

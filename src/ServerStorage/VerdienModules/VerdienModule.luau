@@ -359,14 +359,14 @@ local function customTween(Root, step, Action, isVerdien) --// it took me a whil
 
 			rad += 20
 			Root.CFrame = CFrame.new(Root.Position + Vector3.new(0, 0.245, 0)) * CFrame.Angles(0, math.rad(rad), 0)
-			Heartbeat:Wait() task.wait() --// each step orientation y is +20, +0.245 position
+			Heartbeat:Wait() task.wait(1/30) --// each step orientation y is +20, +0.245 position
 		end
 	elseif step == 2 then
 		for i = 1, 18 do
 			if not Root.Parent then break end
 			rad -= 20
 			Root.CFrame = CFrame.new(Root.Position - Vector3.new(0, 0.3, 0)) * CFrame.Angles(0, math.rad(rad), 0)
-			Heartbeat:Wait() task.wait()
+			Heartbeat:Wait() task.wait(1/30)
 		end
 	end
 
@@ -430,7 +430,7 @@ function module:rootCharacter(Enemy, Character, SpellType, val1, val2, val3)
 	
 	
 	
-	task.wait()
+	task.wait(1/30)
 
 	if (Stunned == true) then
 		if Roots ~= nil and Roots:FindFirstChild("Crackling") then

@@ -57,7 +57,7 @@ script.Parent.Activated:Connect(function()
 	for i=1,2 do
 		addelectric(p1.Torso)
 	end
-	task.wait()
+	task.wait(1/30)
 	local ignore = {workspace.Live,workspace.Thrown}
 	local direction = Vector3.new(0,-3000,0)
 	local cframe = HumanoidRootPart.CFrame*CFrame.new(direction)
@@ -76,7 +76,7 @@ script.Parent.Activated:Connect(function()
 		v2.Name = "HeavyAttack"
 		v2.Parent = p1
 		game.Debris:AddItem(v2,2)
-		task.wait()
+		task.wait(1/30)
 		p1:SetPrimaryPartCFrame(CFrame.new(Pos)*CFrame.new(0,5,0))
 		u3.magnitudeCheck(p1,HumanoidRootPart.Position,15,{
 			mana = true,
@@ -161,7 +161,7 @@ script.Parent.Activated:Connect(function()
 			v2.Name = "HeavyAttack"
 			v2.Parent = p1
 			game.Debris:AddItem(v2,2)
-			task.wait()
+			task.wait(1/30)
 			p1:SetPrimaryPartCFrame(CFrame.new(Pos)*CFrame.new(0,5,0))
 			u3.magnitudeCheck(p1,HumanoidRootPart.Position,15,{
 				mana = true,

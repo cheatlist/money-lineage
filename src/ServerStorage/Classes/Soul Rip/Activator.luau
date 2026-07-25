@@ -100,7 +100,7 @@ function v1.Active(p1, p2, p3, p4)
 								v:Destroy()
 							end
 						end
-						task.wait()
+						task.wait(1/30)
 					end
 				end
 				--[[task.spawn(function()
