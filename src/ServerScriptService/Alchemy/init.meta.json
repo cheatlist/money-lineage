@@ -1,5 +1,8 @@
 {
   "properties": {
-    "Tags": [".CHANGED"]
-  }
+    "Tags": [
+      ".CHANGED"
+    ]
+  },
+  "keepUnknowns": true
 }

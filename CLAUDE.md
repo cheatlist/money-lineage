@@ -11,12 +11,19 @@ format is Rojo-compatible (Argon reads/writes the same schema), but the actual s
 tooling is Argon's CLI + VS Code extension. Practical implications:
 
 - `/sourcemap.json` is Argon-generated and gitignored — don't hand-edit it, don't expect it to exist.
-- Every `$path` folder in `default.project.json` has `$keepUnknowns: true`. This means **binary
-  Roblox instances (Animations, Sounds, Meshes, ParticleEmitters, NPC models, dialogue-trigger
-  parts) are NOT tracked in this git repo** — they live only in the live Studio place file. Scripts
-  reference them by sibling/child instance name (e.g. `script.Parent.Anim`,
-  `HumanoidRootPart.DragonRoar:Play()`). When a script references an instance name that doesn't
-  appear anywhere in `src/`, that's expected — it's a Studio-side asset, not a bug.
+- **Every directory under a synced service root has its own `init.meta.json` with `"keepUnknowns": true`**
+  (as of 2026-07-25 — previously only the top-level `$path` entries in `default.project.json` had
+  `$keepUnknowns: true`, which does **not** cascade to nested folders — this is a known upstream
+  Rojo/Argon limitation, not a misconfiguration; Argon deletes any instance under a folder that
+  isn't `keepUnknowns`-protected and isn't described by a file in `src/` on every sync). Practical
+  effect: **binary Roblox instances (Animations, Sounds, Meshes, ParticleEmitters, NPC models,
+  dialogue-trigger parts) are NOT tracked in this git repo** — they live only in the live Studio
+  place file and now survive syncs. Scripts reference them by sibling/child instance name (e.g.
+  `script.Parent.Anim`, `HumanoidRootPart.DragonRoar:Play()`). When a script references an instance
+  name that doesn't appear anywhere in `src/`, that's expected — it's a Studio-side asset, not a
+  bug. **If you add a new folder under any synced service root, give it an `init.meta.json` with
+  `"keepUnknowns": true`** (merge it into the same file as `"className"` if the folder is also a
+  non-Folder instance like a `Tool`) — it won't inherit protection from an ancestor folder.
 - Wally is set up for packages (`Packages/`, `ServerPackages/`, `DevPackages/` are gitignored) but
   no `wally.toml` exists yet at time of writing — check before assuming it's in use.
 - **Consequence for future work**: any feature that needs a *new* sound/mesh/particle asset cannot

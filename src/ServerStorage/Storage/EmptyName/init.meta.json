@@ -1,4 +1,5 @@
 {
   "className": "Tool",
-  "originalName": "???"
+  "originalName": "???",
+  "keepUnknowns": true
 }

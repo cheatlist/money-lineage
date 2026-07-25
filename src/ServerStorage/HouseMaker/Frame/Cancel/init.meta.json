@@ -1,3 +1,4 @@
 {
-  "className": "TextButton"
+  "className": "TextButton",
+  "keepUnknowns": true
 }

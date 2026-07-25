@@ -1,3 +1,4 @@
 {
-  "className": "Tool"
+  "className": "Tool",
+  "keepUnknowns": true
 }

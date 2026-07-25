@@ -1,3 +1,4 @@
 {
-  "className": "Frame"
+  "className": "Frame",
+  "keepUnknowns": true
 }
