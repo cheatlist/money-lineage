@@ -33,11 +33,13 @@ end
 
 -- TheBlade path: fast vertical slash, heavy endlag on a whiff, invisible Chain-Lethality-style
 -- flurry + a knockback finisher on a hit. `buffed` is true when this was reached via Ethereal
--- Strike's post-dash follow-up window (see Ethereal Strike/Script.server.luau) - it skips the
--- whiff risk (auto-targets) and hits harder.
+-- Strike's post-dash follow-up window (see Ethereal Strike/Script.server.luau) - it searches a
+-- much wider radius and, once a target is found at all, blinks p1 right up to them before the
+-- hit lands (mirrors the existing Dagger/Bane blink-strike convention), so range/facing/dodging
+-- can't cause a whiff anymore - only "no target anywhere nearby" can.
 local function BladeLethality(p1, p2, data, buffed)
 	local HumanoidRootPart = p1.HumanoidRootPart
-	local target, targetDist = nil, buffed and 16 or 9
+	local target, targetDist = nil, buffed and 40 or 9
 	for _, v in pairs(game.Workspace.Live:GetChildren()) do
 		if v ~= p1 and v:FindFirstChild("Humanoid") and v:FindFirstChild("HumanoidRootPart") and v.Humanoid.Health > 0 then
 			local dist = (HumanoidRootPart.Position - v.HumanoidRootPart.Position).Magnitude
@@ -55,6 +57,12 @@ local function BladeLethality(p1, p2, data, buffed)
 		HumanoidRootPart.DaggerSlash1:Play()
 		return
 	end
+	if buffed then
+		local targetRoot = target.HumanoidRootPart
+		local approachDir = HumanoidRootPart.Position - targetRoot.Position
+		approachDir = approachDir.Magnitude > 0.01 and approachDir.Unit or Vector3.new(0, 0, 1)
+		HumanoidRootPart.CFrame = CFrame.new(targetRoot.Position + approachDir * 3, targetRoot.Position)
+	end
 	local mult = buffed and 1.4 or 1
 	l__TagHumanoid__4:Fire(p1, target, {
 		physical = true,
@@ -65,7 +73,10 @@ local function BladeLethality(p1, p2, data, buffed)
 		nobackstab = true,
 		move = "Lethality",
 	})
-	setInvisible(p1, 1)
+	local v12 = Instance.new("NumberValue");
+	v12.Name = "Transparency";
+	v12.Value = 1;
+	v12.Parent = p1.Boosts;
 	for i = 1, 6 do
 		if not target or target.Parent ~= game.Workspace.Live or target.Humanoid.Health <= 0 then
 			break
@@ -82,7 +93,7 @@ local function BladeLethality(p1, p2, data, buffed)
 		})
 		task.wait(0.06)
 	end
-	setInvisible(p1, 0)
+	v12:Destroy()
 	if target and target.Parent == game.Workspace.Live and target:FindFirstChild("HumanoidRootPart") then
 		local bv = Instance.new("BodyVelocity")
 		game.CollectionService:AddTag(bv, "AllowedBM")

@@ -6052,7 +6052,7 @@ dialogues["Corpse"].v1 = function(p,v)
 				_G.Death(p,nil,nil,true)
 				p.Character.Humanoid.Health = 0
 				p.Character.HumanoidRootPart.Backfire:Play()
-				task.wait()
+				task.wait(1/30)
 				coroutine.wrap(function()
 					for i,bruh in pairs(p.Character:GetChildren()) do
 						if bruh:IsA("Shirt") or bruh:IsA("Pants") then
@@ -7030,7 +7030,7 @@ function dialogues.Ezlo.v1(p,v)
 			tpsafe.Parent = p.Character
 			game:GetService("Debris"):AddItem(tpsafe,1)
 			create("NoFall",1,p.Character)
-			task.wait()
+			task.wait(1/30)
 			p.Character:SetPrimaryPartCFrame(game.ServerStorage.WarpPoints.Skycastle.SkyTP.CFrame)
 			return dialogues.Ezlo.exit
 		else
@@ -8554,7 +8554,7 @@ function dialogues.ObeliskBlade1.v1(p,v)
 			p.Character.Humanoid.Health = 0
 			--v:BreakJoints()
 			p.Character.HumanoidRootPart.Backfire:Play()
-			task.wait()
+			task.wait(1/30)
 			coroutine.wrap(function()
 				for i,bruh in pairs(p.Character:GetChildren()) do
 					if bruh:IsA("Shirt") or bruh:IsA("Pants") then
@@ -8605,7 +8605,7 @@ function dialogues.ObeliskBlade2.v1(p,v)
 			p.Character.Humanoid.Health = 0
 			--v:BreakJoints()
 			p.Character.HumanoidRootPart.Backfire:Play()
-			task.wait()
+			task.wait(1/30)
 			coroutine.wrap(function()
 				for i,bruh in pairs(p.Character:GetChildren()) do
 					if bruh:IsA("Shirt") or bruh:IsA("Pants") then
@@ -8656,7 +8656,7 @@ function dialogues.ObeliskBlade3.v1(p,v)
 			p.Character.Humanoid.Health = 0
 			--v:BreakJoints()
 			p.Character.HumanoidRootPart.Backfire:Play()
-			task.wait()
+			task.wait(1/30)
 			coroutine.wrap(function()
 				for i,bruh in pairs(p.Character:GetChildren()) do
 					if bruh:IsA("Shirt") or bruh:IsA("Pants") then
@@ -8706,7 +8706,7 @@ function dialogues.ObeliskBlade4.v1(p,v)
 			_G.Death(p,nil,nil,true)
 			p.Character.Humanoid.Health = 0
 			p.Character.HumanoidRootPart.Backfire:Play()
-			task.wait()
+			task.wait(1/30)
 			coroutine.wrap(function()
 				for i,bruh in pairs(p.Character:GetChildren()) do
 					if bruh:IsA("Shirt") or bruh:IsA("Pants") then
@@ -9983,7 +9983,7 @@ function dialogues.Heretic.v1(p,v)
 				_G.Death(p,nil,nil,true)
 				p.Character.Humanoid.Health = 0
 				--v:BreakJoints()
-				task.wait()
+				task.wait(1/30)
 				coroutine.wrap(function()
 					for i,bruh in pairs(p.Character:GetChildren()) do
 						if bruh:IsA("Shirt") or bruh:IsA("Pants") then
@@ -10061,7 +10061,7 @@ function dialogues.Heretic.v1(p,v)
 			p.Character.Humanoid.Health = 0
 			--v:BreakJoints()
 			p.Character.HumanoidRootPart.Backfire:Play()
-			task.wait()
+			task.wait(1/30)
 			coroutine.wrap(function()
 				for i,bruh in pairs(p.Character:GetChildren()) do
 					if bruh:IsA("Shirt") or bruh:IsA("Pants") then
@@ -13036,7 +13036,7 @@ function dialogues.shop(p,v)
 		return
 	end
 	local display = v.shopdisplay
-	if display.Item.Value ~= "Iron Greatsword" and display.Item.Value ~= "Pronged Mythril Spear" then
+	if display.Item.Value ~= "Iron Greatsword" and display.Item.Value ~= "Pronged Mythril Spear" and display.Item.Value ~= "Twinfang" then
 		if display:FindFirstChild("RequiresClass")and display.RequiresClass.Value ~= playerdata[p.Name].Class.Value then
 			if not p.Backpack:FindFirstChild("Buy"..display.Item.Value)then
 				dialogues.cantbuy.speaker = display.Shopkeeper.Value
@@ -13062,9 +13062,12 @@ function dialogues.shop(p,v)
 			return dialogues.cantbuy
 		end
 	elseif display.Item.Value == "Twinfang" then
+		print("Yes")
 		-- TheBlade path skill string, not a Backpack Tool - can't use RequiresBpSkill for this
 		if playerdata[p.Name].Skills.Value:find("TheBlade") then
+			print("Good")
 		else
+			print("No")
 			dialogues.cantbuy.speaker = display.Shopkeeper.Value
 			return dialogues.cantbuy
 		end

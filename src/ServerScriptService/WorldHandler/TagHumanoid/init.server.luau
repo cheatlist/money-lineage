@@ -1039,11 +1039,11 @@ function taghumanoid(character,enemy,info)
 			bv.Parent = enemy.HumanoidRootPart
 			game.Debris:AddItem(bv, 0.5)
 		end
-		if info.curse and FindFirstChild(enemy.Artifacts,"Lannis") or (enemydata and enemydata.Race.Value == "Howler") and not info.bypasslannis then
+		if info.curse and FindFirstChild(enemy.Artifacts,"Lannis") and not info.bypasslannis then
 			if  enemy ~= character and enemydata.Race.Value ~= "Cameo" then -- lannis proc on own moves
 				if not FindFirstChild(enemy,"LannisCD")then
 					u4.Lannis(enemy)
-					create("LannisCD", 1, character)
+					create("LannisCD", 30, character)
 					return
 				end
 			end

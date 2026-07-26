@@ -3,7 +3,7 @@ local Character = Client.Character or Client.CharacterAdded:Wait()
 local BardCombo = Character:WaitForChild("BardCombo")
 
 repeat
-	task.wait()
+	task.wait(1/30)
 until not Character:FindFirstChild("NotLoaded")
 
 local Bar = script:FindFirstAncestorOfClass("ScreenGui"):FindFirstChildOfClass("Frame"):FindFirstChildOfClass("Frame"):FindFirstChildOfClass("Frame")

@@ -258,11 +258,11 @@ function v1.Lannis(Character)
 	local PlayerData = game.ServerStorage.PlayerData:FindFirstChild(Character.Name) 
 	if PlayerData and PlayerData.Artifact.Value == "Lannis" and PlayerData.Race.Value == "Howler" then 
 		create("Immortal",3.5,Character)
-		create("LannisCD",20,Character,true)
+		create("LannisCD",30,Character,true)
 		create("canmanashield", 3.5, Character)
 	elseif PlayerData and PlayerData.Artifact.Value == "Lannis" and PlayerData.Race.Value ~= "Howler" then
 		create("Immortal",3.5,Character)
-		create("LannisCD",30,Character,true)
+		create("LannisCD",40,Character,true)
 		create("canmanashield", 3.5, Character)
 	end
 	

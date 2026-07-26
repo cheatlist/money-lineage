@@ -17,13 +17,19 @@ local canuse = true
 -- (Lethality/Activator.luau checks for the "EtherealFollowup" marker this creates), or press
 -- Ethereal Strike again to dash back the way you came (inverts direction via the "EtherealChain"
 -- marker's Direction value) - which destroys "EtherealFollowup", forfeiting the Lethality option,
--- and opens a fresh chain window so you can keep dashing back and forth.
+-- and opens a fresh chain window so you can dash back and forth, capped at MAX_CHAIN_LINKS links
+-- (the opener doesn't count as a link; "Links" on the EtherealChain marker tracks how many chained
+-- dashes have happened so far) so the free follow-up can't be strung out indefinitely.
+local MAX_CHAIN_LINKS = 6
+
 local function BladeEtherealStrike(p1, p2, data)
 	local HumanoidRootPart = p1.HumanoidRootPart
 	local chain = p1:FindFirstChild("EtherealChain")
 	local direction
+	local chainLinks = 0
 	if chain then
 		direction = -chain.Direction.Value
+		chainLinks = chain.Links.Value
 		chain:Destroy()
 	else
 		if p1.Cooldowns:FindFirstChild("Ethereal Strike") then
@@ -39,7 +45,7 @@ local function BladeEtherealStrike(p1, p2, data)
 	if p1:FindFirstChild("EtherealFollowup") then
 		p1.EtherealFollowup:Destroy()
 	end
-	p1.Humanoid:LoadAnimation(game.ServerStorage.Classes.Shadowrush.Animation3):Play()
+	p1.Humanoid:LoadAnimation(script.Parent.Animation3):Play()
 	HumanoidRootPart.DaggerCharge:Play()
 	local bv = Instance.new("BodyVelocity")
 	game.CollectionService:AddTag(bv, "AllowedBM")
@@ -57,7 +63,7 @@ local function BladeEtherealStrike(p1, p2, data)
 						game.ServerStorage.Requests.TagHumanoid:Fire(p1, v, {
 							physical = true,
 							dagger = true,
-							damage = 3,
+							damage = 7.5,
 							slash = true,
 							noparry = true,
 							blockbreak = true,
@@ -77,14 +83,20 @@ local function BladeEtherealStrike(p1, p2, data)
 	followup.Name = "EtherealFollowup"
 	followup.Parent = p1
 	game.Debris:AddItem(followup, 1.5)
-	local newChain = Instance.new("Folder")
-	newChain.Name = "EtherealChain"
-	local dir = Instance.new("Vector3Value")
-	dir.Name = "Direction"
-	dir.Value = direction
-	dir.Parent = newChain
-	newChain.Parent = p1
-	game.Debris:AddItem(newChain, 1.5)
+	if chainLinks < MAX_CHAIN_LINKS then
+		local newChain = Instance.new("Folder")
+		newChain.Name = "EtherealChain"
+		local dir = Instance.new("Vector3Value")
+		dir.Name = "Direction"
+		dir.Value = direction
+		dir.Parent = newChain
+		local links = Instance.new("IntValue")
+		links.Name = "Links"
+		links.Value = chainLinks + 1
+		links.Parent = newChain
+		newChain.Parent = p1
+		game.Debris:AddItem(newChain, 1.5)
+	end
 end
 
 script.Parent.Activated:Connect(function()
