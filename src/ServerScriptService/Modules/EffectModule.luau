@@ -239,7 +239,7 @@ function v1.Lanniseffect3(Character)
 	Transparency.Parent = Character.Boosts
 	game.Debris:AddItem(Transparency,3)
 	for _,v in pairs(Descendants) do
-		if v:IsA("BasePart") and v.Name~="Hilt" and v.Parent.Name ~= "RuneArmLeft" and v.Parent.Name ~= "RuneArmRight" and v.Name ~= "Back" then
+		if v:IsA("BasePart") and v.Name ~= "LeftHilt" and v.Name~="Hilt" and v.Parent.Name ~= "RuneArmLeft" and v.Parent.Name ~= "RuneArmRight" and v.Name ~= "Back" then
 			lanniseffect(v)
 		end
 	end
@@ -286,7 +286,7 @@ function v1.Lannis(Character)
 	end]]
 	for i = 1, #Descendants do
 		local v = Descendants[i]
-		if v:IsA('BasePart') and v.Transparency ~= 1 and not (v.Parent.ClassName == 'Accessory' or v.Parent.Parent.ClassName == 'Accessory') and v.Name~="Hilt" and v.Parent.Name ~= "RuneArmLeft" and v.Parent.Name ~= "RuneArmRight" and v.Name ~= "Back" or v.Parent.Name == "Sigil Helmet" then
+		if v:IsA('BasePart') and v.Transparency ~= 1 and not (v.Parent.ClassName == 'Accessory' or v.Parent.Parent.ClassName == 'Accessory') and v.Name~="Hilt" and v.Name~="LeftHilt" and v.Parent.Name ~= "RuneArmLeft" and v.Parent.Name ~= "RuneArmRight" and v.Name ~= "Back" or v.Parent.Name == "Sigil Helmet" then
 			lanniseffect(v)
 		end
 	end

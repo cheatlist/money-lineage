@@ -1,4 +1,11 @@
-local FindFirstChild,WaitForChild = game.FindFirstChild,game.WaitForChild
+local CollectionService = game:GetService("CollectionService")
+local ShiftAppearance = require(game.ServerScriptService.Modules.ShiftAppearance)
+local OptionPicker = require(game.ServerScriptService.Modules.OptionPicker)
+local Commands = require(game.ServerScriptService.Modules.Commands)
+
+local MEMORY_LIMIT = 10
+local STOLEN_TAG = "StolenAbility"
+
 local function DoAccessories(Player)
 	local Character = game.Players:GetCharacterAppearanceAsync(Player.CharacterAppearanceId)
 	Character.Parent = game.ServerStorage
@@ -37,35 +44,175 @@ local embedOverrides = {
 	}
 }
 
+local function isAscendedMadrasian(data)
+	return data.Ascended.Value == true and data.Race.Value == "Madrasian"
+end
+
+local function clearStolenAbility(Player)
+	for _,v in pairs(CollectionService:GetTagged(STOLEN_TAG)) do
+		if v:IsDescendantOf(Player.Backpack) or (Player.Character and v:IsDescendantOf(Player.Character)) then
+			v:Destroy()
+		end
+	end
+end
+
+local function grantStolenAbility(Player, abilityName)
+	clearStolenAbility(Player)
+	if abilityName and abilityName ~= "" then
+		local tool = game.ServerStorage.Classes:FindFirstChild(abilityName)
+		if tool then
+			local clone = tool:Clone()
+			CollectionService:AddTag(clone, STOLEN_TAG)
+			clone.Parent = Player.Backpack
+		end
+	end
+end
+
+-- Picks one skill/spell from `targetData` that `shifterData` is weapon-compatible with (checked
+-- against the SHIFTER's own Weapon/PrimaryWeapon, not the target's). Random among eligible, since
+-- there's no "richest ability" ranking data anywhere in this codebase to do better than random.
+local function stealAbility(shifterData, targetData)
+	local pool = {}
+	for _,list in ipairs({targetData.Skills.Value, targetData.Spells.Value}) do
+		for _,name in ipairs(string.split(list, ",")) do
+			if name ~= "" then
+				local tool = game.ServerStorage.Classes:FindFirstChild(name)
+				if tool and Commands.CanUseTool(tool, shifterData) then
+					table.insert(pool, name)
+				end
+			end
+		end
+	end
+	if #pool == 0 then
+		return ""
+	end
+	return pool[math.random(1,#pool)]
+end
+
+local function sortedMemorySlots(mem)
+	local numbered = {}
+	if mem then
+		for _,v in pairs(mem:GetChildren()) do
+			if v:IsA("Folder") then
+				table.insert(numbered, v)
+			end
+		end
+		table.sort(numbered, function(a,b) return tonumber(a.Name) < tonumber(b.Name) end)
+	end
+	return numbered
+end
+
+-- `mem` is parented to the Player instance, NOT PlayerData (see ShiftAppearance's
+-- snapshotOriginalIfMissing comment) — the DataStore save walk unconditionally reads `.Value` off
+-- every direct child of a player's PlayerData folder, and a bare Folder there throws and aborts
+-- that player's save. Player-parented data is outside the save walk entirely (same place `Shifted`
+-- already lives) — Shift Memory is intentionally session-only as a result (resets on rejoin,
+-- survives respawns/death within a session).
+local function pushMemorySlot(Player, targetCharacter, targetData, stolenAbility)
+	local mem = Player:FindFirstChild("ShiftMemory")
+	if not mem then
+		mem = Instance.new("Folder")
+		mem.Name = "ShiftMemory"
+		local nextIndex = Instance.new("NumberValue")
+		nextIndex.Name = "NextIndex"
+		nextIndex.Parent = mem
+		mem.Parent = Player
+	end
+
+	local nextIndex = mem.NextIndex
+	nextIndex.Value += 1
+
+	local slot = Instance.new("Folder")
+	slot.Name = tostring(nextIndex.Value)
+	local appearance = ShiftAppearance.snapshot(targetCharacter, targetData, slot, "Appearance")
+
+	local targetName = Instance.new("StringValue")
+	targetName.Name = "TargetName"
+	targetName.Value = appearance:GetAttribute("DisplayName") or targetData.Name
+	targetName.Parent = slot
+
+	local stolen = Instance.new("StringValue")
+	stolen.Name = "StolenAbility"
+	stolen.Value = stolenAbility or ""
+	stolen.Parent = slot
+
+	slot.Parent = mem
+
+	local numbered = sortedMemorySlots(mem)
+	while #numbered > MEMORY_LIMIT do
+		table.remove(numbered,1):Destroy()
+	end
+end
+
+local function openMemoryPicker(Player, Character)
+	local mem = Player:FindFirstChild("ShiftMemory")
+	local numbered = sortedMemorySlots(mem)
+	local options = {}
+	local slotsByKey = {}
+	for _,slot in ipairs(numbered) do
+		slotsByKey[slot.Name] = slot
+		table.insert(options, {key = slot.Name, label = slot.TargetName.Value})
+	end
+	table.insert(options, {key = "__original", label = "Return to normal"})
+
+	local choice = OptionPicker.prompt(Player, "Shift Memory", options, 15)
+	if not choice then
+		return
+	end
+	if choice == "__original" then
+		ShiftAppearance.restoreOriginal(Character, Player)
+		clearStolenAbility(Player)
+		return
+	end
+	local slot = slotsByKey[choice]
+	if not slot then
+		return
+	end
+	ShiftAppearance.apply(Character, slot.Appearance)
+	grantStolenAbility(Player, slot.StolenAbility.Value)
+end
+
 script.Parent.Activated:Connect(function(Player, Character, Data)
 	if cd then return end
-	
+
 	Character = script.Parent.Parent
 	Player = game.Players:GetPlayerFromCharacter(Character)
 	Data = game.ServerStorage.PlayerData[Player.Name]
-	local u4 = _G.MouseData(Player)
-	if not u4.Target then
+
+	ShiftAppearance.snapshotOriginalIfMissing(Character, Data, Player)
+
+	local ascended = isAscendedMadrasian(Data)
+
+	local validTarget = nil
+	local mouse = _G.MouseData(Player)
+	if mouse.Target and mouse.Target:IsDescendantOf(workspace.Live) and not mouse.Target:IsDescendantOf(Character) then
+		local candidate = mouse.Target.Parent:FindFirstChild("HumanoidRootPart") and mouse.Target.Parent
+			or mouse.Target.Parent.Parent:FindFirstChild("HumanoidRootPart") and mouse.Target.Parent.Parent
+		if candidate and game.ServerStorage.PlayerData:FindFirstChild(candidate.Name) then
+			validTarget = candidate
+		end
+	end
+
+	if not validTarget then
+		cd = true
+		task.delay(2, function()
+			cd = false
+		end)
+		if ascended then
+			openMemoryPicker(Player, Character)
+		else
+			ShiftAppearance.restoreOriginal(Character, Player)
+		end
 		return
 	end
-	if not u4.Target:IsDescendantOf(workspace.Live) then
-		return
-	end
-	if u4.Target:IsDescendantOf(Character) then
-		return
-	end
-	local u4 = u4.Target.Parent:FindFirstChild("HumanoidRootPart") and u4.Target.Parent or u4.Target.Parent.Parent:FindFirstChild("HumanoidRootPart") and u4.Target.Parent.Parent
-	if not u4 then
-		return
-	end
-	if not game.ServerStorage.PlayerData:FindFirstChild(u4.Name) then
-		return
-	end
+
 	cd = true
 	task.delay(2, function()
 		cd = false
 	end)
-	-- numb is how many steps of parents it takes to reach workspace.Live
-	-- numb - 1 because just below the workspace.Live step lies the target character
+
+	local u4 = validTarget
+
 	coroutine.wrap(function()
 		local sphere = Instance.new("Part")
 		sphere.Anchored = true
@@ -84,154 +231,14 @@ script.Parent.Activated:Connect(function(Player, Character, Data)
 		wait(0.6)
 		game:GetService("TweenService"):Create(sphere,TweenInfo.new(0.4),{Size = Vector3.new(0.05,0.05,0.05)}):Play()
 	end)()
-	for _,v in pairs(Character:GetChildren())do
-		if v:IsA("Shirt")or v:IsA("Pants")then
-			v:Destroy()
-		end
-	end
-	for _,v in pairs(u4:GetChildren())do
-		if v:IsA("Shirt")or v:IsA("Pants")then
-			v:Clone().Parent = Character
-		end
-	end
-	local data2 = game.ServerStorage.PlayerData[u4.Name]
-	Character.Humanoid.DisplayName = tostring(data2.HouseRank.Value == "Owner" and "Lord "..data2.FirstName.Value.." "..data2.LastName.Value or data2.FirstName.Value.." "..data2.LastName.Value)
-	local Race = data2.Race.Value
-	if data2.Skills.Value:find("PrinceBlessing") then
-		local v3 = Instance.new("Accessory")
-		v3.Name = "Bald"
-		v3.Parent = Character
-		local model = game.ServerStorage.Assets.FusedHelm2:Clone()
-		model.Parent = Character
-	end
-	for i,v in pairs(Character:GetChildren()) do
-		if v:IsA("Accessory") and v:FindFirstChild("Handle") then
-			v:Destroy()
-		end
-	end
-	for i,v in pairs(u4:GetChildren()) do
-		if v:IsA("Accessory") and v:FindFirstChild("Handle") then
-			v:Clone().Parent = Character
-		end
-	end
-	game.ServerStorage.Requests.SendWebhook:Fire("Shifter",Player.Name.." ("..Player.UserId..") has shifted into. "..u4.Name,"blue","Shifter",embedOverrides)
-	local Race = data2.Race.Value
-	if Race == "Kasparan"then
-		for _,v in pairs(game.ServerStorage.Assets.KasparanHorns:GetChildren())do
-			local c = v:Clone()
-			c.Parent = Character:WaitForChild("Head")
-			c.Weld.Part0 = Character.Head
-			c.Weld.Part1 = c
-		end
-	elseif Race == "Azael"then
-		for _,v in pairs(game.ServerStorage.Assets.AzaelHorns:GetChildren())do
-			local c = v:Clone()
-			c.Parent = Character:WaitForChild("Head")
-			c.Weld.Part0 = Character.Head
-			c.Weld.Part1 = c
-		end
-	elseif Race == "Zelda"then
-		for _,v in pairs(game.ServerStorage.Assets.ZeldaHorns:GetChildren())do
-			local c = v:Clone()
-			c.Parent = WaitForChild(Character,"Head")
-			c.Weld.Part0 = Character.Head
-			c.Weld.Part1 = c
-		end
-	end
-	if Race == "Lich" or Race == "Scroom" or Race == "Metascroom" or Race == "Dullahan" then
-		if Race == "Scroom" then
-			local Head = nil
-			local Variant = data2.RaceVariant.Value
-			if game.ServerStorage.Assets.ScroomHeads:FindFirstChild(Variant) then
-				Head = game.ServerStorage.Assets.ScroomHeads:FindFirstChild(Variant).ScroomHead:Clone()
-			else
-				local numb: number = math.random(1, 5)
-				if numb == 1 then
-					Data.RaceVariant.Value = "Blue"
-				elseif numb == 2 then
-					Data.RaceVariant.Value = "Brown"
-				elseif numb == 3 then
-					Data.RaceVariant.Value = "Green"
-				elseif numb == 4 then
-					Data.RaceVariant.Value = "Shine"
-				elseif numb == 5 then
-					Data.RaceVariant.Value = "Default"
-				end
-				Variant = Data.RaceVariant.Value
-				Head = game.ServerStorage.Assets.ScroomHeads:FindFirstChild(Variant).ScroomHead:Clone()
-			end
-			Head.Weld.Part0 = Head
-			Head.Weld.Part1 = Character.Head
-			Head.Parent = Character
-			Character.Head.Transparency = 0.99
-		end
-		if Race == "Metascroom" then
-			local Head = nil
-			local Variant = data2.RaceVariant.Value
-			if game.ServerStorage.Assets.ScroomHeads:FindFirstChild("Metascroom") then
-				Head = game.ServerStorage.Assets.ScroomHeads:FindFirstChild("Metascroom").ScroomHead:Clone()
-			end
-			Head.Weld.Part0 = Head
-			Head.Weld.Part1 = Character.Head
-			Head.Parent = Character
-			Character.Head.Transparency = 0.99
-		end
-		if Race == "Lich" then
-			local lichhead = game.ServerStorage.Assets.LichHead:Clone()
-			lichhead.Weld.Part0 = Character.Head
-			lichhead.Weld.Part1 = lichhead
-			lichhead.Weld.C1 = CFrame.new(0,0,0.2)*CFrame.Angles(math.rad(630),math.rad(90),0)
-			for _,v in pairs(lichhead:GetChildren())do
-				if v.Name =="EyeAttach"then
-					v.EyeP.Color = ColorSequence.new({
-						ColorSequenceKeypoint.new(0,Player.Backpack.ManaColor.Value),
-						ColorSequenceKeypoint.new(1,Player.Backpack.ManaColor.Value),
-					})
-					v.EyeP.Enabled = true
-				end
-			end
-			lichhead.Parent = Character
-			Character.Head.Transparency = 0.99
-		end
-		if Race == "Dullahan" then
-			local Head = game.ServerStorage.Assets.DullahanHead:Clone()
-			Head.Parent = Character
-			Head.Weld.Part0 = Head
-			Head.Weld.Part1 = Character.Head
-			if Data.DaysSurvived.Value >= 5 then
-				local Light = game.ServerStorage.Assets.DullahanLight:Clone()
-				Light.Color = u4.DullahanLight.Color
 
-				Light.Weld.Part0 = WaitForChild(Character,"Head")
-				Light.Parent = Character
-			end
-			Character.Head.Transparency = 0.99
-		end
-		if Race == "Howler" then
-			local Mane
-			local Variant = data2.RaceVariant.Value
-			Mane = game.ReplicatedStorage.Assets.HowlerManes:FindFirstChild(Variant).HowlerMane:Clone()
-			Mane.Parent = Character
-		end
-	end
-	for i,v in pairs(Character:GetChildren()) do
-		if v.Name == "ScroomHead" or v.Name == "DullahanHead" or v.Name == "LichHead" then
-			v:Destroy()
-		end
-	end
-	for i,v in pairs(game.ReplicatedStorage.Assets.Faces:GetChildren()) do
-		if Character.Head:FindFirstChild(v.Name) then
-			Character.Head[v.Name]:Destroy()
-		end
-		if FindFirstChild(u4.Head, v.Name) then
-			u4.Head[v.Name]:Clone().Parent = Character.Head
-		end
-	end
-	for _,v in pairs(Character:GetChildren())do
-		if v.Name == "Head"or v.Name == "Torso"or v.Name == "Left Arm"or v.Name == "Right Arm"or v.Name == "Left Leg"or v.Name == "Right Leg"then
-			v.Color = u4.Head.Color
-		end
-	end
+	local data2 = game.ServerStorage.PlayerData[u4.Name]
+	local tempSnap = ShiftAppearance.snapshot(u4, data2, game.ServerStorage, "TempShiftSnap")
+	ShiftAppearance.apply(Character, tempSnap)
+	tempSnap:Destroy()
+
+	game.ServerStorage.Requests.SendWebhook:Fire("Shifter",Player.Name.." ("..Player.UserId..") has shifted into. "..u4.Name,"blue","Shifter",embedOverrides)
+
 	if Player:FindFirstChild("Shifted") then
 		Player.Shifted.Value = u4.Name
 	else
@@ -239,5 +246,11 @@ script.Parent.Activated:Connect(function(Player, Character, Data)
 		b.Name = "Shifted"
 		b.Value = u4.Name
 		b.Parent = Player
+	end
+
+	if ascended then
+		local stolen = stealAbility(Data, data2)
+		grantStolenAbility(Player, stolen)
+		pushMemorySlot(Player, u4, data2, stolen)
 	end
 end)

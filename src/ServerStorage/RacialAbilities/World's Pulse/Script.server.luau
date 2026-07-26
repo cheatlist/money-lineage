@@ -48,10 +48,20 @@ script.Parent.Activated:Connect(function()
 	local worldspulse = p1:FindFirstChild("WorldPulseUltra")
 	if worldspulse then
 		worldspulse:Destroy()
+		local marker = p1:FindFirstChild("AscendedPulse")
+		if marker then
+			marker:Destroy()
+		end
 	else
 		local v1 = Instance.new("Accessory")
 		v1.Name = "WorldPulseUltra"
 		v1.Parent = p1
+		if data and data.Ascended.Value == true and data.Race.Value == "Dzin" then
+			local marker = Instance.new("BoolValue")
+			marker.Name = "AscendedPulse"
+			marker.Value = true
+			marker.Parent = p1
+		end
 	end
 	wait(1)
 	canuse = true

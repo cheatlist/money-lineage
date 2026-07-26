@@ -52,7 +52,7 @@ function hideLive()
 						end
 					end
 					
-					if v.Name == "Hilt" or v.Name == "TomeHilt" then
+					if v.Name == "Hilt" or v.Name == "TomeHilt" or v.Name == "LeftHilt" then
 						for g,h in pairs(v:GetChildren()) do
 							if h:IsA("Part") or h:IsA("BasePart") then
 								hide(h)
@@ -66,7 +66,7 @@ function hideLive()
 						end
 					end
 					
-					if v.Name ~= "Hilt" and v.Name ~= "TomeHilt" and not game.CollectionService:HasTag(v,"FakeHead") and v.Name ~= "HumanoidRootPart" then
+					if v.Name ~= "Hilt" and v.Name ~= "LeftHilt" and v.Name ~= "TomeHilt" and not game.CollectionService:HasTag(v,"FakeHead") and v.Name ~= "HumanoidRootPart" then
 						hide(v)
 					end
 				end
@@ -93,7 +93,7 @@ spawn(function()
 							end
 						end
 						
-						if v.Name == "Hilt" or v.Name == "TomeHilt" then
+						if v.Name == "Hilt" or v.Name == "TomeHilt" or v.Name == "LeftHilt" then
 							for g,h in pairs(v:GetChildren()) do
 								if h:IsA("Part") or h:IsA("BasePart") then
 									h.Transparency = 1
@@ -108,7 +108,7 @@ spawn(function()
 							end
 						end
 						
-						if v.Name ~= "Hilt" and v.Name ~= "TomeHilt" and not game.CollectionService:HasTag(v,"FakeHead") and v.Name ~= "HumanoidRootPart" then
+						if v.Name ~= "Hilt" and v.Name ~= "TomeHilt" and v.Name ~= "LeftHilt" and not game.CollectionService:HasTag(v,"FakeHead") and v.Name ~= "HumanoidRootPart" then
 							hide(v)
 						end
 					end

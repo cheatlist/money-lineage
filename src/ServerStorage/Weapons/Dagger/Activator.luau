@@ -284,6 +284,33 @@ function v1.Active2(p5, p6, p45, p7)
 		katana.PropWeld.Part0 = p5.Hilt
 		katana.PropWeld.Part1 = katana
 		katana.Parent = p5.Hilt
+
+		-- The rest of this move's cleanup (Transparency/Disarm/Action/katana/u9) only ever ran
+		-- inside the Slash2 marker callback below, which assumes the animation reaches its end
+		-- uninterrupted. Getting hit/knocked mid-move stops the AnimationTrack (TagHumanoid does
+		-- this on certain hits), the marker never fires, and the character was left permanently
+		-- stuck (invisible weapon, welded katana, un-clearable Action tag via NoDelete). This
+		-- timeout is a safety net so an interruption self-heals instead of being permanent; the
+		-- `cleanedUp` guard keeps the normal happy-path cleanup from double-firing.
+		local cleanedUp = false
+		local function cleanupTanto()
+			if cleanedUp then
+				return
+			end
+			cleanedUp = true
+			p7.Transparency = 0
+			if v8 and v8.Parent then
+				v8:Destroy()
+			end
+			if action and action.Parent then
+				action:Destroy()
+			end
+			if katana and katana.Parent then
+				katana:Destroy()
+			end
+			u9 = false
+		end
+		task.delay(3, cleanupTanto)
 		
 		p5.HumanoidRootPart.Death:Play()
 		p5.HumanoidRootPart.DeathParticle.Particle:Emit(1)
@@ -332,12 +359,8 @@ function v1.Active2(p5, p6, p45, p7)
 				u7.magnitudeCheck(p5, p5.HumanoidRootPart.Position, 9, info, true)
 				
 				task.wait(0.25)
-				
-				p7.Transparency = 0
-				v8:Destroy()
-				action:Destroy()
-				katana:Destroy()
-				u9 = false
+
+				cleanupTanto()
 			end)
 		end)
 		return

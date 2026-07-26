@@ -1228,6 +1228,16 @@ commands["RacialAbilities"] = function(Player,data)
 		if not has2 and (data.IsUltra.Value == true or data.Hybrid.Value ~= "") then
 			RacialAbilities["Trinket Shift"]:Clone().Parent = Player.Backpack
 		end
+		if data.Ascended.Value == true then
+			local has3 = Player.Backpack:FindFirstChild("Plasticity") or Player.Character:FindFirstChild("Plasticity")
+			if not has3 and (data.IsUltra.Value == true or data.Hybrid.Value ~= "") then
+				RacialAbilities["Plasticity"]:Clone().Parent = Player.Backpack
+			end
+			local has4 = Player.Backpack:FindFirstChild("False Assumptions") or Player.Character:FindFirstChild("False Assumptions")
+			if not has4 and (data.IsUltra.Value == true or data.Hybrid.Value ~= "") then
+				RacialAbilities["False Assumptions"]:Clone().Parent = Player.Backpack
+			end
+		end
 	end
 	if Race.Value == "Ashiin"then
 		local has = Player.Backpack:FindFirstChild("TrainedCombat")
@@ -1293,7 +1303,17 @@ commands["RacialAbilities"] = function(Player,data)
 		local has2 = Player.Backpack:FindFirstChild("SlashResistance")
 		if not has2 then
 			RacialAbilities.SlashResistance:Clone().Parent = Player.Backpack
-		end	
+		end
+		if data.Ascended.Value == true then
+			local has3 = Player.Backpack:FindFirstChild("Rocket Launcher") or Player.Character:FindFirstChild("Rocket Launcher")
+			if not has3 then
+				RacialAbilities["Rocket Launcher"]:Clone().Parent = Player.Backpack
+			end
+			local has4 = Player.Backpack:FindFirstChild("Overclock") or Player.Character:FindFirstChild("Overclock")
+			if not has4 then
+				RacialAbilities["Overclock"]:Clone().Parent = Player.Backpack
+			end
+		end
 	elseif Race.Value == "Cameo"then
 		if Player.Character.Boosts:FindFirstChild("ColdResist") and Player.Character.Boosts.ColdResist:FindFirstChild("Armor") then
 			Player.Character.Boosts.ColdResist.Value = 0.25
@@ -1536,6 +1556,30 @@ end
 local allskillsspec = {
 
 }
+
+-- Weapon-compatibility check for a move Tool `sc` against `data` (a PlayerData folder) — extracted
+-- from the inline check UpdateSkills used to do below, now also reused by Shift's ability-theft
+-- (checked against the shifter's own weapon data, not the theft target's).
+commands["CanUseTool"] = function(sc, data)
+	if not sc:FindFirstChild("RequiresWeapon") then
+		return true
+	end
+	if allskillsspec[data.Name] then
+		return true
+	end
+	local matches = sc.RequiresWeapon.Value == data.Weapon.Value
+		or sc.RequiresWeapon.Value == data.PrimaryWeapon.Value
+		or (sc.Name == "Dark Flame Burst" and data.Weapon.Value == "Sword")
+		or (sc.Name == "Dark Eruption" and data.Weapon.Value == "Sword")
+	if matches then
+		return true
+	end
+	if sc:FindFirstChild("RequiresWeapon2") then
+		return sc.RequiresWeapon2.Value == data.Weapon.Value or sc.RequiresWeapon2.Value == data.PrimaryWeapon.Value
+	end
+	return false
+end
+
 commands["UpdateSkills"] = function(player)
 	local data = PlayerDatas:WaitForChild(player.Name)
 	if data.Race.Value == 'Navaran'or data.Race.Value == "LesserNavaran" then
@@ -1575,20 +1619,8 @@ commands["UpdateSkills"] = function(player)
 		for Indx, Skill in pairs(skills)do
 			local sc = game.ServerStorage.Classes:FindFirstChild(Skill) or (data.Race.Value == 'Navaran'and game.ServerStorage.RacialAbilities:FindFirstChild(Skill))
 			if sc then
-				if sc:FindFirstChild("RequiresWeapon")then
-					if sc.RequiresWeapon.Value ~= data.Weapon.Value and not ((sc.Name == "Dark Flame Burst" and data.Weapon.Value == "Sword") or (sc.Name == "Dark Eruption" and data.Weapon.Value == "Sword")) and sc.RequiresWeapon.Value ~= data.PrimaryWeapon.Value then
-						if not allskillsspec[player.Name]then
-							if sc:FindFirstChild("RequiresWeapon2")then
-								if sc.RequiresWeapon2.Value ~= data.Weapon.Value and not ((sc.Name == "Dark Flame Burst" and data.Weapon.Value == "Sword") or (sc.Name == "Dark Eruption" and data.Weapon.Value == "Sword")) and sc.RequiresWeapon2.Value ~= data.PrimaryWeapon.Value then
-									if not allskillsspec[player.Name]then
-										continue
-									end
-								end
-							else
-								continue
-							end
-						end
-					end
+				if not commands.CanUseTool(sc, data) then
+					continue
 				end
 				local found = player.Backpack:FindFirstChild(Skill)or player.Character:FindFirstChild(Skill)
 				if not found then
@@ -1597,20 +1629,8 @@ commands["UpdateSkills"] = function(player)
 			end
 		end
 		for _,v in pairs(player.Backpack:GetChildren())do
-			if v:FindFirstChild("RequiresWeapon")then
-				if v.RequiresWeapon.Value ~= data.Weapon.Value and v.RequiresWeapon.Value ~= data.PrimaryWeapon.Value then
-					if not allskillsspec[player.Name]then
-						if v:FindFirstChild("RequiresWeapon2")then
-							if v.RequiresWeapon2.Value ~= data.Weapon.Value and v.RequiresWeapon2.Value ~= data.PrimaryWeapon.Value then
-								if not allskillsspec[player.Name]then
-									v:Destroy()
-								end
-							end
-						else
-							v:Destroy()
-						end
-					end
-				end
+			if v:FindFirstChild("RequiresWeapon") and not commands.CanUseTool(v, data) then
+				v:Destroy()
 			end
 			if v:FindFirstChild("DestroySkill")then
 				v:Destroy()

@@ -16,17 +16,15 @@ local spelleffect = game.ServerStorage.SpellEffects.ShadowyBlade
 
 local tool = script.Parent
 local HitDetection = require(game.ServerScriptService.Modules.HitDetection)
-function module.Activate(player, char)
+-- Was named "Activate" with params (player, char) - CharacterHandler's LeftClick handler only ever
+-- dispatches a non-Spell Skill tool's M1 through `module.Active` (see init.server.luau's
+-- LeftClick handler, `if module and module.Active then module.Active(Character,Player,...) end`),
+-- so this function was never being called at all: mouse 1 silently matched neither the `.Active`
+-- Skill path (wrong name) nor the `.Activate` Spell path (that one requires a "Spell" marker on
+-- the Tool and calls with a completely different arg shape). Renamed to `Active` and reordered
+-- params to (char, player, ...) to match the (Character, Player, combatanims, WEAPON) call site.
+function module.Activate(player, char, combatanims, WEAPON)
 	if game.CollectionService:HasTag(char,"Casting") then return end
-	if char.Cooldowns:FindFirstChild("Shadow Impale") then
-		return
-	end
-	local CD = Instance.new("NumberValue")
-	CD.Name = "Shadow Impale"
-	CD.Value = 15
-	CD.Parent = char.Cooldowns
-	game.Debris:AddItem(CD, 15)
-
 
 	local play = game.Players:GetPlayerFromCharacter(char)
 

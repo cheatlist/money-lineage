@@ -13,7 +13,7 @@
 	local RADIUS = 85 / (2 * math.pi)
 	local DURATION = 0.3
 	local TICK = 0.05
-	local RANGE = 6
+	local RANGE = 50
 
 	script.Parent.Activated:Connect(function()
 		local p1 = script.Parent.Parent
@@ -43,7 +43,7 @@
 			slash = true,
 			damage = 5,
 			blockbreak = true,
-			noparry = true,
+			noparry = false,
 			nobackstab = true,
 			move = "Spite",
 		}

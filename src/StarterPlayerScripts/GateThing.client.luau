@@ -1,14 +1,35 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local ContextActionService = game:GetService("ContextActionService")
+local StarterGui = game:GetService("StarterGui")
+local TextChatService = game:GetService("TextChatService")
 
 local GateRequest = ReplicatedStorage.Requests.GateLocationRequest
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
-local TIMEOUT = 10 -- seconds before auto-cancel
+local TIMEOUT = 20 -- seconds before auto-cancel
+local ACTION_NAME = "GateLocationInput"
+
+-- ContextActionService Sink alone isn't enough to stop "/" from also opening Roblox's own chat
+-- bar - that binding lives in a CoreScript we can't out-prioritize reliably. Instead, actually
+-- disable the default chat input while our prompt is up, covering both chat systems this repo
+-- might be running: TextChatService (disable its ChatInputBarConfiguration) or legacy Chat
+-- (disable the Chat CoreGui). Restored the moment the prompt resolves.
+local function setDefaultChatEnabled(enabled)
+	if TextChatService.ChatVersion == Enum.ChatVersion.TextChatService then
+		local inputBar = TextChatService:FindFirstChild("ChatInputBarConfiguration")
+		if inputBar then
+			inputBar.Enabled = enabled
+		end
+	else
+		pcall(function()
+			StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.Chat, enabled)
+		end)
+	end
+end
 
 GateRequest.OnClientInvoke = function(locationNames)
-	-- Build the ScreenGui
 	local screenGui = Instance.new("ScreenGui")
 	screenGui.Name = "GateUI"
 	screenGui.ResetOnSpawn = false
@@ -16,127 +37,87 @@ GateRequest.OnClientInvoke = function(locationNames)
 	screenGui.Parent = playerGui
 
 	local frame = Instance.new("Frame")
-	frame.Size = UDim2.new(0, 360, 0, 220)
-	frame.Position = UDim2.new(0.5, -180, 0.5, -110)
+	frame.Size = UDim2.new(0, 360, 0, 96)
+	frame.Position = UDim2.new(0.5, -180, 0.5, -48)
 	frame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
 	frame.BorderSizePixel = 0
 	frame.Parent = screenGui
-
 	Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 8)
 
 	local title = Instance.new("TextLabel")
-	title.Size = UDim2.new(1, 0, 0, 36)
-	title.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-	title.Text = "GATE — Choose Destination"
+	title.Size = UDim2.new(1, -16, 0, 22)
+	title.Position = UDim2.new(0, 8, 0, 6)
+	title.BackgroundTransparency = 1
+	title.Text = "GATE — press / then type a destination (or 'cancel')"
 	title.TextColor3 = Color3.fromRGB(220, 220, 220)
 	title.Font = Enum.Font.GothamBold
-	title.TextSize = 14
+	title.TextSize = 13
+	title.TextXAlignment = Enum.TextXAlignment.Left
+	title.TextWrapped = true
 	title.Parent = frame
-	Instance.new("UICorner", title).CornerRadius = UDim.new(0, 8)
 
-	-- Scrolling list of location buttons
-	local scroll = Instance.new("ScrollingFrame")
-	scroll.Size = UDim2.new(1, -16, 0, 100)
-	scroll.Position = UDim2.new(0, 8, 0, 44)
-	scroll.BackgroundTransparency = 1
-	scroll.ScrollBarThickness = 4
-	scroll.CanvasSize = UDim2.new(0, 0, 0, 0)
-	scroll.Parent = frame
+	local hint = Instance.new("TextLabel")
+	hint.Size = UDim2.new(1, -16, 0, 18)
+	hint.Position = UDim2.new(0, 8, 0, 28)
+	hint.BackgroundTransparency = 1
+	hint.Text = #locationNames > 0 and table.concat(locationNames, ", ") or ""
+	hint.TextColor3 = Color3.fromRGB(150, 150, 150)
+	hint.TextWrapped = true
+	hint.Font = Enum.Font.Gotham
+	hint.TextSize = 11
+	hint.TextXAlignment = Enum.TextXAlignment.Left
+	hint.Parent = frame
 
-	local listLayout = Instance.new("UIListLayout", scroll)
-	listLayout.Padding = UDim.new(0, 4)
-	listLayout.SortOrder = Enum.SortOrder.LayoutOrder
+	local box = Instance.new("TextBox")
+	box.Size = UDim2.new(1, -16, 0, 30)
+	box.Position = UDim2.new(0, 8, 1, -38)
+	box.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+	box.TextColor3 = Color3.fromRGB(220, 220, 220)
+	box.PlaceholderText = "Press / to type here... (e.g. 'tundra 7')"
+	box.Font = Enum.Font.Gotham
+	box.TextSize = 14
+	box.ClearTextOnFocus = false
+	box.Text = ""
+	box.Parent = frame
+	Instance.new("UICorner", box).CornerRadius = UDim.new(0, 6)
 
-	-- Sub-location input
-	local subLabel = Instance.new("TextLabel")
-	subLabel.Size = UDim2.new(1, -16, 0, 18)
-	subLabel.Position = UDim2.new(0, 8, 0, 152)
-	subLabel.BackgroundTransparency = 1
-	subLabel.Text = "Sub-location (optional, name or number):"
-	subLabel.TextColor3 = Color3.fromRGB(160, 160, 160)
-	subLabel.Font = Enum.Font.Gotham
-	subLabel.TextSize = 11
-	subLabel.TextXAlignment = Enum.TextXAlignment.Left
-	subLabel.Parent = frame
-
-	local subBox = Instance.new("TextBox")
-	subBox.Size = UDim2.new(1, -16, 0, 28)
-	subBox.Position = UDim2.new(0, 8, 0, 172)
-	subBox.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
-	subBox.TextColor3 = Color3.fromRGB(220, 220, 220)
-	subBox.PlaceholderText = "Leave blank for random"
-	subBox.Font = Enum.Font.Gotham
-	subBox.TextSize = 13
-	subBox.ClearTextOnFocus = false
-	subBox.Text = ""
-	subBox.Parent = frame
-	Instance.new("UICorner", subBox).CornerRadius = UDim.new(0, 6)
-
-	local cancelBtn = Instance.new("TextButton")
-	cancelBtn.Size = UDim2.new(0, 80, 0, 28)
-	cancelBtn.Position = UDim2.new(1, -88, 1, -36)
-	cancelBtn.BackgroundColor3 = Color3.fromRGB(120, 30, 30)
-	cancelBtn.Text = "Cancel"
-	cancelBtn.TextColor3 = Color3.new(1,1,1)
-	cancelBtn.Font = Enum.Font.GothamBold
-	cancelBtn.TextSize = 13
-	cancelBtn.Parent = frame
-	Instance.new("UICorner", cancelBtn).CornerRadius = UDim.new(0, 6)
-
-	-- Resolve promise
 	local result = nil
 	local resolved = false
-
 	local function resolve(value)
-		if resolved then return end
+		if resolved then
+			return
+		end
 		resolved = true
 		result = value
 	end
 
-	-- Populate location buttons
-	-- Always add "pride" as a special option
-	local allNames = {}
-	for _, name in ipairs(locationNames) do
-		table.insert(allNames, name)
-	end
-
-	for _, name in ipairs(allNames) do
-		local btn = Instance.new("TextButton")
-		btn.Size = UDim2.new(1, 0, 0, 28)
-		btn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-		btn.Text = name
-		btn.TextColor3 = Color3.new(1,1,1)
-		btn.Font = Enum.Font.Gotham
-		btn.TextSize = 13
-		btn.Parent = scroll
-
-		Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
-
-		btn.MouseButton1Click:Connect(function()
-			resolve({ type = "location", name = name, sub = subBox.Text })
-		end)
-	end
-
-	-- Auto-size the scroll canvas
-	listLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-		scroll.CanvasSize = UDim2.new(0, 0, 0, listLayout.AbsoluteContentSize.Y + 4)
-	end)
-	scroll.CanvasSize = UDim2.new(0, 0, 0, listLayout.AbsoluteContentSize.Y + 4)
-
-	cancelBtn.MouseButton1Click:Connect(function()
-		resolve({ type = "cancel" })
+	box.FocusLost:Connect(function(enterPressed)
+		if enterPressed then
+			resolve({ text = box.Text })
+		end
 	end)
 
-	-- Timeout
+	setDefaultChatEnabled(false)
+
+	-- Bound at High priority + Sink: with the default chat input disabled above, this is now the
+	-- only thing listening for "/" - pressing it focuses our textbox.
+	ContextActionService:BindActionAtPriority(ACTION_NAME, function(_, inputState)
+		if inputState == Enum.UserInputState.Begin then
+			box:CaptureFocus()
+		end
+		return Enum.ContextActionResult.Sink
+	end, false, Enum.ContextActionPriority.High.Value, Enum.KeyCode.Slash)
+
 	task.delay(TIMEOUT, function()
-		resolve({ type = "cancel" })
+		resolve({ text = "cancel" })
 	end)
 
-	-- Wait until resolved
 	while not resolved do
-		task.wait(1/30)
+		task.wait(1 / 30)
 	end
 
+	ContextActionService:UnbindAction(ACTION_NAME)
+	setDefaultChatEnabled(true)
 	screenGui:Destroy()
 	return result
 end

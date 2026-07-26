@@ -1368,6 +1368,281 @@ local dialogues = {
 		}
 	};
 
+	["As'endoMadrasian"] = {
+		startedp1 = {
+			speaker = "As'endo",
+			msg = "{Ah, a Madrasian seeking the path of ascension. I am As'endo, Keeper of the Infernal Secrets. Not many wearing borrowed faces find their way to me. What brings you here, daring soul?}",
+			choices = {"I'm seeking the Ascencion Trial"},
+			endchoice = "...",
+		},
+		startedp2 = {
+			speaker = "As'endo",
+			msg = "{Ah, the fire of determination burns brightly within you. As a Madrasian, no face you wear is truly your own - yet none of them are lies either. Your journey begins with Vessimer. They hold the key to your first trial.}",
+			choices = {"Where can he be found?"},
+			endchoice = "...",
+		},
+		startedp3 = {
+			speaker = "As'endo",
+			msg = "{Oh, don't get ahead of yourself, there is a reason that it's called a Trial. Remember, as a Madrasian, you carry the strength of our kind. Go now, and let the masks guide your way.}",
+			choices = {"I will not fail"},
+			endchoice = "...",
+		},
+		notyetvessimer = {
+			speaker = "As'endo",
+			msg = "{Vessimer has not yet seen your true face beneath the mask. Go now - there is nothing more I can offer until they have.}",
+			endchoice = "...",
+		},
+		cameback = {
+			speaker = "As'endo",
+			msg = "{You're back. What have you learned?}",
+			choices = {"You tricked me"},
+			endchoice = "...",
+		},
+		cameback2 = {
+			speaker = "As'endo",
+			msg = "{Did I? It seems to me that you got exactly what you wanted.}",
+			choices = {"What!?"},
+			endchoice = "...",
+		},
+		cameback3 = {
+			speaker = "As'endo",
+			msg = "{The Obelisk Network is a piece of technology that us shapeshifters can take advantage of to gain Immense power. You coming here, got exactly what you wanted.}",
+			choices = {"..."},
+		},
+		cameback4 = {
+			speaker = "As'endo",
+			msg = "{Say, don't you want to ascend?}",
+			choices = {"I don't have any other choice"},
+		},
+		cameback5 = {
+			speaker = "As'endo",
+			msg = "{Very well then! I will need some of your knowledge though. (20 insight)}",
+			choices = {"Let's do it"},
+			endchoice = "I'll think about it",
+		},
+		noinsight = {
+			speaker = "As'endo",
+			msg = "{It's amazing how far you've come with an intellect such as yours.}",
+			endchoice = "...",
+		},
+		ascended = {
+			speaker = "As'endo",
+			msg = "{Well then... Off you go, Wearer of a Thousand Faces.}",
+			endchoice = "...",
+		},
+		camebackinsight = {
+			speaker = "As'endo",
+			msg = "{Oh, you're back. Have you come back a bit smarter?}",
+			choices = {"Let's do it"},
+			endchoice = "...",
+		},
+		masterofmasks = {
+			speaker = "As'endo",
+			msg = "{Wearer of a Thousand Faces, use your enhanced abilities only for yourself.}",
+			endchoice = "My will is Absolute",
+		}
+	};
+
+	["Vessimer"] = {
+		notready = {
+			speaker = "Vessimer",
+			msg = "{...I have nothing for you. Return when As'endo has sent you.}",
+			endchoice = "...",
+		},
+		p1 = {
+			speaker = "Vessimer",
+			msg = "{So. As'endo finally sent one of you my way. Sit still a moment - I want to see which face is really yours.}",
+			choices = {"It's this one. I think."},
+			endchoice = "...",
+		},
+		trial = {
+			speaker = "Vessimer",
+			msg = "{Wrong answer, and the right one, both at once. That's the trick of it - a Madrasian who ascends doesn't stop wearing masks, they just stop losing themselves under them. Prove you understand: hold every face you've worn, and still answer to your own name.}",
+			choices = {"I accept."},
+			endchoice = "Not yet.",
+		},
+		done = {
+			speaker = "Vessimer",
+			msg = "{Good enough. Go back to As'endo - tell them Vessimer is satisfied.}",
+			endchoice = "I will.",
+		},
+	};
+
+	["As'endoDzin"] = {
+		startedp1 = {
+			speaker = "As'endo",
+			msg = "{Ah, a Dzin seeking the path of ascension. I am As'endo, Keeper of the Infernal Secrets. Few who feel the world's pulse ever come looking for mine. What brings you here, daring soul?}",
+			choices = {"I'm seeking the Ascencion Trial"},
+			endchoice = "...",
+		},
+		startedp2 = {
+			speaker = "As'endo",
+			msg = "{Ah, the fire of determination burns brightly within you. As a Dzin, you already feel the world breathing around you - but feeling it and truly waking to it are different things. Your journey begins with Ilventhe. They hold the key to your first trial.}",
+			choices = {"Where can he be found?"},
+			endchoice = "...",
+		},
+		startedp3 = {
+			speaker = "As'endo",
+			msg = "{Oh, don't get ahead of yourself, there is a reason that it's called a Trial. Remember, as a Dzin, you carry the strength of our kind. Go now, and let the pulse guide your way.}",
+			choices = {"I will not fail"},
+			endchoice = "...",
+		},
+		notyetilventhe = {
+			speaker = "As'endo",
+			msg = "{Ilventhe has not yet felt you wake. Go now - there is nothing more I can offer until they have.}",
+			endchoice = "...",
+		},
+		cameback = {
+			speaker = "As'endo",
+			msg = "{You're back. What have you learned?}",
+			choices = {"You tricked me"},
+			endchoice = "...",
+		},
+		cameback2 = {
+			speaker = "As'endo",
+			msg = "{Did I? It seems to me that you got exactly what you wanted.}",
+			choices = {"What!?"},
+			endchoice = "...",
+		},
+		cameback3 = {
+			speaker = "As'endo",
+			msg = "{The Obelisk Network is a piece of technology that us Dzin can take advantage of to gain Immense power. You coming here, got exactly what you wanted.}",
+			choices = {"..."},
+		},
+		cameback4 = {
+			speaker = "As'endo",
+			msg = "{Say, don't you want to ascend?}",
+			choices = {"I don't have any other choice"},
+		},
+		cameback5 = {
+			speaker = "As'endo",
+			msg = "{Very well then! I will need some of your knowledge though. (20 insight)}",
+			choices = {"Let's do it"},
+			endchoice = "I'll think about it",
+		},
+		noinsight = {
+			speaker = "As'endo",
+			msg = "{It's amazing how far you've come with an intellect such as yours.}",
+			endchoice = "...",
+		},
+		ascended = {
+			speaker = "As'endo",
+			msg = "{Well then... Off you go, Waker of the World's Pulse.}",
+			endchoice = "...",
+		},
+		camebackinsight = {
+			speaker = "As'endo",
+			msg = "{Oh, you're back. Have you come back a bit smarter?}",
+			choices = {"Let's do it"},
+			endchoice = "...",
+		},
+		wakerofthepulse = {
+			speaker = "As'endo",
+			msg = "{Waker of the World's Pulse, use your enhanced abilities only for yourself.}",
+			endchoice = "My will is Absolute",
+		}
+	};
+
+	["Ilventhe"] = {
+		notready = {
+			speaker = "Ilventhe",
+			msg = "{...I have nothing for you. Return when As'endo has sent you.}",
+			endchoice = "...",
+		},
+		p1 = {
+			speaker = "Ilventhe",
+			msg = "{So. As'endo finally sent one of you my way. Be still - I want to feel whether you're truly awake, or just twitching in your sleep.}",
+			choices = {"I'm awake. I think."},
+			endchoice = "...",
+		},
+		trial = {
+			speaker = "Ilventhe",
+			msg = "{Wrong answer, and the right one, both at once. That's the trick of it - the world doesn't stop pulsing just because you've noticed it beating. Prove you understand: hold every heartbeat around you, and still know which one is yours.}",
+			choices = {"I accept."},
+			endchoice = "Not yet.",
+		},
+		done = {
+			speaker = "Ilventhe",
+			msg = "{Good enough. Go back to As'endo - tell them Ilventhe is satisfied.}",
+			endchoice = "I will.",
+		},
+	};
+
+	["As'endoGaian"] = {
+		startedp1 = {
+			speaker = "As'endo",
+			msg = "{Ah, a Gaian seeking the path of ascension. I am As'endo, Keeper of the Infernal Secrets. Bodies of iron come to me rarely. What brings you here, daring soul?}",
+			choices = {"I'm seeking the Ascencion Trial"},
+			endchoice = "...",
+		},
+		startedp2 = {
+			speaker = "As'endo",
+			msg = "{Ah, the fire of determination burns brightly within you. As a Gaian, your body was already rebuilt once - ascension is just rebuilding it again, past its limits. Your journey begins with the Engineer. They hold the key to your first trial.}",
+			choices = {"Where can he be found?"},
+			endchoice = "...",
+		},
+		startedp3 = {
+			speaker = "As'endo",
+			msg = "{Oh, don't get ahead of yourself, there is a reason that it's called a Trial. Remember, as a Gaian, you carry the strength of our kind. Go now, and let the gears guide your way.}",
+			choices = {"I will not fail"},
+			endchoice = "...",
+		},
+		notyetengineer = {
+			speaker = "As'endo",
+			msg = "{The Engineer has not yet put their hands on your frame. Go now - there is nothing more I can offer until they have.}",
+			endchoice = "...",
+		},
+		cameback = {
+			speaker = "As'endo",
+			msg = "{You're back. What have you learned?}",
+			choices = {"You tricked me"},
+			endchoice = "...",
+		},
+		cameback2 = {
+			speaker = "As'endo",
+			msg = "{Did I? It seems to me that you got exactly what you wanted.}",
+			choices = {"What!?"},
+			endchoice = "...",
+		},
+		cameback3 = {
+			speaker = "As'endo",
+			msg = "{The Obelisk Network is a piece of technology that us Gaian can take advantage of to gain Immense power. You coming here, got exactly what you wanted.}",
+			choices = {"..."},
+		},
+		cameback4 = {
+			speaker = "As'endo",
+			msg = "{Say, don't you want to ascend?}",
+			choices = {"I don't have any other choice"},
+		},
+		cameback5 = {
+			speaker = "As'endo",
+			msg = "{Very well then! I will need some of your knowledge though. (20 insight)}",
+			choices = {"Let's do it"},
+			endchoice = "I'll think about it",
+		},
+		noinsight = {
+			speaker = "As'endo",
+			msg = "{It's amazing how far you've come with an intellect such as yours.}",
+			endchoice = "...",
+		},
+		ascended = {
+			speaker = "As'endo",
+			msg = "{Well then... Off you go, Overclocked One.}",
+			endchoice = "...",
+		},
+		camebackinsight = {
+			speaker = "As'endo",
+			msg = "{Oh, you're back. Have you come back a bit smarter?}",
+			choices = {"Let's do it"},
+			endchoice = "...",
+		},
+		overclockedone = {
+			speaker = "As'endo",
+			msg = "{Overclocked One, use your enhanced abilities only for yourself.}",
+			endchoice = "My will is Absolute",
+		}
+	};
+
 	OtherSeer = {
 		p1 = {
 			speaker = "Otherwordly Seer",
@@ -1888,6 +2163,30 @@ local dialogues = {
 				speaker = "Engineer";
 				msg = "There, I've done my best.";
 				endchoice = "Bye";
+			};
+		};
+		ascension = {
+			notready = {
+				speaker = "Engineer";
+				msg = "...I've got no work for you right now. Come back when As'endo's sent you.";
+				endchoice = "Bye";
+			};
+			p1 = {
+				speaker = "Engineer";
+				msg = "So As'endo finally sent one of you my way. Climb up on the table - let's see what you're really made of under all that plating.";
+				choices = {"Alright."};
+				endchoice = "...";
+			};
+			trial = {
+				speaker = "Engineer";
+				msg = "Hm. Not bad work, whoever built you. But 'not bad' isn't what ascension needs - I'm going to push every part of you past its rated limits at once. It'll hurt. It might even put you down for a minute. You still in?";
+				choices = {"I accept."};
+				endchoice = "Not yet.";
+			};
+			done = {
+				speaker = "Engineer";
+				msg = "There. Good as overclocked. Go tell As'endo I'm satisfied with my work.";
+				endchoice = "I will.";
 			};
 		};
 		poor = {
@@ -6681,6 +6980,24 @@ function dialogues.Engineer.v1(p,v)
 	if not data or not p.Character then
 		return
 	end
+	if data.Race.Value == "Gaian" then
+		local StoryMarker = game:GetService("HttpService"):JSONDecode(data.StoryMarker.Value)
+		if StoryMarker["Ascension"] and StoryMarker["Ascension"]["Gaian"] == "Started" then
+			if v.page == 1 then
+				return dialogues.Engineer.ascension.p1
+			elseif v.page == 2 then
+				return dialogues.Engineer.ascension.trial
+			elseif v.page == 3 then
+				if v.choice == "I accept." then
+					StoryMarker["Ascension"]["Gaian"] = "EngineerDone"
+					StoryMarker["Ascension"]["NoAs'endo"] = nil
+					data.StoryMarker.Value = game:GetService("HttpService"):JSONEncode(StoryMarker)
+					return dialogues.Engineer.ascension.done
+				end
+			end
+			return dialogues.Engineer.ascension.notready
+		end
+	end
 	if data.Race.Value ~= "Gaian" and data.Race.Value ~= "Metascroom" then
 		if data.MetalArm.Value == false then
 			if v.page == 1 then
@@ -9477,6 +9794,19 @@ dialogues["Church Knight"].v1 = function(p,v)
 		return dialogues["Church Knight"].no
 	end
 end
+-- Replaces the first-slot enchant while preserving a permanent second enchant (if any) — the
+-- Blacksmith/BlacksmithAdvanced regular re-enchant used to just do `data.Enchant.Value = tool.Name`,
+-- which silently wiped out a paid-for permanent second enchant since Enchant.Value is a single
+-- comma-joined string with no separate slot for each enchant.
+local function setFirstEnchant(data, toolName)
+	local existing = string.split(data.Enchant.Value, ",")
+	local secondEnchant = existing[2]
+	if secondEnchant and secondEnchant ~= "" then
+		data.Enchant.Value = toolName..","..secondEnchant
+	else
+		data.Enchant.Value = toolName
+	end
+end
 local SecondEnchantGems = {Ruby = true, Opal = true, Emerald = true, Sapphire = true, Diamond = true}
 function dialogues.Blacksmith.v1(p,v)
 	local data = game.ServerStorage.PlayerData:FindFirstChild(p.Name)
@@ -9517,7 +9847,7 @@ function dialogues.Blacksmith.v1(p,v)
 		local tool = p.Character:FindFirstChildWhichIsA("Tool")
 		if tool and tool:FindFirstChild("Gem") then
 			if commands.ChangeMoney(p,data,-100)then
-				data.Enchant.Value = tool.Name
+				setFirstEnchant(data, tool.Name)
 				tool:Destroy()
 				commands.RemoveFromInventory(p, tool.Name)
 				return dialogues.Blacksmith.p3
@@ -9542,7 +9872,7 @@ function dialogues.BlacksmithAdvanced.v1(p,v)
 		local tool = p.Character:FindFirstChildWhichIsA("Tool")
 		if tool and tool:FindFirstChild("Gem") then
 			if commands.ChangeMoney(p,data,-30000)then
-				data.Enchant.Value = tool.Name
+				setFirstEnchant(data, tool.Name)
 				return dialogues.Blacksmith.p3
 			else
 				return dialogues.Blacksmith.poor
@@ -11463,6 +11793,255 @@ local AscensionQuests = {
 		local StoryMarker = HS:JSONDecode(data.StoryMarker.Value)
 		local GlobalQuests = HS:JSONDecode(globaldata.GlobalQuests.Value)
 	end,
+	["MadrasianQuest"] = function(p,v)
+		local data = game.ServerStorage.PlayerData:FindFirstChild(p.Name)
+		local globaldata = game.ServerStorage.PlayerData:FindFirstChild(p.Name.."Global")
+		if not data or not p.Character then
+			return
+		end
+		local StoryMarker = HS:JSONDecode(data.StoryMarker.Value)
+		local GlobalQuests = HS:JSONDecode(globaldata.GlobalQuests.Value)
+		if v.page == 1 then
+			if GlobalQuests["Ascensions"] and GlobalQuests["Ascensions"]["Madrasian"] == true then
+				StoryMarker["Ascension"] = {}
+				StoryMarker["Ascension"]["NoAs'endo"] = true
+				data.Ascended.Value = true
+				data.StoryMarker.Value = HS:JSONEncode(StoryMarker)
+				commands.Learn(p)
+				return dialogues["As'endoMadrasian"].ascended
+			end
+			if not StoryMarker["Ascension"] or (#StoryMarker["Ascension"] == 0 and not StoryMarker["Ascension"]["Madrasian"]) then
+				return dialogues["As'endoMadrasian"].startedp1
+			elseif StoryMarker["Ascension"]["Madrasian"] == "Started" then
+				return dialogues["As'endoMadrasian"].notyetvessimer
+			elseif StoryMarker["Ascension"]["Madrasian"] == "VessimerDone" then
+				return dialogues["As'endoMadrasian"].cameback
+			elseif StoryMarker["Ascension"]["Madrasian"] == "Finished" then
+				return dialogues["As'endoMadrasian"].camebackinsight
+			end
+		elseif v.choice == "I'm seeking the Ascencion Trial" then
+			return dialogues["As'endoMadrasian"].startedp2
+		elseif v.choice == "Where can he be found?" then
+			return dialogues["As'endoMadrasian"].startedp3
+		elseif v.choice == "I will not fail" then
+			StoryMarker["Ascension"] = {}
+			StoryMarker["Ascension"]["Madrasian"] = "Started"
+			StoryMarker["Ascension"]["NoAs'endo"] = true
+			data.StoryMarker.Value = HS:JSONEncode(StoryMarker)
+			local spawns = game.ServerStorage.SpawnPoints[data.SpawnPoint.Value]:GetChildren()
+			local tpcf = spawns[math.random(1,#spawns)].CFrame
+			local a = Instance.new("Folder", p.Character)
+			a.Name = "TPSafe"
+			p.Character.HumanoidRootPart.CFrame = tpcf
+			task.delay(0.1,function()
+				create("Knocked",2,p.Character)
+			end)
+			task.delay(2, function()
+				a:Destroy()
+			end)
+			return dialogues["As'endo"].started
+		elseif v.choice == "You tricked me" then
+			return dialogues["As'endoMadrasian"].cameback2
+		elseif v.choice == "What!?" then
+			return dialogues["As'endoMadrasian"].cameback3
+		elseif v.choice == "..." then
+			return dialogues["As'endoMadrasian"].cameback4
+		elseif v.choice == "I don't have any other choice" then
+			if GlobalQuests["Ascensions"] and GlobalQuests["Ascensions"]["Madrasian"] == true then
+				StoryMarker["Ascension"] = {}
+				StoryMarker["Ascension"]["NoAs'endo"] = true
+				data.Ascended.Value = true
+				data.StoryMarker.Value = HS:JSONEncode(StoryMarker)
+				commands.Learn(p)
+				return dialogues["As'endoMadrasian"].ascended
+			end
+			return dialogues["As'endoMadrasian"].cameback5
+		elseif v.choice == "Let's do it" then
+			if commands.ChangeInsight(p,data, -20) then
+				StoryMarker["Ascension"] = {}
+				StoryMarker["Ascension"]["NoAs'endo"] = true
+				if not GlobalQuests["Ascensions"] then
+					GlobalQuests["Ascensions"] = {}
+				end
+				GlobalQuests["Ascensions"]["Madrasian"] = true
+				globaldata.GlobalQuests.Value = game:GetService("HttpService"):JSONEncode(GlobalQuests)
+				data.Ascended.Value = true
+				data.StoryMarker.Value = HS:JSONEncode(StoryMarker)
+				commands.Learn(p)
+				return dialogues["As'endoMadrasian"].ascended
+			else
+				StoryMarker["Ascension"]["Madrasian"] = "Finished"
+				data.StoryMarker.Value = HS:JSONEncode(StoryMarker)
+				return dialogues["As'endoMadrasian"].noinsight
+			end
+		end
+	end,
+	["DzinQuest"] = function(p,v)
+		local data = game.ServerStorage.PlayerData:FindFirstChild(p.Name)
+		local globaldata = game.ServerStorage.PlayerData:FindFirstChild(p.Name.."Global")
+		if not data or not p.Character then
+			return
+		end
+		local StoryMarker = HS:JSONDecode(data.StoryMarker.Value)
+		local GlobalQuests = HS:JSONDecode(globaldata.GlobalQuests.Value)
+		if v.page == 1 then
+			if GlobalQuests["Ascensions"] and GlobalQuests["Ascensions"]["Dzin"] == true then
+				StoryMarker["Ascension"] = {}
+				StoryMarker["Ascension"]["NoAs'endo"] = true
+				data.Ascended.Value = true
+				data.StoryMarker.Value = HS:JSONEncode(StoryMarker)
+				commands.Learn(p)
+				return dialogues["As'endoDzin"].ascended
+			end
+			if not StoryMarker["Ascension"] or (#StoryMarker["Ascension"] == 0 and not StoryMarker["Ascension"]["Dzin"]) then
+				return dialogues["As'endoDzin"].startedp1
+			elseif StoryMarker["Ascension"]["Dzin"] == "Started" then
+				return dialogues["As'endoDzin"].notyetilventhe
+			elseif StoryMarker["Ascension"]["Dzin"] == "IlventheDone" then
+				return dialogues["As'endoDzin"].cameback
+			elseif StoryMarker["Ascension"]["Dzin"] == "Finished" then
+				return dialogues["As'endoDzin"].camebackinsight
+			end
+		elseif v.choice == "I'm seeking the Ascencion Trial" then
+			return dialogues["As'endoDzin"].startedp2
+		elseif v.choice == "Where can he be found?" then
+			return dialogues["As'endoDzin"].startedp3
+		elseif v.choice == "I will not fail" then
+			StoryMarker["Ascension"] = {}
+			StoryMarker["Ascension"]["Dzin"] = "Started"
+			StoryMarker["Ascension"]["NoAs'endo"] = true
+			data.StoryMarker.Value = HS:JSONEncode(StoryMarker)
+			local spawns = game.ServerStorage.SpawnPoints[data.SpawnPoint.Value]:GetChildren()
+			local tpcf = spawns[math.random(1,#spawns)].CFrame
+			local a = Instance.new("Folder", p.Character)
+			a.Name = "TPSafe"
+			p.Character.HumanoidRootPart.CFrame = tpcf
+			task.delay(0.1,function()
+				create("Knocked",2,p.Character)
+			end)
+			task.delay(2, function()
+				a:Destroy()
+			end)
+			return dialogues["As'endo"].started
+		elseif v.choice == "You tricked me" then
+			return dialogues["As'endoDzin"].cameback2
+		elseif v.choice == "What!?" then
+			return dialogues["As'endoDzin"].cameback3
+		elseif v.choice == "..." then
+			return dialogues["As'endoDzin"].cameback4
+		elseif v.choice == "I don't have any other choice" then
+			if GlobalQuests["Ascensions"] and GlobalQuests["Ascensions"]["Dzin"] == true then
+				StoryMarker["Ascension"] = {}
+				StoryMarker["Ascension"]["NoAs'endo"] = true
+				data.Ascended.Value = true
+				data.StoryMarker.Value = HS:JSONEncode(StoryMarker)
+				commands.Learn(p)
+				return dialogues["As'endoDzin"].ascended
+			end
+			return dialogues["As'endoDzin"].cameback5
+		elseif v.choice == "Let's do it" then
+			if commands.ChangeInsight(p,data, -20) then
+				StoryMarker["Ascension"] = {}
+				StoryMarker["Ascension"]["NoAs'endo"] = true
+				if not GlobalQuests["Ascensions"] then
+					GlobalQuests["Ascensions"] = {}
+				end
+				GlobalQuests["Ascensions"]["Dzin"] = true
+				globaldata.GlobalQuests.Value = game:GetService("HttpService"):JSONEncode(GlobalQuests)
+				data.Ascended.Value = true
+				data.StoryMarker.Value = HS:JSONEncode(StoryMarker)
+				commands.Learn(p)
+				return dialogues["As'endoDzin"].ascended
+			else
+				StoryMarker["Ascension"]["Dzin"] = "Finished"
+				data.StoryMarker.Value = HS:JSONEncode(StoryMarker)
+				return dialogues["As'endoDzin"].noinsight
+			end
+		end
+	end,
+	["GaianQuest"] = function(p,v)
+		local data = game.ServerStorage.PlayerData:FindFirstChild(p.Name)
+		local globaldata = game.ServerStorage.PlayerData:FindFirstChild(p.Name.."Global")
+		if not data or not p.Character then
+			return
+		end
+		local StoryMarker = HS:JSONDecode(data.StoryMarker.Value)
+		local GlobalQuests = HS:JSONDecode(globaldata.GlobalQuests.Value)
+		if v.page == 1 then
+			if GlobalQuests["Ascensions"] and GlobalQuests["Ascensions"]["Gaian"] == true then
+				StoryMarker["Ascension"] = {}
+				StoryMarker["Ascension"]["NoAs'endo"] = true
+				data.Ascended.Value = true
+				data.StoryMarker.Value = HS:JSONEncode(StoryMarker)
+				commands.Learn(p)
+				return dialogues["As'endoGaian"].ascended
+			end
+			if not StoryMarker["Ascension"] or (#StoryMarker["Ascension"] == 0 and not StoryMarker["Ascension"]["Gaian"]) then
+				return dialogues["As'endoGaian"].startedp1
+			elseif StoryMarker["Ascension"]["Gaian"] == "Started" then
+				return dialogues["As'endoGaian"].notyetengineer
+			elseif StoryMarker["Ascension"]["Gaian"] == "EngineerDone" then
+				return dialogues["As'endoGaian"].cameback
+			elseif StoryMarker["Ascension"]["Gaian"] == "Finished" then
+				return dialogues["As'endoGaian"].camebackinsight
+			end
+		elseif v.choice == "I'm seeking the Ascencion Trial" then
+			return dialogues["As'endoGaian"].startedp2
+		elseif v.choice == "Where can he be found?" then
+			return dialogues["As'endoGaian"].startedp3
+		elseif v.choice == "I will not fail" then
+			StoryMarker["Ascension"] = {}
+			StoryMarker["Ascension"]["Gaian"] = "Started"
+			StoryMarker["Ascension"]["NoAs'endo"] = true
+			data.StoryMarker.Value = HS:JSONEncode(StoryMarker)
+			local spawns = game.ServerStorage.SpawnPoints[data.SpawnPoint.Value]:GetChildren()
+			local tpcf = spawns[math.random(1,#spawns)].CFrame
+			local a = Instance.new("Folder", p.Character)
+			a.Name = "TPSafe"
+			p.Character.HumanoidRootPart.CFrame = tpcf
+			task.delay(0.1,function()
+				create("Knocked",2,p.Character)
+			end)
+			task.delay(2, function()
+				a:Destroy()
+			end)
+			return dialogues["As'endo"].started
+		elseif v.choice == "You tricked me" then
+			return dialogues["As'endoGaian"].cameback2
+		elseif v.choice == "What!?" then
+			return dialogues["As'endoGaian"].cameback3
+		elseif v.choice == "..." then
+			return dialogues["As'endoGaian"].cameback4
+		elseif v.choice == "I don't have any other choice" then
+			if GlobalQuests["Ascensions"] and GlobalQuests["Ascensions"]["Gaian"] == true then
+				StoryMarker["Ascension"] = {}
+				StoryMarker["Ascension"]["NoAs'endo"] = true
+				data.Ascended.Value = true
+				data.StoryMarker.Value = HS:JSONEncode(StoryMarker)
+				commands.Learn(p)
+				return dialogues["As'endoGaian"].ascended
+			end
+			return dialogues["As'endoGaian"].cameback5
+		elseif v.choice == "Let's do it" then
+			if commands.ChangeInsight(p,data, -20) then
+				StoryMarker["Ascension"] = {}
+				StoryMarker["Ascension"]["NoAs'endo"] = true
+				if not GlobalQuests["Ascensions"] then
+					GlobalQuests["Ascensions"] = {}
+				end
+				GlobalQuests["Ascensions"]["Gaian"] = true
+				globaldata.GlobalQuests.Value = game:GetService("HttpService"):JSONEncode(GlobalQuests)
+				data.Ascended.Value = true
+				data.StoryMarker.Value = HS:JSONEncode(StoryMarker)
+				commands.Learn(p)
+				return dialogues["As'endoGaian"].ascended
+			else
+				StoryMarker["Ascension"]["Gaian"] = "Finished"
+				data.StoryMarker.Value = HS:JSONEncode(StoryMarker)
+				return dialogues["As'endoGaian"].noinsight
+			end
+		end
+	end,
 }
 
 local AscendedDialogues = {
@@ -11472,6 +12051,27 @@ local AscendedDialogues = {
 			return
 		end
 		return dialogues["As'endoAzael"].ruleroffire
+	end,
+	["MadrasianDialogue"] = function(p,v)
+		local data = game.ServerStorage.PlayerData:FindFirstChild(p.Name)
+		if not data or not p.Character or (p.Character and p.Character:FindFirstChild("Dead")) then
+			return
+		end
+		return dialogues["As'endoMadrasian"].masterofmasks
+	end,
+	["DzinDialogue"] = function(p,v)
+		local data = game.ServerStorage.PlayerData:FindFirstChild(p.Name)
+		if not data or not p.Character or (p.Character and p.Character:FindFirstChild("Dead")) then
+			return
+		end
+		return dialogues["As'endoDzin"].wakerofthepulse
+	end,
+	["GaianDialogue"] = function(p,v)
+		local data = game.ServerStorage.PlayerData:FindFirstChild(p.Name)
+		if not data or not p.Character or (p.Character and p.Character:FindFirstChild("Dead")) then
+			return
+		end
+		return dialogues["As'endoGaian"].overclockedone
 	end,
 }
 
@@ -11496,6 +12096,59 @@ dialogues["As'endo"].v1 = function(p,v)
 	else
 		return AscendedDialogues[data.Race.Value.."Dialogue"](p,v)
 	end
+end
+
+-- The Madrasian ascension trial-giver (mirrors "Adralik"'s role in Azael's quest, except Vessimer
+-- is an actual placed NPC with real dialogue). Only progresses the trial for a Madrasian who has
+-- already started it via As'endo ("I will not fail") - everyone else just gets turned away.
+function dialogues.Vessimer.v1(p,v)
+	local data = game.ServerStorage.PlayerData:FindFirstChild(p.Name)
+	if not data or not p.Character or (p.Character and p.Character:FindFirstChild("Dead")) then
+		return
+	end
+	local StoryMarker = HS:JSONDecode(data.StoryMarker.Value)
+	if data.Race.Value ~= "Madrasian" or not StoryMarker["Ascension"] or StoryMarker["Ascension"]["Madrasian"] ~= "Started" then
+		return dialogues.Vessimer.notready
+	end
+	if v.page == 1 then
+		return dialogues.Vessimer.p1
+	elseif v.page == 2 then
+		return dialogues.Vessimer.trial
+	elseif v.page == 3 then
+		if v.choice == "I accept." then
+			StoryMarker["Ascension"]["NoAs'endo"] = false
+			StoryMarker["Ascension"]["Madrasian"] = "VessimerDone"
+			data.StoryMarker.Value = HS:JSONEncode(StoryMarker)
+			return dialogues.Vessimer.done
+		end
+	end
+	return dialogues.Vessimer.notready
+end
+
+-- The Dzin ascension trial-giver, same shape as Vessimer above. Only progresses the trial for a
+-- Dzin who has already started it via As'endo ("I will not fail") - everyone else gets turned away.
+function dialogues.Ilventhe.v1(p,v)
+	local data = game.ServerStorage.PlayerData:FindFirstChild(p.Name)
+	if not data or not p.Character or (p.Character and p.Character:FindFirstChild("Dead")) then
+		return
+	end
+	local StoryMarker = HS:JSONDecode(data.StoryMarker.Value)
+	if data.Race.Value ~= "Dzin" or not StoryMarker["Ascension"] or StoryMarker["Ascension"]["Dzin"] ~= "Started" then
+		return dialogues.Ilventhe.notready
+	end
+	if v.page == 1 then
+		return dialogues.Ilventhe.p1
+	elseif v.page == 2 then
+		return dialogues.Ilventhe.trial
+	elseif v.page == 3 then
+		if v.choice == "I accept." then
+			StoryMarker["Ascension"]["Dzin"] = "IlventheDone"
+			StoryMarker["Ascension"]["NoAs'endo"] = false
+			data.StoryMarker.Value = HS:JSONEncode(StoryMarker)
+			return dialogues.Ilventhe.done
+		end
+	end
+	return dialogues.Ilventhe.notready
 end
 
 function dialogues.Isaac.v1(p,v)

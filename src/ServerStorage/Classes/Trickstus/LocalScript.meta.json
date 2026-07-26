@@ -1,6 +1,6 @@
 {
+  "keepUnknowns": true,
   "properties": {
     "Disabled": true
-  },
-  "keepUnknowns": true
+  }
 }

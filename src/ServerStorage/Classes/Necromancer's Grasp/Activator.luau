@@ -32,14 +32,6 @@ function v1.Activate(p2, p1, p3)
 	if game.CollectionService:HasTag(p1, "Knocked") then
 		return;
 	end;
-	if p1.Cooldowns:FindFirstChild("Necromancer's Grasp") then
-		return
-	end
-	local CD = Instance.new("NumberValue")
-	CD.Name = "Necromancer's Grasp"
-	CD.Value = 10
-	CD.Parent = p1.Cooldowns
-	game.Debris:AddItem(CD, 10)
 	local l__HumanoidRootPart__5 = p1.HumanoidRootPart;
 	local l__Humanoid__6 = p1.Humanoid;
 	local prescriptc = p1.HumanoidRootPart.CFrame

@@ -7,6 +7,16 @@ local commands = require(game.ServerScriptService.Modules.Commands)
 local function exit(p1)
 	local p2 = p1.Character
 	if p2 and talking[p2]then
+		if talking[p2].npc == "SpellChange" then
+			-- Cancelling the scroll-replace-a-spell prompt must clear LastScroll, or every
+			-- scroll in the game silently no-ops forever (Activator scripts gate on
+			-- LastScroll.Value ~= "" as their very first check, and this was the only place
+			-- a scroll ever sets it non-empty in the first place).
+			local data = game.ServerStorage.PlayerData:FindFirstChild(p1.Name)
+			if data then
+				data.LastScroll.Value = ""
+			end
+		end
 		if talking[p2].stun then
 			talking[p2].stun:Destroy()
 		end

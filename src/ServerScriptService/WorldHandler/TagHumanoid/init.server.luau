@@ -365,6 +365,10 @@ function taghumanoid(character,enemy,info)
 	if (eroot.Position-root.Position).Unit:Dot(eroot.CFrame.LookVector) >= 0.25 and not FindFirstChild(enemy, "MonShield") then
 		behind = true
 	end
+	if behind and blocking and enemydata and enemydata.Ascended.Value == true and enemydata.Race.Value == "Dzin" and (FindFirstChild(enemy,"WorldPulse") or FindFirstChild(enemy,"WorldPulseUltra")) then
+		eroot.CFrame = CFrame.new(eroot.Position, Vector3.new(root.Position.X, eroot.Position.Y, root.Position.Z))
+		behind = false
+	end
 	if FindFirstChild(enemy,"InDialogue")then
 		FindFirstChild(enemy,"InDialogue"):Destroy()
 	end
@@ -866,7 +870,16 @@ function taghumanoid(character,enemy,info)
 			end
 		end
 	end
-	
+	if not info.nododge and info.damage and info.damage < 4 and enemydata and enemydata.Race.Value == "Dzin" and enemydata.Ascended.Value == true then
+		local chance = math.clamp(25 + 25 * (4 - info.damage) / 4, 25, 50)
+		if math.random() * 100 < chance then
+			create("NoDam",0.3,enemy)
+			local dodgeanim = ehumanoid:LoadAnimation(script["Dodge"..math.random(1,2)])
+			dodgeanim:Play()
+			return
+		end
+	end
+
 	if FindFirstChild(enemy,"PREMONITIONCOUNTER") then
 		if not info.sunlight and not info.falldamage then
 			local COUNTER = enemy.PREMONITIONCOUNTER
@@ -1191,6 +1204,15 @@ function taghumanoid(character,enemy,info)
 					dodgeanim:Play()
 					return
 				end
+			end
+		end
+		if not info.nododge and info.damage and info.damage < 4 and enemydata and enemydata.Race.Value == "Dzin" and enemydata.Ascended.Value == true then
+			local chance = math.clamp(25 + 25 * (4 - info.damage) / 4, 25, 50)
+			if math.random() * 100 < chance then
+				create("NoDam",0.3,enemy)
+				local dodgeanim = ehumanoid:LoadAnimation(script["Dodge"..math.random(1,2)])
+				dodgeanim:Play()
+				return
 			end
 		end
 	end
@@ -2670,7 +2692,8 @@ function taghumanoid(character,enemy,info)
 		end
 	end
 
-	if info.falldamage then	
+	if info.falldamage then
+		if enemy:FindFirstChild("Boosts") and enemy.Boosts:FindFirstChild("NoFallDamage") then return end
 		if enemy:FindFirstChild("FlowingParry") then return end
 		if not info.damage then
 			info.damage = 1

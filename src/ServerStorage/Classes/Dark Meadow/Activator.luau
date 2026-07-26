@@ -21,6 +21,7 @@ function Anchor(Target, Statement)
 end
 
 local casting = false
+local Windup = false
 
 function v1.Activate(p1, p2, p3, p4)
 	if game.CollectionService:HasTag(p2, "Casting") or p2:FindFirstChild("ActiveCast") then
@@ -49,10 +50,9 @@ function v1.Activate(p1, p2, p3, p4)
 	local v7 = p2:FindFirstChild("EndCast") or (p2:FindFirstChild("Stun") or (game.CollectionService:HasTag(p2, "Knocked") or game.CollectionService:HasTag(p2, "Unconscious")));
 	local WindupAnim = p2.Humanoid:LoadAnimation(script.Parent.Windup)
 	local Loop = p2.Humanoid:LoadAnimation(script.Parent.Loop)
-	local Windup = false
+	Windup = true
 	Anchor(p2, true)
 	WindupAnim:Play()
-	Windup = true
 	task.spawn(function()
 		while Windup do
 			local v17 = v7;
@@ -62,7 +62,7 @@ function v1.Activate(p1, p2, p3, p4)
 			end;
 			v7 = v17;
 			if v7 then
-				Windup:Stop()
+				WindupAnim:Stop()
 				Windup = false
 			end;
 			task.wait(0.1)
@@ -74,6 +74,16 @@ function v1.Activate(p1, p2, p3, p4)
 	task.wait(0.5)
 
 	if Windup == false then
+		-- Interrupted (Stun/Knocked/Unconscious) or manually cancelled during windup. This branch
+		-- used to return with no cleanup at all: FreezeRoot was never removed and the ActiveCast
+		-- tag (which blocks every future cast, including trying to cast Dark Meadow again to
+		-- "cancel" it) was never destroyed - permanently bugging the player out. Also, the poll
+		-- loop above used to call Windup:Stop() (the boolean flag, not the animation) which threw
+		-- and silently killed that coroutine before it ever set Windup = false, so this branch was
+		-- never actually reached at all - fixed alongside this cleanup.
+		WindupAnim:Stop()
+		Anchor(p2, false)
+		v5:Destroy()
 		return
 	end
 	Windup = false
@@ -153,6 +163,6 @@ function v1.Activate(p1, p2, p3, p4)
 end;
 function v1.Deactivate(p6, p7, p8)
 	casting = false;
-	print(casting)
+	Windup = false;
 end;
 return v1;

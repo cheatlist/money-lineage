@@ -40,6 +40,16 @@ script.Parent.Activated:Connect(function()
 		local Action = Instance.new("NumberValue")
 		Action.Parent = p1
 		Action.Name = "Action"
+		-- Destroy() below only ever runs inside the "Reached" marker callback, which assumes the
+		-- animation plays to completion. Getting hit/knocked before "Reached" fires stops the
+		-- animation, the marker never fires, and the caster was left permanently Action-tagged
+		-- (blocked from all further actions). This is a safety net so an interruption self-heals;
+		-- Destroy() is idempotent so the normal cleanup below doesn't need to check for it.
+		task.delay(8, function()
+			if Action and Action.Parent then
+				Action:Destroy()
+			end
+		end)
 		local Anim = Hum:LoadAnimation(script.Parent.Anim1)
 		Anim:Play(0.8)
 		Anim:GetMarkerReachedSignal("Reached"):Connect(function()

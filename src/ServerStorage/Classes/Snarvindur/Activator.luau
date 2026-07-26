@@ -10,9 +10,9 @@ v1.lowerbound = 60
 v1.signs = 3
 v1.cost = 60
 local v5 = {
-	upperbound = 30, 
-	lowerbound = 20, 
-	signs = 0, 
+	upperbound = 35,
+	lowerbound = 15,
+	signs = 0,
 	cost = 20
 }
 function ray(p1, p2, p3)

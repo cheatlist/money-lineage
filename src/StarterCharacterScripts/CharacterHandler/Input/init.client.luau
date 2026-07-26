@@ -1774,6 +1774,7 @@ local function u93()
 		local v231 = FindFirstChild(Character, "LifeSense")
 		local v232 = FindFirstChild(Character, "WorldPulseUltra")
 		local v233 = FindFirstChild(Character, "WorldPulse")
+		local ascendedPulse = FindFirstChild(Character, "AscendedPulse")
 		for v234, v235 in pairs(u58) do
 			if not v234.Parent or not v234:IsDescendantOf(workspace) then
 				u58[v234] = nil
@@ -1781,10 +1782,12 @@ local function u93()
 				Destroy(v235)
 			else
 				local v236
-				if not v232 then
+				if ascendedPulse then
+					v236 = Backpack.ManaColor.Value
+				elseif not v232 then
 					v236 = v233 and Color3.new(0, 1, 1) or Color3.new(0.4, 1, 0.4)
 				else
-					v236 = Color3.new(0, 1, 1) or Color3.new(0.4, 1, 0.4)
+					v236 = Color3.new(0, 1, 1)
 				end
 				u58[v234].Color3 = v236
 			end
@@ -1804,15 +1807,25 @@ local function u93()
 		--debug.profilebegin("BigLag")
 		for v242, v243 in pairs(v237) do
 			if u60[v243] == nil and (not v231 or v243 ~= Character) then
+				if ascendedPulse then
+					local pulseHumanoid = v243:FindFirstChildWhichIsA("Humanoid")
+					if pulseHumanoid then
+						pulseHumanoid.HealthDisplayType = Enum.HumanoidHealthDisplayType.DisplayWhenDamaged
+						pulseHumanoid.HealthDisplayDistance = 500
+						pulseHumanoid.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.Subject
+					end
+				end
 				for v244, v245 in pairs(GetChildren(v243)) do
 					if IsA(v245, "BasePart") and v245.Transparency == 0 and not u58[v245] and not FindFirstChild(v245, "HideMesh") then
 						local v246 = Instance.new("BoxHandleAdornment", v245)
 						v246.Adornee = v245
 						local v247
-						if not v232 then
+						if ascendedPulse then
+							v247 = Backpack.ManaColor.Value
+						elseif not v232 then
 							v247 = v233 and Color3.new(0, 1, 1) or Color3.new(0.4, 1, 0.4)
 						else
-							v247 = Color3.new(0, 1, 1) or Color3.new(0.4, 1, 0.4)
+							v247 = Color3.new(0, 1, 1)
 						end
 						v246.Color3 = v247
 						v246.Transparency = u55
@@ -2113,8 +2126,9 @@ RenderStepLoop = RunService.RenderStepped:Connect(function()
 	local v342 = FindFirstChild(Character, "WorldPulse")
 	local v343 = FindFirstChild(Character, "WorldPulseUltra")
 	local v344 = FindFirstChild(Character, "LifeSense")
+	local ascendedPulse2 = FindFirstChild(Character, "AscendedPulse")
 	if v343 or v342 then
-		WorldPulse.ImageColor3 = Color3.fromRGB(69, 255, 224)
+		WorldPulse.ImageColor3 = ascendedPulse2 and Backpack.ManaColor.Value or Color3.fromRGB(69, 255, 224)
 	else
 		WorldPulse.ImageColor3 = Color3.fromRGB(100, 255, 100)
 	end
@@ -2211,7 +2225,9 @@ RenderStepLoop = RunService.RenderStepped:Connect(function()
 		u95 = false
 		u56 = {}
 	end
-	if v344 and not v342 and not v343 then
+	if ascendedPulse2 then
+		WorldPulse.ImageTransparency = 1
+	elseif v344 and not v342 and not v343 then
 		WorldPulse.ImageTransparency = 0.825 + u55 * 0.25
 	else
 		WorldPulse.ImageTransparency = u55

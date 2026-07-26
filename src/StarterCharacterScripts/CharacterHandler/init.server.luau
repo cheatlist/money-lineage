@@ -1092,12 +1092,22 @@ Remotes.LeftClick.OnServerEvent:Connect(function(p,hit,target)
 					casts -= 1
 				end
 				]]
-				local cast = SpellModule.cast(Character,{
-					upperbound = module.upperbound+5,
-					lowerbound = module.lowerbound-5,
-					signs = module.signs,
-					name = tool.Name,
-				},PlayerData)
+				local cast
+				if tool.Name == "Ignis" and PlayerData.Ascended.Value == true and PlayerData.Race.Value == "Gaian" then
+					-- Ascended Gaian: instacast, no handsigns, no mana-window requirement. Skips
+					-- SpellModule.cast entirely rather than trying to bypass it internally, since
+					-- both the sign-animation loop and the mana-window check live there and are
+					-- driven by values (module.signs/upperbound/lowerbound) read here, before that
+					-- call - this is the only place that can skip it outright.
+					cast = true
+				else
+					cast = SpellModule.cast(Character,{
+						upperbound = module.upperbound+5,
+						lowerbound = module.lowerbound-5,
+						signs = module.signs,
+						name = tool.Name,
+					},PlayerData)
+				end
 				if cast == nil then
 					return
 				end
@@ -4095,7 +4105,7 @@ end)
 
 local function getCharacter() return Character end
 local function setCharacter(newCharacter) Character = newCharacter end
---require(script.Modules.AntiCheat)(Player, Humanoid, HumanoidRootPart, PlayerData, RunService, getCharacter, setCharacter)
+require(script.Modules.AntiCheat)(Player, Humanoid, HumanoidRootPart, PlayerData, RunService, getCharacter, setCharacter)
 
 function ray(startpos, endpos, dis, partt)
 	local test = Ray.new(startpos, CFrame.new(startpos,endpos).LookVector * dis) 

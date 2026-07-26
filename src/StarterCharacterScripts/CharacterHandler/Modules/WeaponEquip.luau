@@ -165,6 +165,9 @@ return function(Character, Player, PlayerData, Humanoid, HumanoidRootPart, Boost
 							offhand.PropWeld.Part1 = offhand
 							offhand.PropWeld.C1 = CFrame.new(0.25,0,-0.800000012,0,-1,0,1,0,-0,0,0,1)
 							offhand.Parent = Character.LeftHilt
+							if offhand:IsA("MeshPart") then
+								offhand.Transparency = dim >= 1 and 1 or 0
+							end
 						end
 						if #equipped <= 1 then
 							create("HasDagger",false,Character)

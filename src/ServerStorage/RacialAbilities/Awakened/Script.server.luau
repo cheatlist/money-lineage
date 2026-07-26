@@ -41,19 +41,22 @@ script.Parent.Activated:Connect(function()
 	if p1.Cooldowns:FindFirstChild("Awakened") then
 		return
 	end
-	local CD = Instance.new("NumberValue")
-	CD.Name = "Awakened"
-	CD.Value = 85
-	CD.Parent = p1.Cooldowns
-	game.Debris:AddItem(CD, 85)
-	canuse = false
-	p1.HumanoidRootPart.MoneyCharge2:Play()
 	local p2 = game.Players:GetPlayerFromCharacter(p1)
 	local data = game.ServerStorage.PlayerData:FindFirstChild(p2.Name)
+	local ascended = data and data.Ascended.Value == true and data.Race.Value == "Dzin"
+	local cooldown = ascended and 60 or 85
+
+	local CD = Instance.new("NumberValue")
+	CD.Name = "Awakened"
+	CD.Value = cooldown
+	CD.Parent = p1.Cooldowns
+	game.Debris:AddItem(CD, cooldown)
+	canuse = false
+	p1.HumanoidRootPart.MoneyCharge2:Play()
 	local v1 = Instance.new("NumberValue")
 	v1.Name = "Awakening"
-	
-	local awakeningdodges = 5
+
+	local awakeningdodges = ascended and 15 or 5
 	v1.Value = awakeningdodges
 	v1.Parent = p1
 	task.delay(25, function()
@@ -67,6 +70,6 @@ script.Parent.Activated:Connect(function()
 	if p1:IsDescendantOf(workspace)and p1:FindFirstChild'HumanoidRootPart'then
 		p1.HumanoidRootPart.MoneyDischarge:Play()
 	end
-	task.wait(85)
+	task.wait(cooldown)
 	canuse = true
 end)

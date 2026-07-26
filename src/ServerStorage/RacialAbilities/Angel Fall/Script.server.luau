@@ -98,7 +98,7 @@ script.Parent.Activated:Connect(function()
 	local Descendants = p1:GetDescendants()
 	for i = 1,#Descendants do
 		local v = Descendants[i]
-		if v:IsA("BasePart") and v.Name~="Hilt" and v.Parent.Name ~= "RuneArmLeft" and v.Parent.Name ~= "RuneArmRight" and v.Name ~= "Back" and v.Name ~= "HumanoidRootPart"and v.Name ~= "AngelForm" then
+		if v:IsA("BasePart") and v.Name~="Hilt" and v.Name ~= "LeftHilt" and v.Parent.Name ~= "RuneArmLeft" and v.Parent.Name ~= "RuneArmRight" and v.Name ~= "Back" and v.Name ~= "HumanoidRootPart"and v.Name ~= "AngelForm" then
 			v.Transparency = 0
 		end
 	end

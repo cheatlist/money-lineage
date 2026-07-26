@@ -33,7 +33,7 @@ local AWAKENED_COOLDOWN = 3
 local UBER_COOLDOWN = 5
 local ULTRA_COOLDOWN = 8
 
-local RUSH_PKT = {physical=true,slash=true,damage=10,dagger=true,blockbreak=true,nobackstab=true,move = "Shadowrush"}
+local RUSH_PKT = {physical=true,slash=true,damage=10,dagger=true,nobackstab=true,move = "Shadowrush"}
 
 function hitCheck(forwardRange)
 	for i, v in pairs(game.Workspace.Live:GetChildren()) do

@@ -26,6 +26,7 @@ function v1.Activate(p1, p2, p3, p4)
 	if playerdata.Ascended.Value == true and playerdata.Race.Value == "Azael" then
 		ascended = true
 	end
+	local ascendedGaian = playerdata.Ascended.Value == true and playerdata.Race.Value == "Gaian"
 	if playerdata.Skills.Value:find("TheCursedFlame") then
 		cursed = true
 	end
@@ -64,7 +65,9 @@ function v1.Activate(p1, p2, p3, p4)
 	local v7 = Instance.new("Accessory")
 	v7.Name = "ConeCD"
 	v7.Parent = p2
-	l__Mana__2.Value = math.max(l__Mana__2.Value - v1.cost, 0)
+	if not ascendedGaian then
+		l__Mana__2.Value = math.max(l__Mana__2.Value - v1.cost, 0)
+	end
 	local v8 = Instance.new("IntValue")
 	v8.Name = "SpeedBoost"
 	v8.Value = -12

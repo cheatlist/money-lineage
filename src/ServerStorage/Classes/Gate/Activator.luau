@@ -8,16 +8,16 @@ v1.lowerbound = 60;
 v1.signs = 0;
 v1.cost = 1;
 local v3 = {
-	upperbound = 95, 
-	lowerbound = 60, 
-	signs = 0, 
+	upperbound = 95,
+	lowerbound = 60,
+	signs = 0,
 	cost = 1
 };
 local l__Gate__2 = game.ServerStorage.SpellEffects.Gate;
 local u3 = require(game.ReplicatedStorage.Info.WarpData);
 local u4 = {
-	--KheiBackfire = true, 
-	AbyssPit = true, 
+	--KheiBackfire = true,
+	AbyssPit = true,
 	AllDark = true
 };
 local l__TweenService__5 = game:GetService("TweenService");
@@ -95,7 +95,6 @@ function v3.Activate(p7, p8, p9, p10, p11)
 	local u13 = false
 	local u14 = nil
 	local u15 = nil
-	local pridegate = false
 
 	-- Build location name list for the client GUI
 	local locationNames = {}
@@ -103,28 +102,59 @@ function v3.Activate(p7, p8, p9, p10, p11)
 		table.insert(locationNames, k)
 	end
 
-	-- Show the GUI on the client and wait for their choice
+	-- Splits "tundra 7" into a location-name candidate ("tundra") and a sub-location candidate
+	-- ("7") - a typed sub-location is just the trailing word/number after the location name.
+	local function splitLocationAndSub(text)
+		local lastSpace = nil
+		for i = #text, 1, -1 do
+			if text:sub(i, i) == " " then
+				lastSpace = i
+				break
+			end
+		end
+		if not lastSpace then
+			return text, nil
+		end
+		return text:sub(1, lastSpace - 1), text:sub(lastSpace + 1)
+	end
+
+	-- Show a simple textbox on the client (typed, not a button list) and wait for their input.
+	-- "cancel" always aborts the teleport entirely, even on a backcast (miscast). Otherwise, on a
+	-- proper cast an unrecognized location name just fizzles (no teleport); on a backcast the
+	-- destination is randomized regardless of what was typed - same as before, just re-driven off
+	-- typed text instead of a button click.
 	local GateRequest = game.ReplicatedStorage.Requests.GateLocationRequest
 	local result = nil
 	local invokeSuccess = pcall(function()
 		result = GateRequest:InvokeClient(v65, locationNames)
 	end)
 
-	if not invokeSuccess or not result then
+	local typedText = result and result.text and result.text:match("^%s*(.-)%s*$") or nil
+	if typedText == "" then
+		typedText = nil
+	end
+
+	if not invokeSuccess or not typedText then
 		u13 = true
-	elseif result.type == "cancel" then
+	elseif string.lower(typedText) == "cancel" then
 		u13 = true
-	elseif result.type == "pride" then
-		pridegate = true
-	elseif result.type == "location" then
-		if p9 == 0 or v66.Race.Value == "Azael" and not v65:FindFirstChild("Danger") then
-			u14 = v76[result.name]
-			if result.sub and result.sub ~= "" then
-				u15 = string.upper(string.sub(result.sub, 1, 1)) .. string.lower(string.sub(result.sub, 2))
+	elseif p9 == 0 or v66.Race.Value == "Azael" and not v65:FindFirstChild("Danger") then
+		local wholeLower = string.lower(typedText)
+		local locationPart, subPart = splitLocationAndSub(wholeLower)
+		if subPart and v76[locationPart] then
+			u14 = v76[locationPart]
+			if tonumber(subPart) then
+				u15 = subPart
+			else
+				u15 = string.upper(string.sub(subPart, 1, 1)) .. string.lower(string.sub(subPart, 2))
 			end
+		elseif v76[wholeLower] then
+			u14 = v76[wholeLower]
 		else
-			u14 = v82[math.random(1, #v82)]
+			u13 = true
 		end
+	else
+		u14 = v82[math.random(1, #v82)]
 	end
 
 	v71:Destroy()
@@ -132,12 +162,12 @@ function v3.Activate(p7, p8, p9, p10, p11)
 	v74.Enabled = false
 	game.Debris:AddItem(v73, 3)
 
-	if u14 or pridegate then
+	if u14 then
 		if v65:FindFirstChild("Danger") then
 			u15 = nil
 		end
 		local v91 = u15 and u14 and u14:FindFirstChild(u15)
-		if not v91 and not pridegate then
+		if not v91 then
 			local v92 = u14:GetChildren()
 			if tonumber(u15) then
 				v91 = v92[tonumber(u15)]
@@ -145,13 +175,10 @@ function v3.Activate(p7, p8, p9, p10, p11)
 				v91 = v92[math.random(1, #v92)]
 			end
 		end
-		if not v91 and not pridegate then
+		if not v91 then
 			return
 		end
-		local l__Position__93
-		if not pridegate then
-			l__Position__93 = v91.Position
-		end
+		local l__Position__93 = v91.Position
 		local v94, v95, v96 = workspace:FindPartOnRayWithIgnoreList(Ray.new(v69.Position, Vector3.new(0, -20, 0)), { workspace.Live, workspace.Terrain, workspace.NPCs, workspace.Thrown, workspace.Destructibles, workspace.Ingredients })
 		if not v94 then
 			return
@@ -171,27 +198,7 @@ function v3.Activate(p7, p8, p9, p10, p11)
 			end
 		end
 		local v97 = Instance.new("Part")
-		if not pridegate then
-			v97.BrickColor = BrickColor.White()
-		else
-			task.spawn(function()
-				for gg = 1,3 do
-					for i = 1,30 do
-						if gg == 1 then
-							v97.Color = Color3.fromRGB(150 + i, 20, 235)
-							task.wait(0.05)
-						elseif gg == 2 then
-							v97.Color = Color3.fromRGB(150, 20, 235 - i)
-							task.wait(0.05)
-						else
-							v97.Color = Color3.fromRGB(150 + i, 20, 235 - i)
-							task.wait(0.05)
-						end
-					end
-					task.wait(0.5)
-				end
-			end)
-		end
+		v97.BrickColor = BrickColor.White()
 		v97.Material = "Neon"
 		v97.Transparency = 0
 		v97.Anchored = true
@@ -225,36 +232,25 @@ function v3.Activate(p7, p8, p9, p10, p11)
 				game.Debris:AddItem(v999, 4)
 			end
 		end
-		local v105 
-		if not pridegate then
-			v105 = CFrame.new(l__Position__93) * CFrame.new(math.random(-2, 2), 0, math.random(-2, 2))
-		end
+		local v105 = CFrame.new(l__Position__93) * CFrame.new(math.random(-2, 2), 0, math.random(-2, 2))
 		wait(0.5)
-		if not pridegate then
-			if u4[u14.Name] then
-				l__TweenService__5:Create(v97, TweenInfo.new(0.5), {
-					Color = Color3.new(0.68, 0, 0)
-				}):Play()
+		if u4[u14.Name] then
+			l__TweenService__5:Create(v97, TweenInfo.new(0.5), {
+				Color = Color3.new(0.68, 0, 0)
+			}):Play()
+		end
+		local v106 = Instance.new("Vector3Value")
+		v106.Name = "TPSafe"
+		v106.Value = v105.Position
+		v106.Parent = p8
+		for _,v in pairs(p8:GetDescendants()) do
+			if v.Name == "PULLING" or v.Name == "pullTo" then
+				v:Destroy()
 			end
 		end
-		if not pridegate then
-			local v106 = Instance.new("Vector3Value")
-			v106.Name = "TPSafe"
-			v106.Value = v105.Position
-			v106.Parent = p8
-			for _,v in pairs(p8:GetDescendants()) do
-				if v.Name == "PULLING" or v.Name == "pullTo" then
-					v:Destroy()
-				end
-			end
-			game.Debris:AddItem(v106, 4)
-		end
+		game.Debris:AddItem(v106, 4)
 		if not l__Humanoid__68.SeatPart and not l__Humanoid__68.Sit then
-			if not pridegate then
-				v69.CFrame = v105
-			else
-				game:GetService("TeleportService"):Teleport(5373028495, game.Players:GetPlayerFromCharacter(v69.Parent))
-			end
+			v69.CFrame = v105
 		end
 		if p8:FindFirstChild("Torch") and p8.Torch.Lit.Value then
 			local v107 = Instance.new("Accessory")
@@ -271,7 +267,6 @@ function v3.Activate(p7, p8, p9, p10, p11)
 
 		local u16 = {}
 		local v110 = v97.Touched:Connect(function(p13)
-			if pridegate then return end
 			local v111 = p13.Parent:FindFirstChild("Humanoid") or p13.Parent and p13.Parent.Parent:FindFirstChild("Humanoid")
 			if not v111 then
 				return
@@ -316,9 +311,6 @@ function v3.Activate(p7, p8, p9, p10, p11)
 				return
 			end
 			local v115 = game.Players:GetPlayerFromCharacter(l__Parent__112)
-			if pridegate then
-				game:GetService("TeleportService"):Teleport(5373028495, v115)
-			end
 			local v116 = v115 and game.ServerStorage.PlayerData:FindFirstChild(v115.Name)
 			if v116 and v116.Lives.Value <= 0 and not l__Parent__112:FindFirstChild("LichSummon") and not v115:FindFirstChild("LichSummon") then
 				return
@@ -364,13 +356,11 @@ function v3.Activate(p7, p8, p9, p10, p11)
 					game.Debris:AddItem(v999, 4)
 				end
 			end
-			if not pridegate then
-				local v122 = Instance.new("Vector3Value")
-				v122.Name = "TPSafe"
-				v122.Value = v105.Position
-				v122.Parent = l__Parent__112
-				game.Debris:AddItem(v122, 3)
-			end
+			local v122 = Instance.new("Vector3Value")
+			v122.Name = "TPSafe"
+			v122.Value = v105.Position
+			v122.Parent = l__Parent__112
+			game.Debris:AddItem(v122, 3)
 			if l__Parent__112:FindFirstChild("Torch") and l__Parent__112.Torch.Lit.Value then
 				local v123 = Instance.new("Accessory")
 				v123.Name = "EXTINGUISH"
