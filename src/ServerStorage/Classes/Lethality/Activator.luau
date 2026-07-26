@@ -58,6 +58,12 @@ local function BladeLethality(p1, p2, data, buffed)
 		return
 	end
 	if buffed then
+		local CD = Instance.new("NumberValue")
+		CD.Name = "Ethereal Lethality"
+		CD.Value = 30
+		CD.Parent = p1.Cooldowns
+		game.Debris:AddItem(CD, 30)
+		
 		local targetRoot = target.HumanoidRootPart
 		local approachDir = HumanoidRootPart.Position - targetRoot.Position
 		approachDir = approachDir.Magnitude > 0.01 and approachDir.Unit or Vector3.new(0, 0, 1)
@@ -117,20 +123,24 @@ function v2.Active(p1, p2, p3, p45)
 	-- instead of eating the usual 0.7s lockout) - see the `master` uses below.
 	local master = data.Skills.Value:find("TheMaster")
 	if data.Skills.Value:find("TheBlade") then
-		if p1.Cooldowns:FindFirstChild("Lethality") then
-			return
-		end
-		local CD = Instance.new("NumberValue")
-		CD.Name = "Lethality"
-		CD.Value = 30
-		CD.Parent = p1.Cooldowns
-		game.Debris:AddItem(CD, 30)
 		local buffed = p1:FindFirstChild("EtherealFollowup") ~= nil
 		if buffed then
+			if p1.Cooldowns:FindFirstChild("Ethereal Lethality") then
+				return
+			end
 			p1.EtherealFollowup:Destroy()
 			if p1:FindFirstChild("EtherealChain") then
 				p1.EtherealChain:Destroy()
 			end
+		else
+			if p1.Cooldowns:FindFirstChild("Lethality") then
+				return
+			end
+			local CD = Instance.new("NumberValue")
+			CD.Name = "Lethality"
+			CD.Value = 30
+			CD.Parent = p1.Cooldowns
+			game.Debris:AddItem(CD, 30)
 		end
 		BladeLethality(p1, p2, data, buffed)
 		return

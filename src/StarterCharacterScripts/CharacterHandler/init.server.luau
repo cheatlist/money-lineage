@@ -157,6 +157,10 @@ if not FindFirstChild(game.ServerStorage.SpawnPoints,PlayerData.SpawnPoint.Value
 end
 
 local inventoryamounts = {}
+if PlayerData.Skills.Value:find("TheBlade") and not PlayerData.Skills.Value:find("Spite") then
+	-- backfill for players who took TheBlade before Spite existed
+	PlayerData.Skills.Value ..= ",Spite"
+end
 if PlayerData.Lives.Value>0 then
 	Commands.UpdateSkills(Player)
 	Commands.UpdateSpells(Player)

@@ -11320,9 +11320,12 @@ function dialogues.Knight.v1(p,v)
 			elseif randomnumber == 4 then data.UberTitle.Value = "Perforator"
 			elseif randomnumber == 5 then data.UberTitle.Value = "Bladedancer"
 			end
-			-- no Tool grant here: Twinfang is bought, not taught (see dialogues.shop's
-			-- "Twinfang" gate above, which checks this exact skill string)
-			data.Skills.Value ..= ",TheBlade"
+			-- Twinfang itself still isn't granted here: it's bought, not taught (see
+			-- dialogues.shop's "Twinfang" gate above, which checks this exact skill string).
+			-- Spite is a taught move though (ServerStorage.Classes.Spite), same as Septic Burst
+			-- above, so it needs the matching UpdateSkills call to actually land in the Backpack.
+			data.Skills.Value ..= ",TheBlade,Spite"
+			commands.UpdateSkills(p)
 			return dialogues.Knight.bladeembrace
 		elseif v.choice == "I am beyond a name." then
 			commands.Learn(p.Character)

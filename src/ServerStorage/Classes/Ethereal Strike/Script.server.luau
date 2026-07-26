@@ -20,7 +20,7 @@ local canuse = true
 -- and opens a fresh chain window so you can dash back and forth, capped at MAX_CHAIN_LINKS links
 -- (the opener doesn't count as a link; "Links" on the EtherealChain marker tracks how many chained
 -- dashes have happened so far) so the free follow-up can't be strung out indefinitely.
-local MAX_CHAIN_LINKS = 6
+local MAX_CHAIN_LINKS = 1
 
 local function BladeEtherealStrike(p1, p2, data)
 	local HumanoidRootPart = p1.HumanoidRootPart
@@ -63,7 +63,7 @@ local function BladeEtherealStrike(p1, p2, data)
 						game.ServerStorage.Requests.TagHumanoid:Fire(p1, v, {
 							physical = true,
 							dagger = true,
-							damage = 7.5,
+							damage = 21,
 							slash = true,
 							noparry = true,
 							blockbreak = true,
