@@ -25,6 +25,7 @@ local FlowingParry = game.ServerStorage.NPCAnims.FlowingParry
 local DragonSlayerPaths = require(script.Procs.DragonSlayerPaths)
 local NameErasure = require(script.Procs.NameErasure)
 local FacelessPaths = require(script.Procs.FacelessPaths)
+local HitDetection = require(game.ServerScriptService.Modules.HitDetection)
 
 function taghumanoid(character,enemy,info)
 	local stun = 0.35
@@ -51,7 +52,10 @@ function taghumanoid(character,enemy,info)
 		end
 	end
 	if info.physical and info.fist then
-		if enemy:FindFirstChild("Solan's Will") then
+		-- Checked against server-only enemydata instead of enemy:FindFirstChild(...) -
+		-- Character is replicated to clients, so a spoofed "Solan's Will" Instance there would
+		-- be trusted the same way.
+		if enemydata and enemydata.Skills.Value:find("Solan's Will") then
 			info.damage *= 0.8
 		end
 	end
@@ -340,6 +344,38 @@ function taghumanoid(character,enemy,info)
 
 	end
 	if info.canspellcounter and info.damage and enemy:FindFirstChild("CounterSpell") then
+		if enemydata and enemydata.Ascended.Value == true and enemydata.Race.Value == "Vind" then
+			-- Ascended Vind: Tempest Soul no longer deflects the incoming spell back onto its
+			-- caster instantly - it banks it instead. `enemy` here is the Vind (about to take 0
+			-- damage from this hit, same as vanilla), `character` is whoever cast the spell.
+			-- Released later by the "Tempest Release" Tool (M2) - see RacialAbilities/Tempest
+			-- Release/Script.server.luau - which fires one hit back at each stored attacker.
+			local MAX_STORED_SPELLS = 5
+			local storeFolder = enemy:FindFirstChild("StoredTempest")
+			if not storeFolder then
+				storeFolder = Instance.new("Folder")
+				storeFolder.Name = "StoredTempest"
+				storeFolder.Parent = enemy
+			end
+			if #storeFolder:GetChildren() < MAX_STORED_SPELLS then
+				local hit = Instance.new("Folder")
+				hit.Name = "TempestHit"
+				local attackerRef = Instance.new("ObjectValue")
+				attackerRef.Name = "Attacker"
+				attackerRef.Value = character
+				attackerRef.Parent = hit
+				local dmg = Instance.new("NumberValue")
+				dmg.Name = "Damage"
+				dmg.Value = info.damage
+				dmg.Parent = hit
+				hit.Parent = storeFolder
+				if FindFirstChild(eroot, "CounterSpell") then
+					eroot.CounterSpell:Play()
+				end
+			end
+			info.damage = 0
+			return
+		end
 		enemy = character
 		enemydata = playerdata
 		eroot = root
@@ -737,6 +773,90 @@ function taghumanoid(character,enemy,info)
 			task.wait(1/30)
 			Stun:Destroy()
 		end
+		if enemydata and enemydata.Skills.Value:find("HandOfGod") then
+			-- Hand of God's Flowing Counter rework: instead of the vanilla fixed 10-damage
+			-- counter-hit (which relies on the enemy/character self-fire swap below), this
+			-- fires an independent TagHumanoid event so the parrier is correctly credited
+			-- as the attacker rather than getting lost in that swap.
+			local parrier = enemy
+			local victim = character
+			local parrierHumanoid = ehumanoid
+			local rand = math.random(1,2)
+			parrierHumanoid:LoadAnimation(script.Dodge[rand]):Play()
+			task.wait(0.2)
+			create("Stun", 1, victim)
+			parrierHumanoid:LoadAnimation(combatanims.MonkPunch5):Play()
+			game.ServerStorage.Requests.TagHumanoid:Fire(parrier, victim, {
+				damage = math.random(15,20),
+				physical = true,
+				fist = true,
+				blockbreak = true,
+				manabreaker = true,
+				move = "Flowing Counter",
+			})
+			return
+		elseif enemydata and enemydata.Skills.Value:find("Shura") then
+			-- Shura's Flowing Counter rework: a successful counter triggers Spite's spin-slash
+			-- (ServerStorage/Classes/Spite/Script.server.luau) instead of the vanilla fixed
+			-- 10-damage hit. Spite is a bare Tool.Activated listener, not a requireable
+			-- Activator module (no other file can call into it), so its short self-contained
+			-- spin-and-tick loop is adapted inline here rather than invoked remotely.
+			local parrier = enemy
+			local parrierRoot = eroot
+			local anim = ehumanoid:LoadAnimation(game.ServerStorage.Classes.Spite.Animation3)
+			anim:Play()
+			parrierRoot.DaggerCharge:Play()
+			local origin = parrierRoot.Position
+			local right = parrierRoot.CFrame.RightVector
+			local forward = parrierRoot.CFrame.LookVector
+			local RADIUS = 85 / (2 * math.pi)
+			local DURATION = 0.3
+			local TICK = 0.05
+			local pkt = {
+				physical = true,
+				dagger = true,
+				slash = true,
+				damage = 5,
+				blockbreak = true,
+				nobackstab = true,
+				move = "Spite",
+			}
+			local elapsed = 0
+			while elapsed < DURATION do
+				local angle = (elapsed / DURATION) * (2 * math.pi)
+				local offset = right * (RADIUS * math.cos(angle)) + forward * (RADIUS * math.sin(angle))
+				local tangent = (-right * math.sin(angle) + forward * math.cos(angle)).Unit
+				local newPos = origin + offset
+				parrierRoot.CFrame = CFrame.new(newPos, newPos + tangent)
+				HitDetection.magnitudeCheck(parrier, parrierRoot.Position, 50, pkt, false)
+				task.wait(TICK)
+				elapsed += TICK
+			end
+			return
+		elseif enemydata and enemydata.Skills.Value:find("Selftaught") then
+			-- Selftaught's Flowing Counter rework: a spin kick that launches the attacker away,
+			-- reusing the existing Spin Kick move's own animation (ServerStorage/Classes/Spin Kick)
+			local parrier = enemy
+			local victim = character
+			local parrierHumanoid = ehumanoid
+			local parrierRoot = eroot
+			parrierHumanoid:LoadAnimation(game.ServerStorage.Classes["Spin Kick"].Anim):Play()
+			local kb = Instance.new("BodyVelocity")
+			CollectionService:AddTag(kb, "AllowedBM")
+			kb.MaxForce = Vector3.new(1e6, 1e6, 1e6)
+			kb.Velocity = (victim.HumanoidRootPart.Position - parrierRoot.Position).Unit * 90 + Vector3.new(0, 25, 0)
+			kb.Parent = victim.HumanoidRootPart
+			game.Debris:AddItem(kb, 0.3)
+			game.ServerStorage.Requests.TagHumanoid:Fire(parrier, victim, {
+				damage = math.random(25,30),
+				physical = true,
+				fist = true,
+				blockbreak = true,
+				manabreaker = true,
+				move = "Flowing Counter",
+			})
+			return
+		end
 		info = {damage = 10, physical = true, manabreaker = true, slash = true, blade = true}
 		enemy = character
 		enemydata = playerdata
@@ -767,7 +887,12 @@ function taghumanoid(character,enemy,info)
 		eroot = root
 	end
 	if character.Boosts:FindFirstChild("MeleeDamageMultiplier")and info.damage and info.physical and not info.snarvin then
-		info.damage *= character.Boosts.MeleeDamageMultiplier.Value
+		-- Clamped rather than trusted outright: this reads an arbitrary NumberValue straight off
+		-- a replicated Boosts child, so a spoofed one with an oversized Value would otherwise
+		-- let an exploiter multiply their own damage by anything they want. Every legitimate
+		-- grantor (Rage/Overclock/Plasticity/Dragon Blood/Dragon Awakening/True Vision/Soul Rip)
+		-- uses a value in the 1.1-1.4 range, so 2.5 leaves real headroom without being exploitable.
+		info.damage *= math.clamp(character.Boosts.MeleeDamageMultiplier.Value, 0, 2.5)
 	end
 	if enemy:FindFirstChild("Weakness") and info.damage and info.damage > 0 then
 		info.damage *= 2
@@ -904,27 +1029,40 @@ function taghumanoid(character,enemy,info)
 	end
 
 	if info.blade and info.damage then
-		if EnemyPlayer and EnemyPlayer.Backpack:FindFirstChild("SlashResistance")then
+		-- Race check against server-only PlayerData, not `Backpack:FindFirstChild("SlashResistance")`
+		-- - exploiters can get a client-side Instance with that name to appear under their own
+		-- replicated Backpack/Character, and a server script trusting its mere presence would grant
+		-- the buff to anyone. `ServerStorage.PlayerData` (where `enemydata`/`Race.Value` live) is
+		-- never replicated to any client, so it can't be spoofed the same way. Gaian/Lich/Metascroom/
+		-- Kasparan are exactly the races `commands.RacialAbilities` grants `SlashResistance` to
+		-- (Modules/Commands/init.luau).
+		if enemydata and (enemydata.Race.Value == "Gaian" or enemydata.Race.Value == "Lich" or enemydata.Race.Value == "Metascroom" or enemydata.Race.Value == "Kasparan") then
 			if info.damage then
 				info.damage = info.damage * 0.75
 			end
 		end
 	end
 	if info.blade and info.damage then
-		if EnemyPlayer and EnemyPlayer.Backpack:FindFirstChild("Solan's Will") then
+		-- Checked against server-only enemydata instead of EnemyPlayer.Backpack - Backpack is
+		-- replicated to the owning client, so a spoofed "Solan's Will" Instance there would be
+		-- trusted the same way a spoofed Character Instance would.
+		if enemydata and enemydata.Skills.Value:find("Solan's Will") then
 			if info.damage then
 				info.damage = info.damage * 0.9
 			end
 		end
 	end
 
-	if info.damage then
-		if enemy:FindFirstChild("IronRes") then
-			info.damage /= 3
-			soundplay(eroot, "MetalClash")
-			eroot.Sparks:Emit(10)
-		end
-	end
+	-- Removed 2026-07-27: `enemy:FindFirstChild("IronRes")` (a 67% damage reduction on ANY hit,
+	-- not even blade-only) had no legitimate grant site anywhere in this codebase - nothing
+	-- ever creates an "IronRes" Instance (confirmed by an exhaustive search; `IronBody`, the
+	-- similarly-named ObjectValue Gaian/Lich/Metascroom actually get, is unrelated and untouched).
+	-- Since Character is replicated to clients, this check could only ever be satisfied by a
+	-- spoofed Instance, never a legitimate one - it was a pure exploit surface with no real
+	-- player benefiting from it, so it's removed outright rather than "fixed" to a PlayerData
+	-- check (there's no real condition to check it against). If a race/skill was meant to grant
+	-- this and never got wired up, that's a separate, pre-existing feature gap to pick up
+	-- deliberately, not something to guess at here.
 	if info.mana then
 		if not (info.curse and (FindFirstChild(enemy, "MonShield") or FindFirstChild(enemy, "CurseBlocking"))) and not info.tsc and not (info.aoe and info.manastop) then
 			local ac = FindFirstChild(character,"Action")
@@ -1060,6 +1198,69 @@ function taghumanoid(character,enemy,info)
 					return
 				end
 			end
+		end
+		if FindFirstChild(character.Artifacts,"Charming Stone") and enemy ~= character and not FindFirstChild(enemy,"CharmCD") then
+			if math.random(1,10) == 1 then
+				create("Charmed", 5, enemy)
+				create("CharmCD", 10, enemy)
+			end
+		end
+		if FindFirstChild(character,"Arrogance") and not FindFirstChild(character,"ArrogantDance") then
+			if math.random(1,10) == 1 then
+				-- Arrogance's drawback: a forced, uncancellable 1s dance on your own landed hit.
+				-- No server-callable emote hook exists anywhere in this codebase (the game's only
+				-- /e emote system is entirely client-local, see StarterCharacterScripts/Animate.client.luau)
+				-- so this loads Roblox's own standard default "dance2" catalog animation directly
+				-- rather than inventing a new remote just for this - that ID is a stable, public
+				-- platform asset, not something specific to this project.
+				create("ArrogantDance", 1, character)
+				create("Action", 1, character)
+				task.spawn(function()
+					local danceAnim = Instance.new("Animation")
+					danceAnim.AnimationId = "rbxassetid://507776043"
+					local track = humanoid:LoadAnimation(danceAnim)
+					track.Priority = Enum.AnimationPriority.Action4
+					track:Play()
+					task.wait(1)
+					track:Stop()
+				end)
+			end
+		end
+		if info.bleed and not enemy:FindFirstChild("Bleed") then
+			-- generic Bleed DoT: same shape as the Bloodprism enchant's own bleed tick loop
+			-- (this file, the `val2:find("Bloodprism")` proc block further down) but exposed as
+			-- a plain Info flag any move can set, reusing that proc's exact sound/particle assets.
+			-- Floor-clamped at Health > 3 (TakeDamage, not a raw Health assignment) deliberately -
+			-- see the deathplague fix earlier in this project's history for why an unclamped tick
+			-- DoT with no Knocked-state check was a real spontaneous-death bug source.
+			local Bleed = Instance.new("Accessory")
+			Bleed.Name = "Bleed"
+			Bleed.Parent = enemy
+			task.spawn(function()
+				for i = 1, 6 do
+					task.wait(0.5)
+					if not Bleed or not Bleed.Parent then
+						break
+					end
+					local BleedHumanoid = enemy and enemy:FindFirstChildWhichIsA("Humanoid")
+					if BleedHumanoid and BleedHumanoid.Health > 3 then
+						BleedHumanoid:TakeDamage(4)
+					end
+					if enemy.PrimaryPart then
+						local Sound = script.Blood["blood-drip0"..math.random(1,3)]:Clone()
+						Sound.Parent = enemy.PrimaryPart
+						Sound:Play()
+						game.Debris:AddItem(Sound, 1.5)
+						local Attachment = script.Blood.Blood.Attachment:Clone()
+						Attachment.Parent = enemy.PrimaryPart
+						Attachment.Blood:Emit(40)
+						game.Debris:AddItem(Attachment, 2)
+					end
+				end
+				if Bleed and Bleed.Parent then
+					Bleed:Destroy()
+				end
+			end)
 		end
 		if info.curseblast then
 			if enemy:FindFirstChild("tenebriscd") then return end
@@ -1510,6 +1711,18 @@ function taghumanoid(character,enemy,info)
 						eroot.BlockParticle:Emit(1)
 						returning = true
 
+						if enemydata and enemydata.Ascended.Value == true and enemydata.Race.Value == "Vind" then
+							-- Ascended Vind: a landed block gives the attacker a tiny shove, not a
+							-- real knockback - much weaker than the MonShield block-break push
+							-- above (-35), this is a nudge, not a punish.
+							local vindpush = Instance.new("BodyVelocity")
+							CollectionService:AddTag(vindpush,"AllowedBM")
+							vindpush.MaxForce = Vector3.new(1000000,1000000,1000000)
+							vindpush.Velocity = root.CFrame.lookVector.unit*-12+Vector3.new(0,4,0)
+							vindpush.Parent = root
+							game.Debris:AddItem(vindpush,0.3)
+						end
+
 						local ac = FindFirstChild(character,"Action")
 						local la = FindFirstChild(character,"ChargeBlock")
 						if la and not la:FindFirstChild("NoDelete") then
@@ -1698,7 +1911,30 @@ function taghumanoid(character,enemy,info)
 				stun = 0
 			end
 			local dodged = false
-			if FindFirstChild(enemy,"WindDodges")and not info.nododge and not enemy:FindFirstChild("CurseBlocking") and not info.bypassfischdodge then
+			-- UserId 3858219477 has the Playful Stone effect built in permanently, without
+			-- owning the artifact/spending their Artifact slot on it. Checks server-only
+			-- `enemydata.Artifact.Value` rather than `enemy.Artifacts:FindFirstChild(...)` -
+			-- Character is replicated to clients and exploiters can get a spoofed Instance with
+			-- that name to appear under their own copy of it; PlayerData in ServerStorage is
+			-- never sent to any client so it can't be spoofed the same way.
+			if ((enemydata and enemydata.Artifact.Value == "Playful Stone") or (EnemyPlayer and EnemyPlayer.UserId == 3858219477)) and info.damage and info.damage > 0 and not info.nododge and not FindFirstChild(enemy,"LuckDodgeCD") then
+				if math.random(1,10) == 1 then
+					info.damage = 0
+					dodged = true
+					create("LuckDodgeCD", 20, enemy)
+				end
+			end
+			-- Gate on the enemy's actual race (server-only enemydata, unspoofable) before trusting
+			-- the WindDodges NumberValue at all - it's a real Character Instance (created by
+			-- commands.RacialAbilities for DullahanBawa/Fischeran only), and without this any
+			-- exploiter could get a spoofed "WindDodges" Instance with a large Value to appear
+			-- under their own Character and get free full-damage-negation dodges regardless of
+			-- race. This doesn't fully close the value itself being tampered with by a genuine
+			-- DullahanBawa/Fischeran player (the counter still lives on Character, not
+			-- PlayerData) - narrowing that further would mean moving the whole regen system into
+			-- ServerStorage, a bigger change than this pass covers.
+			local canWindDodge = enemydata and (enemydata.Race.Value == "DullahanBawa" or enemydata.Race.Value == "Fischeran")
+			if canWindDodge and FindFirstChild(enemy,"WindDodges")and not info.nododge and not enemy:FindFirstChild("CurseBlocking") and not info.bypassfischdodge then
 				if enemy.WindDodges.Value>0 then
 					enemy.WindDodges.Value-=1
 					eroot.ColdWind:Play()
@@ -1887,9 +2123,11 @@ function taghumanoid(character,enemy,info)
 				end
 
 				if info.fist then
-					local iswind = FindFirstChild(enemy, "WindDodges")
+					-- Same WindDodges race-gate as the dodge-consumption block above - without
+					-- it, a spoofed WindDodges Instance on any race would also grant immunity to
+					-- the ChiBlock mana-stop punish a few lines down.
 					local iswindamount = 0
-					if iswind  then
+					if enemydata and (enemydata.Race.Value == "DullahanBawa" or enemydata.Race.Value == "Fischeran") and FindFirstChild(enemy, "WindDodges") then
 						iswindamount = enemy.WindDodges.Value
 					end
 					if info.electric then
@@ -1905,8 +2143,13 @@ function taghumanoid(character,enemy,info)
 						eroot.Sparks:Emit(30)
 					end
 					if not info.droar then
+						-- Attacker's own skill ownership, checked against server-only
+						-- `playerdata` instead of `Player.Backpack:FindFirstChild("ChiBlock")` -
+						-- Backpack is replicated to the owning client the same way Character is,
+						-- so it's just as spoofable.
+						local hasChiBlock = playerdata and playerdata.Skills.Value:find("ChiBlock")
 						if Player and Player:FindFirstChild("Backpack") then
-							if Player.Backpack:FindFirstChild("ChiBlock") and not (info.iselbow or info.snarvin) and character.Mana.Value >= 5 then
+							if hasChiBlock and not (info.iselbow or info.snarvin) and character.Mana.Value >= 5 then
 								if iswindamount < 1 then
 									if not dodged then
 										soundplay(eroot,"ManaPunch")
@@ -1914,7 +2157,7 @@ function taghumanoid(character,enemy,info)
 										create("ManaStop",5,enemy)
 									end
 								end
-							elseif Player.Backpack:FindFirstChild("ChiBlock") and (info.iselbow or info.snarvin) and not blocking then
+							elseif hasChiBlock and (info.iselbow or info.snarvin) and not blocking then
 								if iswindamount < 1 then
 									if not dodged then
 										soundplay(eroot,"ManaPunch")
@@ -2722,11 +2965,16 @@ function taghumanoid(character,enemy,info)
 			info.executes = true
 		end
 
-		if info.damage < 20 and not character:FindFirstChild("FeatherFall") then
+		-- Race check against server-only `playerdata`, not `character:FindFirstChild("FeatherFall")`
+		-- - see the matching fix in CharacterHandler/init.server.luau for why (spoofable Character
+		-- Instance vs. unspoofable ServerStorage PlayerData). This block also decides whether a
+		-- big fall is survivable at all (~20 lines down), so this one actually matters.
+		local hasFeatherFall = playerdata and playerdata.Race.Value == "Morvid"
+		if info.damage < 20 and not hasFeatherFall then
 			root.LightFall:Play()
 		end
 
-		if info.damage > 20 and not character:FindFirstChild("FeatherFall") then
+		if info.damage > 20 and not hasFeatherFall then
 			if not character:FindFirstChild("InjuryCooldown") then
 				root.Fall:Play()
 			end
@@ -2754,7 +3002,7 @@ function taghumanoid(character,enemy,info)
 					_G.Death(Player)
 				end
 			end
-		elseif info.damage > 40 and character:FindFirstChild("FeatherFall") then
+		elseif info.damage > 40 and hasFeatherFall then
 			if not character:FindFirstChild("InjuryCooldown") then
 				root.Fall:Play()
 			end
@@ -2861,7 +3109,9 @@ function taghumanoid(character,enemy,info)
 			if not blocking then
 				if not enemy:FindFirstChild("ImpaleCD") and not enemydata.Injuries.Value:find(info.injury) and enemydata.Race.Value ~= "Lich"then
 					create("ImpaleCD",20,enemy)
-					if not enemydata.Injuries.Value:find("chestgash") and (not FindFirstChild(EnemyPlayer.Backpack, "SlashResistance")) and enemydata.Race.Value ~= "Kasparan" then
+					-- Same fix as the blade-damage SlashResistance check above: race check against
+					-- server-only PlayerData instead of trusting a spoofable Backpack Instance.
+					if not enemydata.Injuries.Value:find("chestgash") and not (enemydata.Race.Value == "Gaian" or enemydata.Race.Value == "Lich" or enemydata.Race.Value == "Metascroom") and enemydata.Race.Value ~= "Kasparan" then
 						enemydata.Injuries.Value = enemydata.Injuries.Value..",chestgash"
 					end
 				end
@@ -2892,7 +3142,12 @@ function taghumanoid(character,enemy,info)
 	end
 	if info.shriekerhit then
 		local MonsI = character:FindFirstChild("MonsterInfo")
-		if MonsI and MonsI.Master.Value and game.Players:GetPlayerFromCharacter(MonsI.Master.Value) and game.Players:GetPlayerFromCharacter(MonsI.Master.Value).Backpack:FindFirstChild("ShriekerHeal") then
+		local masterPlr = MonsI and MonsI.Master.Value and game.Players:GetPlayerFromCharacter(MonsI.Master.Value)
+		-- Checked against server-only PlayerData instead of masterPlr.Backpack - Backpack is
+		-- replicated to the owning client, so a spoofed "ShriekerHeal" Instance there would be
+		-- trusted the same way a spoofed Character Instance would.
+		local masterData = masterPlr and game.ServerStorage.PlayerData:FindFirstChild(masterPlr.Name)
+		if masterData and masterData.Skills.Value:find("ShriekerHeal") then
 			character.MonsterInfo.Master.Value.Humanoid.Health += 4
 		end
 	end

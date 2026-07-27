@@ -2,6 +2,31 @@ return function(Character, Player, PlayerData, Humanoid, HumanoidRootPart, Boost
 	local eqstackcheck = 0
 	local BardIdle
 
+	local function playKatanaDraw()
+		local draw = HumanoidRootPart.KatanaUnsheathe
+		if PlayerData.Skills.Value:find("HandOfGod") then
+			-- clone-and-play so the shared per-character Sound's baseline Volume/PlaybackSpeed
+			-- is never permanently mutated (this instance is reused every equip/unequip)
+			local boosted = draw:Clone()
+			boosted.Volume = draw.Volume * 1.5
+			boosted.PlaybackSpeed = draw.PlaybackSpeed * 0.8
+			boosted.Parent = HumanoidRootPart
+			boosted:Play()
+			game.Debris:AddItem(boosted, 3)
+		elseif PlayerData.Skills.Value:find("Selftaught") then
+			-- "slower... but lower pitch": both read as the same PlaybackSpeed knob (lowering it
+			-- both slows the sound down and drops its pitch at once), just a bigger drop than
+			-- Hand of God's own pitch-down above
+			local slowed = draw:Clone()
+			slowed.PlaybackSpeed = draw.PlaybackSpeed * 0.6
+			slowed.Parent = HumanoidRootPart
+			slowed:Play()
+			game.Debris:AddItem(slowed, 3)
+		else
+			draw:Play()
+		end
+	end
+
 	local function equipweapon(tool)
 		local WEAPON = getWeapon()
 		if table.find(equipped, tool) then
@@ -276,7 +301,7 @@ return function(Character, Player, PlayerData, Humanoid, HumanoidRootPart, Boost
 						if #equipped <= 1 then
 							create("HasKatana",false,Character)
 						end
-						HumanoidRootPart.KatanaUnsheathe:Play()
+						playKatanaDraw()
 						local Katana = Character.Hilt:FindFirstChild("Katana")
 						if Katana then
 							Katana.Attachment1.Sparkle:Emit(3)
@@ -297,7 +322,7 @@ return function(Character, Player, PlayerData, Humanoid, HumanoidRootPart, Boost
 						if #equipped <= 1 then
 							create("HasKatana",false,Character)
 						end
-						HumanoidRootPart.KatanaUnsheathe:Play()
+						playKatanaDraw()
 						local Katana = Character.Hilt:FindFirstChild("Murasama")
 						if Katana then
 							Katana.Attachment1.Sparkle:Emit(3)
@@ -677,7 +702,7 @@ return function(Character, Player, PlayerData, Humanoid, HumanoidRootPart, Boost
 							Weld.Part1 = WEAPON
 						end
 						WEAPON.Parent = Character.Torso
-						HumanoidRootPart.KatanaUnsheathe:Play()
+						playKatanaDraw()
 					elseif WEAPON.Name == "Murasama"then
 						local EquipCD = Instance.new("Folder")
 						EquipCD.Name = "EquipCD"
@@ -699,7 +724,7 @@ return function(Character, Player, PlayerData, Humanoid, HumanoidRootPart, Boost
 							Weld.Part1 = WEAPON
 						end
 						WEAPON.Parent = Character.Torso
-						HumanoidRootPart.KatanaUnsheathe:Play()
+						playKatanaDraw()
 					elseif WEAPON.Name == "Rapier"then
 						WEAPON.PropWeld.Part0 = nil
 						WEAPON.PropWeld.Part1 = nil

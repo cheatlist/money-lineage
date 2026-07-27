@@ -81,7 +81,12 @@ function v1.Active(p1, p2, p3, p4)
 		u3 = true;
 	end;
 	local isvang = false
-	if p2.Backpack:FindFirstChild("VanguardT") then
+	-- Checked against server-only PlayerData instead of p2.Backpack - Backpack is replicated
+	-- to the owning client, so a spoofed "VanguardT" Instance there would be trusted the same
+	-- way a spoofed Character Instance would; this reclassifies the hit as sword/slash and
+	-- changes knockback, which matters to the target's own resistance checks too.
+	local p2data = game.ServerStorage.PlayerData:FindFirstChild(p2.Name)
+	if p2data and p2data.Skills.Value:find("VanguardT") then
 		isvang = true
 	end
 	local l__Value__3 = p4.Stats.Speed.Value;

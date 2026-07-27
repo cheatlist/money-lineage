@@ -20,6 +20,12 @@
 		end
 
 	so every other line in that file that calls `ActionCheck(...)` is untouched.
+
+	One unconditional check was added on top of that (2026-07-27, Charming Stone artifact): a
+	"Charmed" child on Parent always blocks, regardless of the caller's own options list, since this
+	is meant to universally stop skill/ability use for every one of the 118 files routed through this
+	module without editing each one's presentBlocks. The 12 move files with their own local
+	ActionCheck (see CLAUDE.md Moves section) do NOT get this for free.
 ]]
 
 local function ActionCheck(Parent, options)
@@ -31,6 +37,10 @@ local function ActionCheck(Parent, options)
 				return true
 			end
 		end
+	end
+
+	if Parent:FindFirstChild("Charmed") then
+		return true
 	end
 
 	if Parent:FindFirstChild("Humanoid") then

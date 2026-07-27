@@ -323,7 +323,7 @@ workspace.NPCs.BlacksmithAdvanced.Humanoid:LoadAnimation(npcanims.Blacksmith):Pl
 workspace.NPCs.Fabiana.Humanoid:LoadAnimation(npcanims.LeanIdle):Play()
 workspace.NPCs.Willow.Humanoid:LoadAnimation(npcanims.Sit):Play()
 workspace.NPCs.Dormin.Humanoid:LoadAnimation(npcanims.Sit):Play()
-workspace.NPCs.Sain.Humanoid:LoadAnimation(npcanims.Sit):Play()
+workspace.NPCs.Corvax.Humanoid:LoadAnimation(npcanims.Sit):Play()
 workspace.NPCs.Nero.Humanoid:LoadAnimation(npcanims.Sit):Play()
 workspace.NPCs.Alana.Humanoid:LoadAnimation(npcanims.Sit):Play()
 workspace.NPCs.Merrith.Humanoid:LoadAnimation(npcanims.Sit):Play()
@@ -353,6 +353,12 @@ workspace.NPCs.Frank.Humanoid:LoadAnimation(npcanims.SitIdle):Play()
 workspace.NPCs.Fallen.Humanoid:LoadAnimation(npcanims.RestIdle):Play()
 workspace.NPCs.Heretic.Humanoid:LoadAnimation(npcanims.RestIdle):Play()
 workspace.NPCs["Old Man"].Humanoid:LoadAnimation(npcanims.RestIdle):Play()
+
+for i,v in workspace.NPCs:GetChildren() do
+	if v.Name == "Clavicular" then
+		v.Humanoid:LoadAnimation(npcanims.DocIdle):Play()
+	end
+end
 
 NPCAnim(BreathingIdle,"Breathing")
 NPCAnim(SleepingIdle,"Sleeping")

@@ -41,7 +41,7 @@ script.Parent.Activated:Connect(function()
 	local aimPoint = mouse.Hit.p
 	
 	local Anim = char.Humanoid:LoadAnimation(script.Parent.BreathCharge):Play()
-	script.Parent.Start:Play()
+	char.HumanoidRootPart.Start:Play()
 
 	local rocket = Instance.new("Part")
 	rocket.Name = "GaianRocket"

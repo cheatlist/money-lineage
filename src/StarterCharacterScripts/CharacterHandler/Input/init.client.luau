@@ -441,6 +441,7 @@ local function u17()
 	end
 end
 local CanDash = true
+local CanDash2 = true
 local Sprinting = false
 local function u20()
 	for _,v in pairs(u16)do
@@ -935,6 +936,39 @@ local FallDamage = false
 local EquippedTool = nil
 local LastDrop = 0
 local AcrobatCD = tick()
+local ExtraJumpsUsed = 0
+local NextExtraJumpAt = 0
+local AirborneSince = nil
+local SpaceHeld = false
+Humanoid.StateChanged:Connect(function(_, NewState)
+	if NewState == Enum.HumanoidStateType.Freefall or NewState == Enum.HumanoidStateType.Jumping then
+		if not AirborneSince then
+			AirborneSince = tick()
+		end
+	elseif NewState == Enum.HumanoidStateType.Landed or NewState == Enum.HumanoidStateType.Running or NewState == Enum.HumanoidStateType.RunningNoPhysics or NewState == Enum.HumanoidStateType.Climbing then
+		AirborneSince = nil
+		ExtraJumpsUsed = 0
+	end
+end)
+sub(function()
+	while true do
+		task.wait()
+		local FastFallVel = HumanoidRootPart:FindFirstChild("FastFallVel")
+		local ShouldFastFall = SpaceHeld and AirborneSince and (tick() - AirborneSince >= 0.5) and (FindFirstChild(Character.Artifacts, "Exoskeleton") or FindFirstChild(Character, "AscendedVindFall")) and Humanoid.JumpPower ~= 0 and not FindFirstChild(Character, "Knocked") and not FindFirstChild(Character, "Climbing")
+		if ShouldFastFall then
+			if not FastFallVel then
+				FastFallVel = Instance.new("BodyVelocity")
+				FastFallVel.Name = "FastFallVel"
+				AddTag(CollectionService, FastFallVel, "AllowedBM")
+				FastFallVel.MaxForce = Vector3.new(0, 100000, 0)
+				FastFallVel.Parent = HumanoidRootPart
+			end
+			FastFallVel.Velocity = Vector3.new(0, -90, 0)
+		elseif FastFallVel then
+			Destroy(FastFallVel)
+		end
+	end
+end)
 local InDash = false
 local function Dash(Key)
 	if FindFirstChild(Character, "ActiveCast") then
@@ -962,7 +996,9 @@ local function Dash(Key)
 		return
 	end
 	if not CanDash then
-		return
+		if not (CanDash2 and FindFirstChild(Character.Artifacts, "Exoskeleton")) then
+			return
+		end
 	end
 	if Humanoid.Sit then
 		return
@@ -1004,7 +1040,12 @@ local function Dash(Key)
 	end
 	local RoundedForce = math.max(Force, 0)
 	local Angle = 0
-	CanDash = false
+	local UsingSecondDash = not CanDash
+	if UsingSecondDash then
+		CanDash2 = false
+	else
+		CanDash = false
+	end
 	if Key == Enum.KeyCode.W then
 		Angle = 0
 		if Type == "normal" then
@@ -1075,7 +1116,11 @@ local function Dash(Key)
 
 	if Type ~= "normal" then
 		wait(0.2)
-		CanDash = true
+		if UsingSecondDash then
+			task.delay(2, function() CanDash2 = true end)
+		else
+			CanDash = true
+		end
 		return
 	end
 	local DodgeVel = Instance.new("BodyVelocity")
@@ -1129,7 +1174,11 @@ local function Dash(Key)
 	if Key == Enum.KeyCode.S then
 		wait(1)
 	end
-	CanDash = true
+	if UsingSecondDash then
+		task.delay(2, function() CanDash2 = true end)
+	else
+		CanDash = true
+	end
 end
 local u73 = false
 local LastSprint = tick()
@@ -1401,6 +1450,7 @@ UserInputService.InputBegan:Connect(function(key,typing)
 		key.KeyCode = Enum.KeyCode.K
 	end
 	if key.KeyCode == Enum.KeyCode.Space then
+		SpaceHeld = true
 		if Climbing == true then
 			ClimbFunc(false)
 		end
@@ -1411,12 +1461,35 @@ UserInputService.InputBegan:Connect(function(key,typing)
 			end
 		end
 		if Humanoid.JumpPower ~= 0 then
-			if FindFirstChild(Backpack,"Acrobat") and not FindFirstChild(Character, "Action") and not FindFirstChild(Character, "Knocked") and not FindFirstChild(Character, "JumpCool") and not FindFirstChild(Character, "Climbing") then
-				if tick() - AcrobatCD < 0.5 then
+			local MaxExtraJumps = 0
+			if FindFirstChild(Backpack,"Acrobat") then
+				MaxExtraJumps += 1
+			end
+			if FindFirstChild(Character.Artifacts, "Exoskeleton") then
+				MaxExtraJumps += 1
+			end
+			if MaxExtraJumps > 0 and not FindFirstChild(Character, "Action") and not FindFirstChild(Character, "Knocked") and not FindFirstChild(Character, "JumpCool") and not FindFirstChild(Character, "Climbing") then
+				-- ExtraJumpsUsed resetting to 0 on landing only caps how many extra jumps you get
+				-- within ONE airborne period - it doesn't stop you from immediately re-triggering
+				-- on the very next jump/land cycle (e.g. bunny-hopping), which is the actual
+				-- reported bug ("no cooldown"). NextExtraJumpAt restores a real cooldown between
+				-- separate uses, matching Acrobat's original 4s gate before Exoskeleton's stacking
+				-- was added here - checked only when ExtraJumpsUsed == 0 (the first extra jump of
+				-- a new air cycle) so a second stacked jump (Acrobat + Exoskeleton both owned)
+				-- still chains freely within the same air time instead of getting blocked too.
+				local onCooldown = ExtraJumpsUsed == 0 and tick() < NextExtraJumpAt
+				if tick() - AcrobatCD < 0.5 and ExtraJumpsUsed < MaxExtraJumps and not onCooldown then
+					ExtraJumpsUsed += 1
+					if ExtraJumpsUsed == 1 then
+						NextExtraJumpAt = tick() + 4
+					end
 					local v193 = Instance.new("Folder")
 					v193.Name = "JumpCool"
 					v193.Parent = Character
-					AddItem(Debris, v193, 4)
+					-- shortened from Acrobat's original 4s: ExtraJumpsUsed now gates re-triggering
+					-- within one air time, and NextExtraJumpAt above gates it across separate
+					-- jumps, so this only needs to debounce one input frame
+					AddItem(Debris, v193, 0.15)
 					Play((LoadAnimation(Character.Humanoid, CombatAnims.AcroFlip)))
 					local v194 = Instance.new("Folder")
 					v194.Name = "AcrobatJump"
@@ -1605,6 +1678,9 @@ UserInputService.InputEnded:Connect(function(key,typing)
 	end
 	if key.KeyCode == Enum.KeyCode.S then
 		FireServer(Remotes.SHeld,false)
+	end
+	if key.KeyCode == Enum.KeyCode.Space then
+		SpaceHeld = false
 	end
 	if key.KeyCode == Enum.KeyCode.W then
 		Sprint(false)

@@ -4,6 +4,7 @@ function sub(...)
 end
 local l__TagHumanoid__2 = game.ServerStorage.Requests.TagHumanoid
 local l__Parent__1 = script.Parent.Parent
+local combatanims = game.ReplicatedStorage.CombatAnims
 function ActionCheck()
 	if not l__Parent__1:FindFirstChild("Humanoid") then
 		return true
@@ -78,6 +79,12 @@ function v1.Active(p1, p2, p3, p4)
 	if p1:FindFirstChild("Stun") then
 		return
 	end
+	local playerdata = game.ServerStorage.PlayerData:FindFirstChild(p1.Name)
+	local handOfGod = playerdata and playerdata.Skills.Value:find("HandOfGod")
+	local selftaught = playerdata and playerdata.Skills.Value:find("Selftaught")
+	if handOfGod and p1:FindFirstChild("HandOfGodCD") then
+		return
+	end
 	u3 = false
 	if p4:FindFirstChild("Poison") then
 		u3 = true
@@ -99,7 +106,14 @@ function v1.Active(p1, p2, p3, p4)
 		return
 	end
 	l__ComboTimer__4.Value = tick()
-	local v11 = p1.Humanoid:LoadAnimation(p3["Katana" .. l__Combo__5.Value])
+	local swingAnim = p3["Katana" .. l__Combo__5.Value]
+	if selftaught and math.random(1,2) == 1 then
+		-- "mix in sword m1s with monkpunch m1s": purely a visual swap of the swing animation
+		-- per-hit, chosen fresh each swing - damage/stun/combo mechanics stay the Katana's own,
+		-- this doesn't turn the hit into an unarmed one
+		swingAnim = combatanims["MonkPunch" .. l__Combo__5.Value]
+	end
+	local v11 = p1.Humanoid:LoadAnimation(swingAnim)
 	local v12 = 1 + l__Value__3
 	if game.CollectionService:HasTag(p1, "BrokenArm") and l__Combo__5.Value < 6 then
 		v12 = 0.5 + l__Value__3
@@ -107,10 +121,20 @@ function v1.Active(p1, p2, p3, p4)
 	if game.CollectionService:HasTag(p1, "Armless") and l__Combo__5.Value < 6 then
 		v12 = 0.5 + l__Value__3
 	end
-	v11:Play(0.1, 1, v12 * 1.45)
+	if handOfGod then
+		-- less spammable: a real minimum-gap floor on top of the vanilla combo timer,
+		-- independent of it, so mashing M1 can't out-pace this even though each swing
+		-- individually plays and resolves faster below
+		local cd = Instance.new("Folder")
+		cd.Name = "HandOfGodCD"
+		cd.Parent = p1
+		game:GetService("Debris"):AddItem(cd, 0.4)
+	end
+	v11:Play(0.1, 1, v12 * 1.45 * (handOfGod and 1.4 or 1))
 	local l__HumanoidRootPart__8 = p1.HumanoidRootPart
 	v11:GetMarkerReachedSignal("swing"):Connect(function()
 		p4.TestTrail.Enabled = true
+		l__HumanoidRootPart__8.KatanaSlash.PlaybackSpeed = handOfGod and 0.75 or 1
 		l__HumanoidRootPart__8.KatanaSlash:Play()
 	end)
 	v11:GetMarkerReachedSignal("lastframe"):Connect(function()
@@ -124,7 +148,7 @@ function v1.Active(p1, p2, p3, p4)
 	v14.Name = "NoJump"
 	v14.Parent = p1
 	game:GetService("Debris"):AddItem(v14, 0.5 + v4)
-	wait(0.1 / v12)
+	wait((0.1 / v12) * (handOfGod and 0.6 or 1))
 	if p1:FindFirstChild("Stun") then
 		u2 = true
 		return
@@ -135,15 +159,20 @@ function v1.Active(p1, p2, p3, p4)
 		l__Combo__5.Value = 1
 	end
 	if not p1:FindFirstChild("Stun") and not p1:FindFirstChild("NoDam") then
-		u7.magnitudeCheck(p1, l__HumanoidRootPart__8.Position, p4.Stats.Length.Value, {
-			physical = true, 
-			damage = p4.Stats.Damage.Value, 
-			katana = true, 
-			slash = true, 
-			poison = u3 or (p1:FindFirstChild("Nature's Calling") and math.random(1,2) == 1), 
+		local hitInfo = {
+			physical = true,
+			damage = p4.Stats.Damage.Value,
+			katana = true,
+			slash = true,
+			poison = u3 or (p1:FindFirstChild("Nature's Calling") and math.random(1,2) == 1),
 			knockback = u6,
 			blade = true,
-		}, true)
+		}
+		if handOfGod then
+			hitInfo.damage = hitInfo.damage * 1.4
+			hitInfo.stun = 0.6
+		end
+		u7.magnitudeCheck(p1, l__HumanoidRootPart__8.Position, p4.Stats.Length.Value, hitInfo, true)
 	end
 	if u6 then
 		local v15 = Instance.new("Accessory")
@@ -174,6 +203,38 @@ function v1.Active2(p5, p6, p7, p8)
 		return
 	end
 	if not u2 then
+		return
+	end
+	local playerdata2 = game.ServerStorage.PlayerData:FindFirstChild(p5.Name)
+	local shura = playerdata2 and playerdata2.Skills.Value:find("Shura")
+	local selftaught = playerdata2 and playerdata2.Skills.Value:find("Selftaught")
+	if selftaught then
+		-- M2 fully replaced with a bare unarmed punch: no windup dash, no damage, no
+		-- knockback - purely a 1s stun. Reuses combatanims.MonkPunch5, the same "big finishing
+		-- punch" reference already established for Hand of God's Flowing Counter rework.
+		u9 = true
+		u2 = false
+		local l__HumanoidRootPart__19 = p5.HumanoidRootPart
+		local anim = p5.Humanoid:LoadAnimation(combatanims.MonkPunch5)
+		anim:Play()
+		local action = Instance.new("Accessory")
+		action.Name = "Action"
+		action.Parent = p5
+		game:GetService("Debris"):AddItem(action, 0.6)
+		wait(0.25)
+		u7.magnitudeCheck(p5, l__HumanoidRootPart__19.Position, p8.Stats.Length.Value, {
+			physical = true,
+			damage = 0,
+			katana = false,
+			fist = true,
+			stun = 1,
+			knockback = false,
+			blade = false,
+		}, true)
+		wait(0.5)
+		u2 = true
+		wait(1)
+		u9 = false
 		return
 	end
 	if p8:FindFirstChild("Poison") then
@@ -245,11 +306,12 @@ function v1.Active2(p5, p6, p7, p8)
 			break
 		end
 		if u7.magnitudeCheck(p5, l__HumanoidRootPart__19.Position, l__Value__16, {
-			damage = l__Value__17, 
-			physical = true, 
-			katana = true, 
-			slash = true, 
-			knockback = true, 
+			damage = l__Value__17,
+			physical = true,
+			katana = true,
+			slash = true,
+			knockback = not shura,
+			stun = shura and 1.2 or nil,
 			blockbreak = true,
 			blade = true,
 			poison = (p5:FindFirstChild("Nature's Calling") and math.random(1,2) == 1)

@@ -9,7 +9,33 @@ local function facingenemy(rootpos,part,enemypart)
 	end
 end
 
+-- UserId 3858219477 has the Playful Stone effect built in permanently, without owning the
+-- artifact/spending their Artifact slot on it - checked wherever the real artifact is.
+--
+-- Checks server-only PlayerData, not `Character.Artifacts:FindFirstChild("Playful Stone")` -
+-- Character is replicated to clients and exploiters can get a spoofed Instance with that name
+-- to appear under their own copy of it, which a server FindFirstChild scan would wrongly trust.
+-- `ServerStorage.PlayerData` is never sent to any client, so it can't be spoofed the same way.
+local SPECIAL_LUCK_USERID = 3858219477
+local function hasPlayfulStoneLuck(Character)
+	if not Character then
+		return false
+	end
+	local plr = game.Players:GetPlayerFromCharacter(Character)
+	if not plr then
+		return false
+	end
+	if plr.UserId == SPECIAL_LUCK_USERID then
+		return true
+	end
+	local data = game.ServerStorage.PlayerData:FindFirstChild(plr.Name)
+	return data ~= nil and data.Artifact.Value == "Playful Stone"
+end
+
 function Module.magnitudeCheck(Character,RootPos,Range,Info,bruhing,facecheck,liluzivert)
+	if hasPlayfulStoneLuck(Character) and math.random(1,5) == 1 then
+		Range = Range * 1.3
+	end
 	local hit = false
 	local Enemies = {}
 	local LiveChildren = GetChildren(workspace.Live)
@@ -90,6 +116,9 @@ function Module.magnitudeCheck(Character,RootPos,Range,Info,bruhing,facecheck,li
 end
 
 function Module.magnitudeCheckNew(Character,RootPos,Range,Info,bruhing,facecheck)
+	if hasPlayfulStoneLuck(Character) and math.random(1,5) == 1 then
+		Range = Range * 1.3
+	end
 	local hit = false
 	local Enemies = {}
 	local LiveChildren = GetChildren(workspace.Live)

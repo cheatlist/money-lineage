@@ -26,7 +26,7 @@ script.Parent.Activated:Connect(function()
 	if p1:FindFirstChild("Stun") then
 		return
 	end
-	local closest, closestDist = nil, 10
+	local closest, closestDist = nil, 50
 	for _,ochar in pairs(game.Workspace.Live:GetChildren()) do
 		if ochar ~= p1 and ochar:FindFirstChild("HumanoidRootPart") and ochar:FindFirstChild("Humanoid") and ochar.Humanoid.Health > 0 then
 			local dist = (ochar.HumanoidRootPart.Position - HumanoidRootPart.Position).Magnitude

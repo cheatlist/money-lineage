@@ -129,7 +129,10 @@ function spell:Activate(char,castSuccess,currentprop)
 				if target then
 					-- target selected.
 				if not game.ServerStorage.PlayerData:FindFirstChild(target.Name) then return end
-					if game.ServerStorage.PlayerData[target.Name].Race.Value ~= "Lich" and game.ServerStorage.PlayerData[target.Name].Race.Value ~= "Dzin" and not game.Players[target.Name].Backpack:FindFirstChild("MentalBlock") then
+					-- Checked against server-only PlayerData instead of Backpack - Backpack is
+				-- replicated to the owning client, so a spoofed "MentalBlock" Instance there
+				-- would be trusted the same way a spoofed Character Instance would.
+				if game.ServerStorage.PlayerData[target.Name].Race.Value ~= "Lich" and game.ServerStorage.PlayerData[target.Name].Race.Value ~= "Dzin" and not game.ServerStorage.PlayerData[target.Name].Skills.Value:find("MentalBlock") then
 				
 							
 					camflip.Parent = target
@@ -284,7 +287,7 @@ function spell2:Activate(char,castSuccess,currentprop,upgradedSpells)
 			
 			hitDetection.aoeCombatTag(char,char.Torso.Position,30) -- COMBAT TAG THE VICTIMS
 			for i,v in pairs(game.Workspace.Live:GetChildren()) do
-				if (v.Torso.Position-char.HumanoidRootPart.Position).Magnitude <= 25 and v~= char and not v:FindFirstChild("ConfuseScript") and game.ServerStorage.PlayerData:FindFirstChild(v.Name) and game.ServerStorage.PlayerData[v.Name].Data.Race.Value ~= "Lich" and game.ServerStorage.PlayerData[v.Name].Data.Race.Value ~= "Dzin" and not game.Players[v.Name].Backpack:FindFirstChild("MentalBlock") then
+				if (v.Torso.Position-char.HumanoidRootPart.Position).Magnitude <= 25 and v~= char and not v:FindFirstChild("ConfuseScript") and game.ServerStorage.PlayerData:FindFirstChild(v.Name) and game.ServerStorage.PlayerData[v.Name].Data.Race.Value ~= "Lich" and game.ServerStorage.PlayerData[v.Name].Data.Race.Value ~= "Dzin" and not game.ServerStorage.PlayerData[v.Name].Skills.Value:find("MentalBlock") then
 					local eplayfolder = game.ServerStorage.PlayerData[v.Name]
 					if (eplayfolder.LastName.Value == "" or (eplayfolder.LastName.Value ~= playerFolder.LastName.Value)) then
 						

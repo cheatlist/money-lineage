@@ -152,7 +152,10 @@ function v3.Activate(p8, p9, p10, p11, p12)
 	end;
 	local l__Value__32 = v31.Class.Value
 	local v34 = true;
-	if not table.find(_G.MageClasses, l__Value__32) then if not v30.Backpack:FindFirstChild("CurseAllow") then return end end
+	-- Checked against server-only v31 (caster's PlayerData) instead of v30.Backpack - Backpack
+	-- is replicated to the owning client, so a spoofed "CurseAllow" Instance there would be
+	-- trusted the same way a spoofed Character Instance would.
+	if not table.find(_G.MageClasses, l__Value__32) then if not v31.Skills.Value:find("CurseAllow") then return end end
 	
 	if p10 ~= 0 or not v34 then
 		l__TagHumanoid__1:Fire(p9, p9, {

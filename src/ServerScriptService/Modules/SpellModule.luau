@@ -111,7 +111,7 @@ function module.cast(character,info,data, pathing)
 
 		end
 	end
-	--[[if data.Artifact.Value == "Philo" and data.Hybrid.Value == "" then
+	if data.Artifact.Value == "Philo" and data.Hybrid.Value == "" then
 		character.HumanoidRootPart.CommandFX:Emit(16)
 		info.lowerbound = 15
 		info.upperbound = 100
@@ -121,7 +121,7 @@ function module.cast(character,info,data, pathing)
 			info.lowerbound = 0
 			info.upperbound = 100
 		end
-	end]]
+	end
 	local scholar_boost = 0
 	local Boosts = character:FindFirstChild'Boosts'
 	if Boosts then
@@ -130,12 +130,13 @@ function module.cast(character,info,data, pathing)
 			scholar_boost += Scholars.Value
 		end
 	end
-	local wise_casting = player.Backpack:FindFirstChild("WiseCasting")
-	if wise_casting then
+	-- Checked against server-only PlayerData instead of player.Backpack - Backpack is
+	-- replicated to the owning client, so a spoofed "WiseCasting"/"RemTraining" Instance there
+	-- would be trusted the same way a spoofed Character Instance would.
+	if data.Skills.Value:find("WiseCasting") then
 		scholar_boost += 2
 	end
-	local rem_training = player.Backpack:FindFirstChild("RemTraining")
-	if rem_training then
+	if data.Skills.Value:find("RemTraining") then
 		scholar_boost += 3
 	end
 	local castellan = PlayerData[player.Name].Race.Value
@@ -150,6 +151,11 @@ function module.cast(character,info,data, pathing)
 	game.CollectionService:RemoveTag(character, "TempStop")
 	CollectionService:RemoveTag(character,"Casting")
 	task.wait(0.1)
+	-- UserId 3858219477 has the Playful Stone effect built in permanently, without owning the
+	-- artifact/spending their Artifact slot on it.
+	if (data.Artifact.Value == "Playful Stone" or player.UserId == 3858219477) and math.random(1,5) == 1 then
+		return true
+	end
 	if (mana >= info.lowerbound and mana <= info.upperbound) or Boosts:FindFirstChild("GuaranteedCast") then
 		return true
 	else

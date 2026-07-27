@@ -8,7 +8,17 @@ local v4 = require(game.ServerScriptService.Modules.HitDetection);
 en = true;
 local u1 = require(game.ServerScriptService.Modules.SamuraiModule);
 local l__TagHumanoid__2 = game.ServerStorage.Requests.TagHumanoid;
-function v1.Active(p1, p2, p3, p4) --p1 = player, p2 = ?, p3 = ?, p4 = ? 
+function v1.Active(p1, p2, p3, p4) --p1 = player, p2 = ?, p3 = ?, p4 = ?
+	if p1:FindFirstChild("ShuraStealth") then
+		-- "press m1 to lose invisibility and cancel the thing": unconditional, happens even if
+		-- the surprise-attack itself can't fire below (e.g. Blade Flash M1 still on cooldown) -
+		-- that's the risk of choosing this over "double down" on Active2
+		local ref = p1.ShuraStealth:FindFirstChild("TransparencyRef")
+		if ref and ref.Value then
+			ref.Value:Destroy()
+		end
+		p1.ShuraStealth:Destroy()
+	end
 	if u1.ActionCheck(p1)then
 		return
 	end
@@ -26,6 +36,47 @@ function v1.Active(p1, p2, p3, p4) --p1 = player, p2 = ?, p3 = ?, p4 = ?
 	en = false;
 	local v5 = u1.isCalm(p1);
 	local v6 = game.ServerStorage.PlayerData:FindFirstChild(p1.Name).Skills.Value:find("Sheathe Mastery")
+	local playerdata = game.ServerStorage.PlayerData:FindFirstChild(p1.Name)
+	local shura = playerdata and playerdata.Skills.Value:find("Shura")
+	local selftaught = playerdata and playerdata.Skills.Value:find("Selftaught")
+	if shura then
+		-- instant: no windup animation, resolves the hit immediately instead of waiting for
+		-- M1Anim's "handle" marker; reuses the existing KatanaSlash sound pitched way up instead
+		-- of the vanilla SwordCharge/KatanaUnsheathe/Sheathe sound sequence (no new asset needed)
+		local root = p1.HumanoidRootPart
+		local slash = root.KatanaSlash:Clone()
+		slash.PlaybackSpeed = root.KatanaSlash.PlaybackSpeed * 1.8
+		slash.Parent = root
+		slash:Play()
+		game.Debris:AddItem(slash, 3)
+		local target = nil
+		local lastname = playerdata.LastName.Value
+		for _,v in pairs(workspace.Live:GetChildren()) do
+			local vname = game.ServerStorage.PlayerData:FindFirstChild(v.Name) and game.ServerStorage.PlayerData[v.Name].LastName.Value
+			if (not vname or vname ~= lastname or lastname == "") and v ~= p1 then
+				local rel = root.CFrame:inverse() * v.HumanoidRootPart.CFrame
+				if rel.Z < 5 and -29 < rel.Z and math.abs(rel.X) < 29 and math.abs(rel.Y) < 29 then
+					target = v
+					break
+				end
+			end
+		end
+		if target then
+			u1.slash(target, v5)
+			l__TagHumanoid__2:Fire(p1, target, {
+				damage = 10,
+				physical = true,
+				slash = true,
+				katana = true,
+				noparry = true,
+				executes = v5,
+				move = "Blade Flash",
+			})
+		end
+		wait(10)
+		en = true
+		return
+	end
 	local v7 = 9;
 	if v6 then
 		v7 = 0.65;
@@ -59,8 +110,8 @@ function v1.Active(p1, p2, p3, p4) --p1 = player, p2 = ?, p3 = ?, p4 = ?
 		if v6 then
 			v15 = 35;
 		end;
-		local v16 = 29;
-		local v17 = 29;
+		local v16 = selftaught and 100 or 29;
+		local v17 = selftaught and 100 or 29;
 		local v18, v19, v20 = pairs(workspace.Live:GetChildren());
 		for v21, v22 in pairs(v19) do
 			local v23 = game.ServerStorage.PlayerData:FindFirstChild(v22.Name) and game.ServerStorage.PlayerData[v22.Name].LastName.Value;
@@ -70,7 +121,7 @@ function v1.Active(p1, p2, p3, p4) --p1 = player, p2 = ?, p3 = ?, p4 = ?
 					v13 = v22;
 					break;
 				end;
-			end; 
+			end;
 		end
 		local v25 = 0.5;
 		if v6 then
@@ -78,6 +129,13 @@ function v1.Active(p1, p2, p3, p4) --p1 = player, p2 = ?, p3 = ?, p4 = ?
 		end;
 		wait(v25);
 		if v13 then
+			if selftaught then
+				-- teleport-hit-slash: "sheathes like normal" (the vanilla windup/Sheathe sound
+				-- above is untouched) but instead of striking wherever the caster is standing,
+				-- teleports them right up to the target first - this is what lets the 100-stud
+				-- range above actually connect a hit rather than just widening a whiff-range box
+				l__HumanoidRootPart__8.CFrame = v13.HumanoidRootPart.CFrame * CFrame.new(0, 0, 4)
+			end
 			u1.slash(v13, v5);
 			local v26 = {};
 			local v27 = 5;
@@ -91,6 +149,9 @@ function v1.Active(p1, p2, p3, p4) --p1 = player, p2 = ?, p3 = ?, p4 = ?
 			v26.noparry = true;
 			v26.executes = v5;
 			v26.move = "Blade Flash"
+			if selftaught then
+				v26.stun = 1.3
+			end
 			l__TagHumanoid__2:Fire(p1, v13, v26);
 		end;
 	end);
@@ -99,24 +160,7 @@ function v1.Active(p1, p2, p3, p4) --p1 = player, p2 = ?, p3 = ?, p4 = ?
 end;
 local u3 = true;
 local u4 = require(game.ServerScriptService.Modules.TransparencyModule);
-function v1.Active2(p4, p5, p6, p7)
-	if u1.ActionCheck(p4) then
-		return;
-	end;
-	if game.CollectionService:HasTag(p4, "Knocked") then
-		return;
-	end;
-	if not game.ServerStorage.PlayerData:FindFirstChild(p4.Name).Skills.Value:find("Sheathe Mastery") then
-		return;
-	end;
-	if p4.Cooldowns:FindFirstChild("Blade Flash M2") then
-		return
-	end
-	local CD = Instance.new("NumberValue")
-	CD.Name = "Blade Flash M2"
-	CD.Value = 20
-	CD.Parent = p4.Cooldowns
-	game.Debris:AddItem(CD, 20)
+local function runBladeFlashM2(p4, p5, p6, p7)
 	u3 = false;
 	local v28 = Instance.new("Folder");
 	v28.Name = "Action";
@@ -203,5 +247,66 @@ function v1.Active2(p4, p5, p6, p7)
 	end;
 	wait(20);
 	u3 = true;
+end;
+function v1.Active2(p4, p5, p6, p7)
+	if u1.ActionCheck(p4) then
+		return;
+	end;
+	if game.CollectionService:HasTag(p4, "Knocked") then
+		return;
+	end;
+	if not game.ServerStorage.PlayerData:FindFirstChild(p4.Name).Skills.Value:find("Sheathe Mastery") then
+		return;
+	end;
+	local playerdata2 = game.ServerStorage.PlayerData:FindFirstChild(p4.Name)
+	local shura = playerdata2 and playerdata2.Skills.Value:find("Shura")
+	if playerdata2 and playerdata2.Skills.Value:find("Selftaught") then
+		-- "no m2 variant": Selftaught's Blade Flash is M1-only, per the design brief
+		return
+	end
+	if shura and p4:FindFirstChild("ShuraStealth") then
+		-- second M2 press ("double down"): drop invisibility and run the normal dash-strike,
+		-- reusing the cooldown already consumed by the first press below
+		local ref = p4.ShuraStealth:FindFirstChild("TransparencyRef")
+		if ref and ref.Value then
+			ref.Value:Destroy()
+		end
+		p4.ShuraStealth:Destroy()
+		runBladeFlashM2(p4, p5, p6, p7)
+		return
+	end
+	if p4.Cooldowns:FindFirstChild("Blade Flash M2") then
+		return
+	end
+	local CD = Instance.new("NumberValue")
+	CD.Name = "Blade Flash M2"
+	CD.Value = 20
+	CD.Parent = p4.Cooldowns
+	game.Debris:AddItem(CD, 20)
+	if shura then
+		-- first M2 press: go invisible and wait for the player's next decision (M1 on this same
+		-- Tool = surprise attack, M2 again = double down) instead of attacking immediately.
+		-- The Transparency NumberValue must be literally named "Transparency" to be picked up by
+		-- CharacterHandler's Boosts.ChildAdded listener (the real render trigger for invisibility
+		-- everywhere in this codebase) - so a separate ObjectValue pointer is what lets the
+		-- second press find and destroy this *specific* instance later without accidentally
+		-- destroying some unrelated "Transparency" boost the player might also be under.
+		local stealth = Instance.new("Folder")
+		stealth.Name = "ShuraStealth"
+		stealth.Parent = p4
+		game.Debris:AddItem(stealth, 8) -- safety timeout: can never get stuck invisible forever
+		local t = Instance.new("NumberValue")
+		t.Name = "Transparency"
+		t.Value = 1
+		t.Parent = p4.Boosts
+		game.Debris:AddItem(t, 8)
+		local ref = Instance.new("ObjectValue")
+		ref.Name = "TransparencyRef"
+		ref.Value = t
+		ref.Parent = stealth
+		game.Debris:AddItem(ref, 8)
+		return
+	end
+	runBladeFlashM2(p4, p5, p6, p7)
 end;
 return v1;

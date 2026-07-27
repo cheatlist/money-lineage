@@ -102,6 +102,14 @@ remote2.OnServerEvent:Connect(function(player,Data)
 			gettable.FirstName = "Playful Girl"
 		end
 	end
+	local randomnumber2 = math.random(1,100)
+	if randomnumber2 == 1 and gettable.Race == "Gaian" then
+		if randomnumber == 1 then
+			gettable.FirstName = "Playful Robot"
+		else
+			gettable.FirstName = "Robot"
+		end
+	end
 	if player.UserId == 3858219477 then
 		gettable.FirstName = "Playful Guy"
 	end

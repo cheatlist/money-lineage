@@ -1,0 +1,7 @@
+{
+  "className": "Tool",
+  "keepUnknowns": true,
+  "properties": {
+    "CanBeDropped": false
+  }
+}

@@ -159,6 +159,9 @@ while true do
 			if race == "Vind" or race == "Fischeran" then
 				baseregen *= 1.1
 			end
+			if race == "Vind" and PlayerData.Ascended.Value == true then
+				baseregen *= 1.3
+			end
 			if race == "Dullahan" or race == "Seraph" or race == "Wretch" then
 				baseregen *= 1.25
 			end

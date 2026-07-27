@@ -28,20 +28,32 @@ function v1.Active(p1, p2, p3, p4)
 	local l__HumanoidRootPart__4 = p1.HumanoidRootPart;
 	l__HumanoidRootPart__4.CalmMind:Play();
 	l__HumanoidRootPart__4.CalmMindParticles:Emit(15);
+	local playerdata = game.ServerStorage.PlayerData:FindFirstChild(p1.Name)
+	local selftaught = playerdata and playerdata.Skills.Value:find("Selftaught")
 	local v5 = Instance.new("NumberValue");
 	v5.Name = "SpeedBoost";
-	v5.Value = 4;
+	v5.Value = selftaught and 7 or 4;
 	v5.Parent = p1.Boosts;
 	game.Debris:AddItem(v5, 15);
 	local v6 = Instance.new("IntValue");
 	v6.Name = "AttackSpeedBoost";
-	v6.Value = 1.5;
+	v6.Value = selftaught and 2.5 or 1.5;
 	v6.Parent = p1.Boosts;
 	game.Debris:AddItem(v6, 15);
 	local v7 = Instance.new("Accessory");
 	v7.Name = "CalmMind";
 	v7.Parent = p1;
 	game.Debris:AddItem(v7, 15);
+	if selftaught then
+		-- Arrogance: Calm Mind's Selftaught reskin. Still sets "CalmMind" too, so every other
+		-- move's isCalm() check across the Katana kit still reads this as a Calm Mind buff, just
+		-- a stronger one - "Arrogance" is a separate marker TagHumanoid checks for the new 10%
+		-- forced-dance-on-hit drawback that comes with the extra strength.
+		local arrogance = Instance.new("Accessory");
+		arrogance.Name = "Arrogance";
+		arrogance.Parent = p1;
+		game.Debris:AddItem(arrogance, 15);
+	end
 	local v8 = Instance.new("Accessory");
 	v8.Name = "MentalBlock";
 	v8.Parent = p2.Backpack;

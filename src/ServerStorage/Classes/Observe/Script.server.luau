@@ -61,13 +61,20 @@ script.Parent.Activated:Connect(function()
 		local observablePlayers = {}
 		for _, v in pairs(game.Players:GetPlayers()) do
 			local Char = v.Character
-			if v ~= player 
-				and not v:FindFirstChild("MonsterInfo") 
-				and Char 
-				and Char:FindFirstChild("Head") 
-				and not v.Backpack:FindFirstChild("ObserveBlock") 
-				and not Char.Boosts:FindFirstChild("ObserveBlock") 
-				and not Char:FindFirstChild("in green room") 
+			-- Checked against server-only PlayerData instead of v.Backpack/Char.Boosts - both
+			-- are replicated to the owning client, so a spoofed "ObserveBlock" Instance there
+			-- would be trusted the same way a spoofed Character Instance would. Also fixes a
+			-- pre-existing functional bug: "ObserveBlock" is a flag-only skill (Skills.Value
+			-- string, no ServerStorage/Classes folder to clone into Backpack), so this check
+			-- could never have been satisfied by any legitimate player either way.
+			local vdata = game.ServerStorage.PlayerData:FindFirstChild(v.Name)
+			if v ~= player
+				and not v:FindFirstChild("MonsterInfo")
+				and Char
+				and Char:FindFirstChild("Head")
+				and vdata
+				and not vdata.Skills.Value:find("ObserveBlock")
+				and not Char:FindFirstChild("in green room")
 			then
 				local firstName = game.ServerStorage.PlayerData[v.Name].FirstName.Value
 				local lastName = game.ServerStorage.PlayerData[v.Name].LastName.Value

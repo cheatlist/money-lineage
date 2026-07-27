@@ -286,6 +286,35 @@ if PlayerData.Skills.Value:find("TheMaster") then
 	permBane.Name = "BaneEff"
 	permBane.Parent = Character
 end
+if PlayerData.Ascended.Value == true and PlayerData.Race.Value == "Vind" then
+	-- Ascended Vind: just the Exoskeleton artifact's hold-Space-to-fall-faster perk, not the
+	-- double jump/double dash it also grants - deliberately a distinctly-named marker
+	-- ("AscendedVindFall") rather than reusing "Exoskeleton" itself, since
+	-- CharacterHandler/Input/init.client.luau's double-jump (~line 1467) and double-dash
+	-- (~line 998) checks share that exact same accessory-presence check and would have picked
+	-- this race up too if it used the same name.
+	local vindFall = Instance.new("Accessory")
+	vindFall.Name = "AscendedVindFall"
+	vindFall.Parent = Character
+end
+if PlayerData.Artifact.Value == "Black Pill" then
+	-- A fresh Character on respawn starts back at normal size - the Black Pill Tool
+	-- (ServerStorage/Storage/Black Pill/Script.server.luau) only scales the character alive at
+	-- the moment it's picked up, so every subsequent spawn needs this re-applied here too.
+	require(game.ServerScriptService.Modules.CharacterScale).scaleR6(Character, 1.2)
+	local head = Character:FindFirstChild("Head")
+	if head then
+		local headMesh = head:FindFirstChildWhichIsA("SpecialMesh")
+		if headMesh then
+			headMesh.Scale = headMesh.Scale * Vector3.new(1, 1.08, 1)
+		end
+	end
+	if Character:FindFirstChild("Artifacts") and not Character.Artifacts:FindFirstChild("Black Pill") then
+		local blackPillMarker = Instance.new("Accessory")
+		blackPillMarker.Name = "Black Pill"
+		blackPillMarker.Parent = Character.Artifacts
+	end
+end
 local function StunCheck(p,Stuns)
 	if p ~= Player then
 		p:Kick("nice one")
@@ -973,7 +1002,12 @@ local combo = Character.Combo
 local combotimer = Character.ComboTimer
 
 Remotes.LeftClickRelease.OnServerEvent:Connect(function()
-	if (Character:FindFirstChild("Respirare") or Character:FindFirstChild("Mederi")) and Character:FindFirstChild("ActiveCast") then
+	-- Checked against server-only PlayerData instead of Character:FindFirstChild("Respirare"/
+	-- "Mederi") - Character is replicated to clients, so a spoofed Instance with either name
+	-- would be trusted the same way. Respirare has no Skills.Value trace (it's a Kasparan-only
+	-- racial Tool, ClassData/Commands/init.luau), so race is the closest available signal;
+	-- Mederi is granted via the EdictRewards system as a Skills.Value entry.
+	if (PlayerData.Race.Value == "Kasparan" or PlayerData.Skills.Value:find("Mederi")) and Character:FindFirstChild("ActiveCast") then
 		create("EndCast", 0.6, Character)
 	end
 end)
@@ -1719,11 +1753,14 @@ Remotes.Block.OnServerEvent:Connect(function(p)
 			end
 		end
 		if Mana.Value>0 and not manashield then
-			if FindFirstChild(Player.Backpack,"ChiBlock")then
+			-- Both checked against server-only PlayerData instead of Player.Backpack - Backpack
+			-- is replicated to the owning client and a spoofed Instance with a matching name
+			-- would be trusted the same way a spoofed Character Instance would.
+			if PlayerData.Skills.Value:find("ChiBlock")then
 				monkshield = true
 				create("Blocking",false,Character)
 				create("MonShield",false,Character)
-				local has_skill = Player.Backpack:FindFirstChild("CurseShield")
+				local has_skill = PlayerData.Skills.Value:find("CurseShield")
 
 				HumanoidRootPart.Bell:Play()
 				local color = has_skill and Color3.fromRGB(165,64,248) or Color3.fromRGB(255,255,255)
@@ -1733,7 +1770,7 @@ Remotes.Block.OnServerEvent:Connect(function(p)
 		elseif Mana.Value>0 and manashield then
 			lastmanashield = tick()
 			create("SpellBlocking",false,Character)
-			local has_skill = Player.Backpack:FindFirstChild("CurseShield")
+			local has_skill = PlayerData.Skills.Value:find("CurseShield")
 			if has_skill then
 				create("CurseBlocking",false,Character)
 			end
@@ -2151,8 +2188,25 @@ Remotes.ApplyFallDamage.OnServerEvent:Connect(function(p,Value)
 	game.Debris:AddItem(fallcd,0.2)
 	game.Debris:AddItem(AllowDeletion, 0.2)
 	local FallDamageReduction = 1
-	if Player.Backpack:FindFirstChild("FeatherFall")then
+	-- Both checks below used to trust `Backpack`/`Character.Artifacts:FindFirstChild(...)` -
+	-- both are replicated to the owning client, and exploiters can get a spoofed Instance with
+	-- a matching name to appear under their own copy, which a server FindFirstChild scan would
+	-- wrongly trust. PlayerData in ServerStorage is never sent to any client, so it can't be
+	-- spoofed the same way. "FeatherFall" is currently only ever actually granted as a real
+	-- Backpack instance to Morvid (Modules/Commands/init.luau) - the Shinobi/Whisper/Wanderer
+	-- class skill of the same name is flag-only (Skills.Value string, no ServerStorage/Classes
+	-- folder to clone), so it was never reachable through this check either way; this fix
+	-- preserves that exact existing behavior rather than also extending it to those classes.
+	if PlayerData.Race.Value == "Morvid" then
 		FallDamageReduction = 0.25
+	end
+	if PlayerData.Artifact.Value == "Exoskeleton" then
+		FallDamageReduction = math.min(FallDamageReduction, 0.5)
+	end
+	if PlayerData.Race.Value == "Vind" then
+		-- Non-ascension racial trait: Vind get some innate fall resistance, weaker than
+		-- FeatherFall/Exoskeleton since it's free rather than a dedicated item/artifact.
+		FallDamageReduction = math.min(FallDamageReduction, 0.7)
 	end
 	FallDamageReduction = math.clamp(FallDamageReduction,0.4,1)
 	local damage = (Value/75*35)*FallDamageReduction
@@ -2165,15 +2219,26 @@ Remotes.ApplyFallDamage.OnServerEvent:Connect(function(p,Value)
 	task.wait(1/30)
 	TagHumanoid:Fire(Character,Character, falltable)
 end)
-if PlayerData.Ascended.Value == true then
-	local GlobalData = game.ServerStorage.PlayerData:FindFirstChild(Player.Name.."Global")
-	local GlobalQuests = game:GetService("HttpService"):JSONDecode(GlobalData.GlobalQuests.Value)
-	if not GlobalQuests["Ascensions"] then
-		GlobalQuests["Ascensions"] = {}
-	end
-	GlobalQuests["Ascensions"][PlayerData.Race.Value] = true
-	GlobalData.GlobalQuests.Value = game:GetService("HttpService"):JSONEncode(GlobalQuests)
-end
+-- Removed 2026-07-27: this used to sync `GlobalQuests["Ascensions"][Race] = true` (the
+-- insight-payment pity flag every AscensionQuests function checks to skip the 20-insight cost
+-- on a future life) from live `PlayerData.Ascended.Value` on every single spawn. That's an
+-- unconditional trust of whatever `Ascended.Value` happens to be at spawn time, for whatever
+-- race is currently set - it doesn't verify the flag was actually earned by paying insight
+-- through the quest. Any out-of-band way `Ascended.Value` ends up `true` without going through
+-- an `AscensionQuests[...]` "Let's do it" branch (most commonly: toggling it directly in
+-- Studio's Explorer to test ascended-only content, which most of the currently-built races'
+-- abilities were tested via) permanently and silently bakes free ascension into that
+-- player's account for whatever race they're currently on - observed as "the quest gives
+-- ascension too soon" for Ashiin/Morvid, whose ascended kits were the ones being manually
+-- flagged for testing this session, but the same exploit applies to every race with a quest.
+-- The pity flag is already written correctly and explicitly at the one true moment it's
+-- earned - inside each AscensionQuests[...] function's own "Let's do it" branch, right after
+-- `commands.ChangeInsight(p,data,-20)` succeeds - so this passive spawn-time sync was pure
+-- redundancy with no legitimate case it alone covered, at the cost of being an easy accidental
+-- (or deliberate) pity-flag exploit. If a player's `GlobalQuests["Ascensions"]` already has a
+-- stale `true` entry for a race they never actually paid for (from before this fix), that
+-- entry needs to be cleared by hand (Studio Explorer or a DataStore edit) - this fix only
+-- stops new corruption, it doesn't retroactively clean data already written.
 local changed
 local cancel = false
 local carryanim = Humanoid:LoadAnimation(combatanims.Carry)

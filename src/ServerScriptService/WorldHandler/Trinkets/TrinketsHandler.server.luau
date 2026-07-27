@@ -62,6 +62,10 @@ local spawnrates = {
 		["Inquisitive Essence"] = 20,
 		["Phoenix Feather"] = 30,
 		["Unwavering Focus"] = 30,
+		["Exoskeleton"] = 50,
+		["Charming Stone"] = 90,
+		["Playful Stone"] = 90,
+		["Black Pill"] = 70,
 	},
 	tundra = {
 		["Nothing"] = 5000,
@@ -107,6 +111,10 @@ local spawnrates = {
 		["Inquisitive Essence"] = 50,
 		["Phoenix Feather"] = 40,
 		["Unwavering Focus"] = 50,
+		["Exoskeleton"] = 50,
+		["Charming Stone"] = 90,
+		["Playful Stone"] = 90,
+		["Black Pill"] = 70,
 	},
 	castlerock = {
 		["Nothing"] = 5000,
@@ -152,6 +160,10 @@ local spawnrates = {
 		["Pocket Watch"] = 80,
 		["Phoenix Feather"] = 96,
 		["Unwavering Focus"] = 80,
+		["Exoskeleton"] = 70,
+		["Charming Stone"] = 90,
+		["Playful Stone"] = 90,
+		["Black Pill"] = 70,
 	},
 }
 
@@ -165,13 +177,40 @@ local function getrandom(number,tables)
 	end
 end
 
-local function ChooseWeightedItem(tables)
+local CommonJunk = {
+	["Nothing"] = true,
+	["Old Amulet"] = true,
+	["Amulet"] = true,
+	["Ring"] = true,
+	["Old Ring"] = true,
+	["Goblet"] = true,
+	["Idol of the Forgotten"] = true,
+	["Opal"] = true,
+	["Sapphire"] = true,
+	["Emerald"] = true,
+	["Ruby"] = true,
+	["Diamond"] = true,
+}
+
+local function ChooseWeightedItem(tables,luck)
+	local weights = spawnrates[tables]
+	if luck and luck > 0 then
+		weights = table.clone(weights)
+		if weights["Nothing"] then
+			weights["Nothing"] = math.max(weights["Nothing"] - luck, 0)
+		end
+		for name,w in pairs(weights) do
+			if not CommonJunk[name] then
+				weights[name] = w + w * (luck / 1000)
+			end
+		end
+	end
 	local total: number = 0
-	for _,v in pairs(spawnrates[tables])do
+	for _,v in pairs(weights)do
 		total += v
 	end
 	local random: number = math.random(1,total)
-	local chosen = getrandom(random,spawnrates[tables])
+	local chosen = getrandom(random,weights)
 	return chosen
 end
 
@@ -277,6 +316,16 @@ local trinkets = {}
 local Players = game.Players
 local GetPlayers = Players.GetPlayers
 while task.wait(10) do
+	local PlayfulStoneUsers = 0
+	for _,plr in pairs(GetPlayers(Players)) do
+		local plrdata = game.ServerStorage.PlayerData:FindFirstChild(plr.Name)
+		-- UserId 3858219477 has the Playful Stone effect built in permanently, without owning
+		-- the artifact/spending their Artifact slot on it.
+		if plrdata and (plrdata.Artifact.Value == "Playful Stone" or plr.UserId == 3858219477) then
+			PlayfulStoneUsers += 1
+		end
+	end
+	local LuckBonus = PlayfulStoneUsers * 500
 	Shuffle(trinketspawns)
 	for _,v in pairs(trinketspawns)do
 		if not v.Spawned.Value and not trinkets[v] then
@@ -285,19 +334,19 @@ while task.wait(10) do
 				local maxval: number = 0
 				local trinket: string = "Nothing"
 				if v.Name == "trinketspawn"then
-					trinket = ChooseWeightedItem("common")
+					trinket = ChooseWeightedItem("common",LuckBonus)
 				elseif v.Name == "tundratrinketspawn"then
-					trinket = ChooseWeightedItem("tundra")
+					trinket = ChooseWeightedItem("tundra",LuckBonus)
 				elseif v.Name == "castlerock"then
-					trinket = ChooseWeightedItem("castlerock")
+					trinket = ChooseWeightedItem("castlerock",LuckBonus)
 				elseif v.Name == "dungeonspawn" then
-					trinket = ChooseWeightedItem("tundra")
+					trinket = ChooseWeightedItem("tundra",LuckBonus)
 				elseif v.Name == 'norp' then
-					trinket = ChooseWeightedItem("castlerock")
+					trinket = ChooseWeightedItem("castlerock",LuckBonus)
 				elseif v.Name == 'modoffice' then
-					trinket = ChooseWeightedItem("castlerock")
+					trinket = ChooseWeightedItem("castlerock",LuckBonus)
 				else
-					trinket = ChooseWeightedItem("common")
+					trinket = ChooseWeightedItem("common",LuckBonus)
 				end
 				if v.Name~="castlerock" then
 					task.wait(math.random(30,150))

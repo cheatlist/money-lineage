@@ -37,7 +37,10 @@ function v1.Activate(p11, p12, p13, p14)
 	end
 	local l__Mana__9 = p12.Mana
 	local v10 = game.Players:GetPlayerFromCharacter(p12)
-	if not v10.Backpack:FindFirstChild("CurseAllow") then return end
+	-- Checked against server-only PlayerData instead of v10.Backpack - Backpack is replicated
+	-- to the owning client, so a spoofed "CurseAllow" Instance there would be trusted the same
+	-- way a spoofed Character Instance would.
+	if not game.ServerStorage.PlayerData[v10.Name].Skills.Value:find("CurseAllow") then return end
 	local l__Value__11 = v10:FindFirstChildOfClass("Backpack").ManaColor
 	local u3 = _G.MouseData(v10)
 	if not u3 then
@@ -120,7 +123,10 @@ function v3.Activate(p15, p16, p17, p18, p19)
 	local l__Mana__18 = p16.Mana
 	local v19 = game.Players:GetPlayerFromCharacter(p16)
 	if not game.ServerStorage.PlayerData[v19.Name].Snaps.Value:find("Tenebris") then return end
-	if not v19.Backpack:FindFirstChild("CurseAllow") then return end
+	-- Checked against server-only PlayerData instead of v19.Backpack - Backpack is replicated
+	-- to the owning client, so a spoofed "CurseAllow" Instance there would be trusted the same
+	-- way a spoofed Character Instance would.
+	if not game.ServerStorage.PlayerData[v19.Name].Skills.Value:find("CurseAllow") then return end
 	local v20 = game.ServerStorage.PlayerData:FindFirstChild(v19.Name)
 	if not v20 then
 		return

@@ -1256,6 +1256,16 @@ commands["RacialAbilities"] = function(Player,data)
 		if not has4 then
 			data.Skills.Value ..= ",Agility"
 		end
+		if data.Ascended.Value == true then
+			local has5 = Player.Backpack:FindFirstChild("Blinding Knee") or Player.Character:FindFirstChild("Blinding Knee")
+			if not has5 then
+				RacialAbilities["Blinding Knee"]:Clone().Parent = Player.Backpack
+			end
+			local has6 = Player.Backpack:FindFirstChild("Fakeout") or Player.Character:FindFirstChild("Fakeout")
+			if not has6 then
+				RacialAbilities["Fakeout"]:Clone().Parent = Player.Backpack
+			end
+		end
 	elseif Race.Value == "Dullahan"then
 		local has = Player.Backpack:FindFirstChild("Pumpkin Grenade")or Player.Character:FindFirstChild("Pumpkin Grenade")
 		if not has then
@@ -1444,6 +1454,12 @@ commands["RacialAbilities"] = function(Player,data)
 		local has = Player.Backpack:FindFirstChild("Tempest Soul")or Player.Character:FindFirstChild("Tempest Soul")
 		if not has then
 			RacialAbilities["Tempest Soul"]:Clone().Parent = Player.Backpack
+		end
+		if data.Ascended.Value == true then
+			local has2 = Player.Backpack:FindFirstChild("Tempest Release") or Player.Character:FindFirstChild("Tempest Release")
+			if not has2 then
+				RacialAbilities["Tempest Release"]:Clone().Parent = Player.Backpack
+			end
 		end
 
 	elseif Race.Value == "Morvid"then

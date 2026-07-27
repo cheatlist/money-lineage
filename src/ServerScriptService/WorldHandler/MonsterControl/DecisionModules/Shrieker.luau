@@ -464,7 +464,11 @@ module.BasicAttack = function(char,live,tracks)
 		local shriekerheal = false
 		if master then
 			local masterplr = game.Players:GetPlayerFromCharacter(master)
-			if masterplr.Backpack:FindFirstChild("ShriekerHeal") then
+			-- Checked against server-only PlayerData instead of masterplr.Backpack - Backpack
+			-- is replicated to the owning client, so a spoofed "ShriekerHeal" Instance there
+			-- would be trusted the same way a spoofed Character Instance would.
+			local masterdata = masterplr and game.ServerStorage.PlayerData:FindFirstChild(masterplr.Name)
+			if masterdata and masterdata.Skills.Value:find("ShriekerHeal") then
 				shriekerheal = true
 			end
 		end
@@ -548,7 +552,11 @@ module.Eat = function(char,target,tracks)
 		local shriekerheal = false
 		if master then
 			local masterplr = game.Players:GetPlayerFromCharacter(master)
-			if masterplr.Backpack:FindFirstChild("ShriekerHeal") then
+			-- Checked against server-only PlayerData instead of masterplr.Backpack - Backpack
+			-- is replicated to the owning client, so a spoofed "ShriekerHeal" Instance there
+			-- would be trusted the same way a spoofed Character Instance would.
+			local masterdata = masterplr and game.ServerStorage.PlayerData:FindFirstChild(masterplr.Name)
+			if masterdata and masterdata.Skills.Value:find("ShriekerHeal") then
 				shriekerheal = true
 			end
 		end

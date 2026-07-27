@@ -207,7 +207,10 @@ local function Injure(plr, injury, bypassCooldown, bypassImmunity)
 			return false,"Immune to injury."
 		end
 
-		if mentalInjuries[injury] and plr.Backpack:FindFirstChild("MentalBlock") then
+		-- Checked against server-only Data (PlayerData) instead of plr.Backpack - Backpack is
+		-- replicated to the owning client, so a spoofed "MentalBlock" Instance there would be
+		-- trusted the same way a spoofed Character Instance would.
+		if mentalInjuries[injury] and Data.Skills.Value:find("MentalBlock") then
 			return false,"Injury mentally blocked."
 		end
 	end

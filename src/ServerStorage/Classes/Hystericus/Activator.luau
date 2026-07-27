@@ -144,7 +144,10 @@ function v1.Activate(p1, p2, p3, p4)
 				if not game.ServerStorage.PlayerData:FindFirstChild(v22.Name) then
 					return;
 				end;
-				if game.ServerStorage.PlayerData[v22.Name].Race.Value ~= "Dzin" and game.ServerStorage.PlayerData[v22.Name].Race.Value ~= "Lich" and not game.Players[v22.Name].Backpack:FindFirstChild("MentalBlock") then
+				-- Checked against server-only PlayerData instead of Backpack - Backpack is
+				-- replicated to the owning client, so a spoofed "MentalBlock" Instance there
+				-- would be trusted the same way a spoofed Character Instance would.
+				if game.ServerStorage.PlayerData[v22.Name].Race.Value ~= "Dzin" and game.ServerStorage.PlayerData[v22.Name].Race.Value ~= "Lich" and not game.ServerStorage.PlayerData[v22.Name].Skills.Value:find("MentalBlock") then
 					v24.Parent = v22;
 					v23.Parent = v22;
 					local v40 = v17.Hit:Clone();
@@ -267,7 +270,7 @@ function v4.Activate(p8, p9, p10, p11, p12)
 			end);
 			u4.aoeCombatTag(p9, p9.Torso.Position, 20);
 			for v55, v56 in pairs(game.Workspace.Live:GetChildren()) do
-				if (v56.Torso.Position - p9.HumanoidRootPart.Position).Magnitude <= 15 and v56 ~= p9 and (not v56:FindFirstChild("Unconscious") and not v56:FindFirstChild("Confused")  and (game.ServerStorage.PlayerData:FindFirstChild(v56.Name) and game.ServerStorage.PlayerData[v56.Name].Race.Value ~= "Dzin" and game.ServerStorage.PlayerData[v56.Name].Race.Value ~= "Lich") and not game.Players[v56.Name].Backpack:FindFirstChild("MentalBlock")) then
+				if (v56.Torso.Position - p9.HumanoidRootPart.Position).Magnitude <= 15 and v56 ~= p9 and (not v56:FindFirstChild("Unconscious") and not v56:FindFirstChild("Confused")  and (game.ServerStorage.PlayerData:FindFirstChild(v56.Name) and game.ServerStorage.PlayerData[v56.Name].Race.Value ~= "Dzin" and game.ServerStorage.PlayerData[v56.Name].Race.Value ~= "Lich") and not game.ServerStorage.PlayerData[v56.Name].Skills.Value:find("MentalBlock")) then
 					local v57 = game.ServerStorage.PlayerData[v56.Name];
 					if v57.LastName.Value == "" or v57.LastName.Value ~= v49.LastName.Value then
 						local v58 = Instance.new("Accessory");

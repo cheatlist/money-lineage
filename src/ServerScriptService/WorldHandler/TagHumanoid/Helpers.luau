@@ -148,7 +148,7 @@ local function addToxinStack(enemy, maxStacks)
 	local stack = game.ServerStorage.Assets.Cursey:Clone()
 	stack.Name = "ToxinStack"
 	stack.Parent = enemy.HumanoidRootPart
-	game.Debris:AddItem(stack, 10)
+	game.Debris:AddItem(stack, 20)
 	if enemy.Boosts then
 		local slowdown = Instance.new("NumberValue")
 		slowdown.Name = "SpeedBoost"

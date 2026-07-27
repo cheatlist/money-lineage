@@ -38,11 +38,71 @@ function v1.Active(p9, p10, p11, p12) --p1, p2, p3, p4
 	if p9.Cooldowns:FindFirstChild("Swallow Reversal") then
 		return
 	end
+	local playerdata = game.ServerStorage.PlayerData:FindFirstChild(p9.Name)
+	local shura = playerdata and playerdata.Skills.Value:find("Shura")
+	local selftaught = playerdata and playerdata.Skills.Value:find("Selftaught")
+	if playerdata and playerdata.Skills.Value:find("HandOfGod") then
+		-- Hand of God replaces Swallow Reversal's M1 outright: a stationary AoE slash
+		-- instead of the vanilla dash-multihit. Reuses Blade Flash's M1Anim per design
+		-- (Blade Flash and Swallow Reversal are both Katana moves, same swing shape).
+		local CD = Instance.new("NumberValue")
+		CD.Name = "Swallow Reversal"
+		CD.Value = 15
+		CD.Parent = p9.Cooldowns
+		game.Debris:AddItem(CD, 15)
+		en = false;
+		local l__HumanoidRootPart__7 = p9.HumanoidRootPart;
+		local l__Humanoid__8 = p9.Humanoid;
+		local v9 = l__Humanoid__8:LoadAnimation(script.Parent.M1Anim);
+		v9:Play();
+		local v12 = Instance.new("Folder");
+		v12.Name = "Action";
+		v12.Parent = p9;
+		game.Debris:AddItem(v12, 1);
+		local part = Instance.new("Part")
+		part.Anchored = true
+		part.CanCollide = false
+		part.Material = Enum.Material.Neon
+		part.Color = Color3.new(1, 1, 1)
+		part.Size = Vector3.new(10, 10, 10)
+		part.CFrame = l__HumanoidRootPart__7.CFrame * CFrame.new(0, 0, -8)
+		part.Transparency = 0.2
+		part.Parent = workspace
+		game.Debris:AddItem(part, 2.2)
+		wait(0.15)
+		local hitInfo = {
+			damage = 22,
+			physical = true,
+			slash = true,
+			katana = true,
+			blockbreak = true,
+			noparry = true,
+			manabreaker = true,
+			stun = 0.5,
+			move = "Swallow Reversal",
+		}
+		for _,v in pairs(workspace.Live:GetChildren()) do
+			if v ~= p9 and v:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
+				local rel = part.CFrame:inverse() * v.HumanoidRootPart.CFrame
+				if math.abs(rel.X) <= 5 and math.abs(rel.Y) <= 5 and math.abs(rel.Z) <= 5 then
+					l__TagHumanoid__1:Fire(p9, v, hitInfo)
+				end
+			end
+		end
+		l__TweenService__3:Create(part, TweenInfo.new(2), {Transparency = 1}):Play()
+		wait(1.85)
+		if v12 then
+			v12:Destroy();
+		end;
+		wait(15);
+		en = true;
+		return
+	end
 	local CD = Instance.new("NumberValue")
 	CD.Name = "Swallow Reversal"
-	CD.Value = 15
+	CD.Value = shura and 10 or 15
 	CD.Parent = p9.Cooldowns
-	game.Debris:AddItem(CD, 15)
+	game.Debris:AddItem(CD, shura and 10 or 15)
 	en = false;
 	local v6 = u2.isCalm(p9);
 	local l__HumanoidRootPart__7 = p9.HumanoidRootPart;
@@ -50,7 +110,7 @@ function v1.Active(p9, p10, p11, p12) --p1, p2, p3, p4
 	local v9 = l__Humanoid__8:LoadAnimation(script.Parent.Finisher);
 	local v10 = l__Humanoid__8:LoadAnimation(script.Parent.BladeDance);
 	local v11 = l__Humanoid__8:LoadAnimation(script.Parent.Windup);
-	v11:Play();
+	v11:Play(0.1, 1, shura and 1.4 or 1);
 	p9.HumanoidRootPart.SworderEmit:Emit(30);
 	l__HumanoidRootPart__7.SwordCharge:Play();
 	local v12 = Instance.new("Folder");
@@ -89,13 +149,18 @@ function v1.Active(p9, p10, p11, p12) --p1, p2, p3, p4
 	if v21 then
 		v18 = (l__CFrame__19.p - v21.Position).Magnitude - 1;
 	end;
-	local v22 = v18 / 85;
+	local v22 = v18 / (shura and 130 or (selftaught and 55 or 85));
 	local v23 = math.ceil(v18 / 8);
-	local v24 = Instance.new("NumberValue");
-	v24.Name = "Transparency";
-	v24.Value = 1;
-	v24.Parent = p9.Boosts;
-	game.Debris:AddItem(v24, 3);
+	local v24 = nil;
+	if not selftaught then
+		-- "doesn't make you go invisible": Selftaught keeps the i-frames (Immortal) below, just
+		-- not the Boosts.Transparency half of the vanilla buff
+		v24 = Instance.new("NumberValue");
+		v24.Name = "Transparency";
+		v24.Value = 1;
+		v24.Parent = p9.Boosts;
+		game.Debris:AddItem(v24, 3);
+	end
 	local v25 = Instance.new("Folder", p9);
 	v25.Name = "Immortal";
 	game.Debris:AddItem(v25, v22 + 0.1);
@@ -106,31 +171,50 @@ function v1.Active(p9, p10, p11, p12) --p1, p2, p3, p4
 		time = v22, 
 		rootcf = l__CFrame__26
 	});
-	v10:Play(0.1, 1, 1.3);
+	v10:Play(0.1, 1, shura and 1.7 or (selftaught and 1.0 or 1.3));
 	local u5 = {};
 	local u6 = game.Workspace.Live:GetChildren();
 	spawn(function()
 		wait(0.2);
 		local v27 = {
-			damage = 7.5, 
-			physical = true, 
-			slash = true, 
-			katana = true, 
-			swallowrev = true, 
-			noparry = true, 
+			damage = selftaught and 12 or 7.5,
+			physical = true,
+			slash = true,
+			katana = true,
+			swallowrev = true,
+			noparry = true,
 			manabreaker = true,
 			move = "Swallow Reversal"
 		};
 		local v28 = 8.5;
 		local v29 = true;
+		-- "fully aimable and you can change directions": re-reads live WASD input
+		-- (Humanoid.MoveDirection) every tick and steers the hit-line toward it instead of
+		-- always offsetting from the fixed CFrame captured at cast time (l__CFrame__26, still
+		-- used unchanged for non-Selftaught Ronins). Known limitation: the client's own cosmetic
+		-- dash visual is driven by a single KatanaSkillFX fire above with fixed distance/time/
+		-- rootcf params, so it won't itself curve to match - only the server-side hit-line steers.
+		local pos = l__CFrame__26.Position
+		local facing = l__CFrame__26.LookVector
 		for v30 = 1, v23 do
-			local v31 = l__CFrame__26 * CFrame.new(0, 0, -(8.25 * v30 - 8.25));
+			if selftaught then
+				local moveDir = p9.Humanoid.MoveDirection
+				if moveDir.Magnitude > 0.1 then
+					facing = moveDir.Unit
+				end
+			end
+			local v31
 			if v30 == v23 then
 				v28 = 10;
 				v29 = false;
-				v27.damage = 16;
+				v27.damage = selftaught and 24 or 16;
 				v31 = l__HumanoidRootPart__7.CFrame;
 				wait(0.15);
+			elseif selftaught then
+				pos = pos + facing * 8.25
+				v31 = CFrame.new(pos, pos + facing)
+			else
+				v31 = l__CFrame__26 * CFrame.new(0, 0, -(8.25 * v30 - 8.25));
 			end;
 			u5 = u4(p9, v31.p, v28, u5, u6, v27, true, v29);
 			wait(v22 / v23);
@@ -140,7 +224,9 @@ function v1.Active(p9, p10, p11, p12) --p1, p2, p3, p4
 	v10:Stop();
 	v9:Play();
 	wait(0.05);
-	v24:Destroy();
+	if v24 then
+		v24:Destroy();
+	end;
 	v25:Destroy();
 	l__Humanoid__8.AutoRotate = true;
 	local v32 = l__TweenService__3:Create(v14, v16, {
@@ -156,7 +242,7 @@ function v1.Active(p9, p10, p11, p12) --p1, p2, p3, p4
 	if v12 then
 		v12:Destroy();
 	end;
-	wait(15);
+	wait(shura and 10 or 15);
 	en = true;
 end;
 function v1.Active2(p12, p13, p14, p15)
@@ -169,15 +255,17 @@ function v1.Active2(p12, p13, p14, p15)
 	if p12.Cooldowns:FindFirstChild("Swallow Reversal") then
 		return
 	end
+	local playerdata2 = game.ServerStorage.PlayerData:FindFirstChild(p12.Name)
+	local shura = playerdata2 and playerdata2.Skills.Value:find("Shura")
 	local CD = Instance.new("NumberValue")
 	CD.Name = "Swallow Reversal"
-	CD.Value = 15
+	CD.Value = shura and 10 or 15
 	CD.Parent = p12.Cooldowns
-	game.Debris:AddItem(CD, 15)
+	game.Debris:AddItem(CD, shura and 10 or 15)
 	en = false;
 	local v34 = u2.isCalm(p12);
 	local v35 = p12.Humanoid:LoadAnimation(script.Parent.M2Anim);
-	v35:Play();
+	v35:Play(0.1, 1, shura and 1.4 or 1);
 	local v36 = Instance.new("Folder");
 	v36.Name = "Action";
 	v36.Parent = p12;
@@ -199,7 +287,7 @@ function v1.Active2(p12, p13, p14, p15)
 		game.CollectionService:AddTag(v37, "AllowedBM");
 		v37.Name = "BodyVelocity";
 		v37.MaxForce = Vector3.new(80000, 80000, 80000);
-		v37.Velocity = l__HumanoidRootPart__8.CFrame.lookVector.unit * 250;
+		v37.Velocity = l__HumanoidRootPart__8.CFrame.lookVector.unit * (shura and 350 or 250);
 		v37.Parent = l__HumanoidRootPart__8;
 		game.Debris:AddItem(v37, 0.15);
 		sub(function()
@@ -270,7 +358,7 @@ function v1.Active2(p12, p13, p14, p15)
 			end;
 		end;
 	end);
-	wait(15);
+	wait(shura and 10 or 15);
 	en = true;
 end;
 return v1;

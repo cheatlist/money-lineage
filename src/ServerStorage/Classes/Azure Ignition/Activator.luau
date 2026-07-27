@@ -53,7 +53,11 @@ function v1.Active(p2, p3, p4, p5)
 		fxpart.bfBeam.Attachment0 = p5.Attachment1
 		fxpart.bfBeam.Enabled = false
 	end
-	if not p3.Backpack:FindFirstChild("ChargeMastery") and not p2:FindFirstChild("VanguardBuff") then
+	-- Checked against server-only PlayerData instead of p3.Backpack - Backpack is replicated to
+	-- the owning client, so a spoofed "ChargeMastery" Instance there would be trusted the same
+	-- way a spoofed Character Instance would.
+	local p3data = game.ServerStorage.PlayerData:FindFirstChild(p3.Name)
+	if not (p3data and p3data.Skills.Value:find("ChargeMastery")) and not p2:FindFirstChild("VanguardBuff") then
 		local v6 = Instance.new("Accessory")
 		v6.Name = "HeavyAttack"
 		v6.Parent = p2
