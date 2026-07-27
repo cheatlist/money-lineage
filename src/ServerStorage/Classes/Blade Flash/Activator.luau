@@ -85,11 +85,11 @@ function v1.Active(p1, p2, p3, p4) --p1 = player, p2 = ?, p3 = ?, p4 = ?
 	local v9 = Instance.new("Folder");
 	v9.Name = "Action";
 	v9.Parent = p1;
-	local v10 = 0.9
+	local v10 = 0.65
 	if v6 then
-		v10 = 0.65;
+		v10 = 0.2;
 	end;
-	game.Debris:AddItem(v9, 0.65);
+	game.Debris:AddItem(v9, v10);
 	p1.HumanoidRootPart.SworderEmit:Emit(30);
 	l__HumanoidRootPart__8.SwordCharge:Play();
 	local v11 = p1.Humanoid:LoadAnimation(script.Parent.M1Anim);
@@ -125,7 +125,7 @@ function v1.Active(p1, p2, p3, p4) --p1 = player, p2 = ?, p3 = ?, p4 = ?
 		end
 		local v25 = 0.5;
 		if v6 then
-			v25 = 0.25;
+			v25 = 0.1;
 		end;
 		wait(v25);
 		if v13 then

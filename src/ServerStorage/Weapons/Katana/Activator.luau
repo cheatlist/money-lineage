@@ -311,7 +311,7 @@ function v1.Active2(p5, p6, p7, p8)
 			katana = true,
 			slash = true,
 			knockback = not shura,
-			stun = shura and 1.2 or nil,
+			stun = shura and 1.2 or 0.5,
 			blockbreak = true,
 			blade = true,
 			poison = (p5:FindFirstChild("Nature's Calling") and math.random(1,2) == 1)
