@@ -49,6 +49,15 @@ Requests.InsightChanged.OnClientEvent:Connect(function(Number)
 	oldInsight = Number
 end)
 
+-- Attractiveness (2026-07-28): same Get-then-Changed-event pattern as Money/Insight above.
+-- floor()'d for display only - AttractivenessModule.compute keeps the underlying value
+-- unrounded, since Mogging/NPC-gate thresholds compare against the exact computed number.
+local Attractiveness = script.Parent.Attractiveness
+Attractiveness.Value.Text = formatnumber(math.floor(Requests.Get:InvokeServer({"Attractiveness"}).Attractiveness))
+Requests.AttractivenessChanged.OnClientEvent:Connect(function(Number)
+	Attractiveness.Value.Text = formatnumber(math.floor(Number))
+end)
+
 
 
 Money.MouseButton1Click:Connect(function()

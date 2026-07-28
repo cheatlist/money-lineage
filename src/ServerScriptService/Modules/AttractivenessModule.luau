@@ -103,6 +103,14 @@ function module.compute(player, data)
 	local result = data.AttractivenessBase.Value * classMult * raceMult
 	data.Attractiveness.Value = result
 
+	-- Pushes the fresh value to the StarterGui/CurrencyGui Attractiveness label (see
+	-- CurrencyClient.client.luau) every time it's recomputed - spawn, Mogging, low-Attractiveness
+	-- self-trigger, the NPC gates, SolanBall, etc. all call compute(), so centralizing the push
+	-- here means every one of those already keeps the display live for free.
+	if player then
+		game.ReplicatedStorage.Requests.AttractivenessChanged:FireClient(player, result)
+	end
+
 	-- "You can get/give these injuries upon being ... attractiveness mogged" - having a low
 	-- Attractiveness on its own (not just being on the receiving end of the Mogging Tool) can
 	-- also trigger Rage/Squeamish, via the same MoggingModule.applyMogDebuffs the Tool uses.

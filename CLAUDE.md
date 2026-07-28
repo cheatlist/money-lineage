@@ -2197,6 +2197,13 @@ simply never responds - no dialogue opens, no rejection message (nothing beyond 
 to you" was asked for). Gated once at the shared choke point rather than per-NPC, so it applies
 universally with no other file needing to change.
 
+**Follow-up (still 2026-07-28): only applies once the player has achieved an ultra class.** Both
+gate locations now additionally require `data.IsUltra.Value == true` (the same flag `teachskill`
+already sets the first time any ultra class is learned, `ModuleScript.luau:142`, and the same
+check other ultra-gated logic in this file already uses verbatim, e.g. `ModuleScript.luau:14655`)
+before the low-Attractiveness check even runs. An ugly player who hasn't reached an ultra class
+yet is completely unaffected - NPCs talk to them normally regardless of Attractiveness.
+
 ### Interpretive calls worth flagging
 
 All exact numbers (the 8-point mogging threshold, 0.03 QTE scale, 20-stud range/20s cooldown, the
@@ -2261,3 +2268,125 @@ cooldown. Added `VomitForcer`/`LackEater`/`AnythingEater`/`Rage`/`Squeamish` to 
 `Unfixable` list (~line 13702) so the Doctor's cure now preserves them exactly like it already
 preserves `MetalArm`/`vampirism`/`armless` - the smallest possible change, reusing an existing
 exclusion list rather than adding new branching logic.
+
+## New: SolanBall "ugly" branch, Squeamish exemption, and per-character height (added 2026-07-28)
+
+**SolanBall already had the exact permadeath-adjacent mechanics this needed** -
+`dialogues.SolanBall.v1` (`ModuleScript.luau` ~13943) is the "Voice of Solan" NPC: when a player
+still has lives, its `else` branch shows `haslife` (`"So... you've finally seen me"`, choice
+`"I'm lost"`, which just respawns/teleports them) - this is the branch that got the new
+Attractiveness-gated content, since the other branches (out-of-lives "I need another chance"/"I
+give up", `LostWar`, King-title `cameop1`/`cameop2`) are unrelated existing flows.
+
+- **Attractiveness `<= 30`**: normally shows a new `uglyhaslife` entry (the requested disgusted
+  line) with the **same** `{"I'm lost"}` choice as normal `haslife` - the "I'm lost" handling
+  itself (the `else` branch a few lines down) didn't need any change, since it only ever checks
+  `v.choice`, and the choice text is identical either way.
+- **10% instead**: wipes the character via the exact same sequence every other terminal SolanBall
+  branch already uses (`data.Wiped.Value = true`, `CheckEdictObtainment(p)`,
+  `task.spawn(function() task.wait(3); p.Character:Destroy(); .../CharacterCreationGui:Clone() end)`)
+  and returns a new `uglywiped` entry (the requested "yelled out No, no, no..." line, `endchoice`
+  only - no choices, matching the shape of every other terminal message like `theend`/`forgiven`).
+  The roll happens once per dialogue-open (`v.page == 1`, checked exactly once before any choice
+  is made - confirmed `talking[Character].page` only increments in the generic choice-submission
+  handler, `DialogueHandler/init.server.luau:164`, not per-NPC), not once per message render.
+
+**Squeamish's NPC-block now exempts SolanBall** (both `npcclick` and the `DialogueCreate` bindable
+path in `DialogueHandler/init.server.luau`, `p2:FindFirstChild("Squeamish") and v.Name/v ~=
+"SolanBall"`) - it's the only way to give up a life or come back to life, so Squeamish locking a
+player out of it entirely would strand them. **The low-Attractiveness NPC-ignore gate from
+earlier in this doc needed the same exemption, spotted while making this change**: that gate
+(`< 30`) would otherwise have silently made the brand-new "ugly" SolanBall content unreachable for
+its own target audience (an Attractiveness-`<=30` player would get filtered out before ever
+reaching SolanBall's dialogue) - not something the user asked to fix directly, but a direct
+consequence of this change that would have quietly broken it, so both gate locations exempt
+SolanBall the same way.
+
+### Per-character height roll
+
+Every new character now rolls a persistent `PlayerData.HeightMultiplier` (`0.8` to `1.1`,
+`CharacterCreationGui/Script.server.luau`, right before `GotData:Set(gettable)`), applied via the
+existing `CharacterScale.scaleR6` at spawn (`CharacterHandler/init.server.luau`, right before the
+existing Black Pill block). **Not rerolled if this character was created within 2 minutes of the
+player's last one** - a new `PlayerData.LastCharacterCreated` (`os.time()` snapshot, same
+real-world-elapsed-time idiom `GlobalRestoreCD` already uses elsewhere in `CharacterHandler`)
+gates whether `HeightMultiplier` carries over from the just-replaced character's `PlayerData` or
+gets rerolled - covers both a SolanBall wipe (creation happens almost immediately after) and an
+ordinary misclicked/redone character creation, without needing to distinguish the two.
+
+**Black Pill is now a multiplier on top of the rolled height, not a flat override**: its own
+`scaleR6(Character, 1.2)` calls (both the Tool's pickup-moment application and
+`CharacterHandler`'s spawn-time re-application) are unchanged in value, but `scaleR6` always
+multiplies whatever the character's *current* size already is - since the height roll above is
+now applied first, both call sites compose correctly (`final = base * HeightMultiplier * 1.2`)
+without any change needed to the Black Pill Tool script itself, which already only ever runs on
+the live, already-height-scaled character. (The request said "instead of 1.25x" - this codebase's
+actual Black Pill value has always been `1.2`, not `1.25`; the composition behavior described is
+what changed, not the multiplier's own number, so it was left at `1.2`.)
+
+**Asset debt**: none - `HeightMultiplier`/`LastCharacterCreated` are two more `PlayerData` fields
+needing the usual Studio `Setup`-folder addition (`HeightMultiplier` should default to `1`,
+`LastCharacterCreated` to `0` so a player's very first character creation doesn't wrongly treat a
+`0` timestamp as "just now" and skip its own height roll).
+
+**Interpretive calls worth flagging**: the 10%/`<=30` numbers and the height range (`0.8`-`1.1`)
+are exactly what was given, not independently chosen. The 2-minute reuse window is checked via
+`os.time()` (wall-clock, survives a rejoin) rather than `os.clock()` (session-local monotonic,
+used elsewhere for things like `LastMeditate` that don't need to survive a disconnect) - picked
+to match `GlobalRestoreCD`'s own precedent for a real-world-elapsed cooldown, not `LastMeditate`'s.
+
+## New: Attractiveness shown in the CurrencyGui HUD (added 2026-07-28)
+
+Wired up the existing `PlayerGui > CurrencyGui > Attractiveness > Value` TextLabel (UI already
+built by the user - only the update logic was missing) by following the exact convention Money/
+Insight already use in the same `CurrencyGui/CurrencyClient.client.luau`:
+
+- **Initial value**: `Requests.Get:InvokeServer({"Attractiveness"}).Attractiveness` - required
+  adding `"Attractiveness"` to the hardcoded `TargetValues` list in
+  `RequestHandler.server.luau`'s `Requests.Get.OnServerInvoke` (~line 281), which Money/Insight/
+  etc. all already go through; the invoke argument itself is actually ignored server-side (the
+  handler always returns every field in that fixed list regardless of what's requested), so this
+  was the one required change to make the field fetchable at all.
+- **Live updates**: a new `Requests.AttractivenessChanged:FireClient(player, result)`, added
+  **inside `AttractivenessModule.compute` itself** rather than at each of its call sites - every
+  consumer of `compute()` (spawn, the Mogging Tool, the low-Attractiveness self-trigger, both NPC
+  dialogue gates, SolanBall) already keeps the HUD live for free as a result, with no other file
+  needing to change.
+- **Display-only rounding**: `math.floor(Number)` is applied client-side when setting `.Text`,
+  not to the stored value - `PlayerData.Attractiveness.Value` stays unrounded, since Mogging's
+  8-point diff threshold and both NPC gates' `< 30` checks compare against the exact computed
+  float, not a display-rounded one.
+
+**Asset debt**: a new RemoteEvent, `ReplicatedStorage.Requests.AttractivenessChanged`, needs
+creating in Studio (same folder as the pre-existing `MoneyChanged`/`InsightChanged` - confirmed
+`ReplicatedStorage/Requests` isn't tracked in `src/` at all, same Studio-only-instance situation as
+every other Requests RemoteEvent/RemoteFunction in this doc) - the HUD won't update live until
+that's added, though the initial `Requests.Get` value will still populate correctly without it.
+
+## New: per-UserId height special-case (added 2026-07-28)
+
+UserId `2231268759` always spawns shorter than the normal height system's floor, and can never
+exceed that floor even with Black Pill's own multiplier stacked on top - a hardcoded per-UserId
+override, same convention already established in this file for other one-off UserId cases (the
+Playful-Stone-effect grant and the "Playful Guy" `FirstName` override, both in
+`CharacterCreationGui/Script.server.luau`).
+
+- **The roll** (`CharacterCreationGui/Script.server.luau`, in the same `HeightMultiplier`
+  branch the general 0.8-1.1 roll lives in): for this UserId only, `HeightMultiplier` rolls
+  `0.5` to `0.79` instead - a sub-floor range, still randomized ("on a range," per the request),
+  just shifted entirely below where every other player's roll bottoms out.
+- **The hard cap** (`CharacterHandler/init.server.luau`, where height is actually applied at
+  spawn): since Black Pill composes multiplicatively with `HeightMultiplier`
+  (`final = HeightMultiplier * 1.2` when owned, per the height system's own section above), a
+  roll close to `0.79` combined with Black Pill could otherwise land above `0.8` - defeating
+  "cannot get a height above shortest possible." For this UserId specifically, the two multiplies
+  are collapsed into one `math.min(HeightMultiplier * (hasBlackPill and 1.2 or 1), 0.8)` call
+  instead of the normal two-step (roll, then separately stack Black Pill on top) - a real
+  behavioral difference from every other player, not just a bigger `HeightMultiplier` number,
+  since only this player's total is clamped regardless of what multiplies into it. Black Pill's
+  other effects (the head-mesh face stretch, the `Artifacts` marker) are untouched by this - only
+  the body-scale portion is capped.
+
+**Interpretive calls worth flagging**: the exact sub-floor range (`0.5`-`0.79`) is feel-based, not
+spec-derived - the request only established the floor it must stay under (`0.8`) and that it
+should still vary "on a range," not a specific lower bound.

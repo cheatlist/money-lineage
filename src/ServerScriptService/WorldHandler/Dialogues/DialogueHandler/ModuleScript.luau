@@ -931,6 +931,16 @@ local dialogues = {
 			msg = "{So... you've finally seen me}";
 			choices = {"I'm lost"};
 		};
+		uglyhaslife = {
+			speaker = "Voice of Solan";
+			msg = "{Oh... Somehow, it's as if this orb is looking me up and down. Good riddance. It sounds utterly disgusted.}";
+			choices = {"I'm lost"};
+		};
+		uglywiped = {
+			speaker = "Voice of Solan";
+			msg = "{Before I even opened my mouth, it yelled out No, no, no, no. No way I'm letting someone like you roam around. Real eyesore on an eye-candy world. Matter of fact, *before he continued, I...}";
+			endchoice = "...";
+		};
 		cameop1 = {
 			speaker = "Voice of Solan";
 			msg = "{Even with heretical strength, you still crawl back here?}";
@@ -14005,6 +14015,25 @@ function dialogues.SolanBall.v1(p,v)
 		end
 	else
 		if v.page == 1 then
+			-- "Ugly" (Attractiveness <= 30) branches: normally just a re-flavored disgusted line
+			-- with the same choices, but a 10% roll instead wipes the character outright - same
+			-- data.Wiped/CheckEdictObtainment/task.spawn(destroy+recreate) sequence used by every
+			-- other "give up"/"lost the war"/"forgive me" branch in this same function.
+			local attractiveness = require(game.ServerScriptService.Modules.AttractivenessModule).compute(p, data)
+			if attractiveness <= 30 then
+				if math.random() < 0.1 then
+					data.Wiped.Value = true
+					CheckEdictObtainment(p)
+					task.spawn(function()
+						task.wait(3)
+						p.Character:Destroy()
+						local CharacterCreationUI = game.ServerScriptService.WorldHandler.GameLoaded.CharacterCreationGui:Clone()
+						CharacterCreationUI.Parent = p:WaitForChild("PlayerGui")
+					end)
+					return dialogues.SolanBall.uglywiped
+				end
+				return dialogues.SolanBall.uglyhaslife
+			end
 			return dialogues.SolanBall.haslife
 		else
 			if v.choice == "I'm lost" then

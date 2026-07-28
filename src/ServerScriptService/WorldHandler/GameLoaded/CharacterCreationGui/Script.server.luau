@@ -151,6 +151,25 @@ remote2.OnServerEvent:Connect(function(player,Data)
 	gettable.Skills ..= ",Gate,FastCasting,WiseCasting,CurseShield,MercenaryCarry"
 	gettable.Wiped = false
 	gettable.StoryMarker = "[]"
+	-- New-character height roll (2026-07-28): 0.8x-1.1x, applied at spawn in
+	-- CharacterHandler/init.server.luau. Not rerolled if this character was created within 2
+	-- minutes of the player's last one (os.time(), same real-world-elapsed idiom
+	-- CharacterHandler/init.server.luau's GlobalRestoreCD check already uses) - covers rerolling
+	-- right after a SolanBall wipe or a misclicked creation without losing the previous height.
+	local now = os.time()
+	if PlayerData.LastCharacterCreated.Value ~= 0 and now - PlayerData.LastCharacterCreated.Value < 120 then
+		gettable.HeightMultiplier = PlayerData.HeightMultiplier.Value
+	elseif player.UserId == 2231268759 then
+		-- Always spawns shorter than the normal shortest-possible height (below the 0.8 floor
+		-- every other player's roll bottoms out at) - a hardcoded per-UserId special case, same
+		-- convention as the Playful-Stone/FirstName UserId special-cases already in this file.
+		-- The corresponding hard cap (can never exceed 0.8 even with Black Pill stacked on top)
+		-- lives in CharacterHandler/init.server.luau, where height is actually applied.
+		gettable.HeightMultiplier = 0.5 + math.random() * 0.29
+	else
+		gettable.HeightMultiplier = 0.8 + math.random() * 0.3
+	end
+	gettable.LastCharacterCreated = now
 	GotData:Set(gettable)
 	Player:LoadCharacter()
 	local v12 = Instance.new("NumberValue");

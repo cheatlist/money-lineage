@@ -278,7 +278,7 @@ end)
 
 Requests.Get.OnServerInvoke = function(plr, key, ...)
 	local PlayerData = ServerStorage.PlayerData:FindFirstChild(plr.Name)
-	local TargetValues = {"LastName", "FirstName", "ManaColor", "Lives", "SlotData", "Money", "DaysSurvived", "Race", "HouseRank", "Gender", "Insight", "UberTitle", "SpecMeta"}
+	local TargetValues = {"LastName", "FirstName", "ManaColor", "Lives", "SlotData", "Money", "DaysSurvived", "Race", "HouseRank", "Gender", "Insight", "UberTitle", "SpecMeta", "Attractiveness"}
 	local Return = {}
 
 	for _, Target in next, TargetValues do

@@ -297,11 +297,30 @@ if PlayerData.Ascended.Value == true and PlayerData.Race.Value == "Vind" then
 	vindFall.Name = "AscendedVindFall"
 	vindFall.Parent = Character
 end
-if PlayerData.Artifact.Value == "Black Pill" then
+-- New-character height (2026-07-28): every character spawns scaled by its own persisted
+-- PlayerData.HeightMultiplier (rolled once at character creation, 0.8x-1.1x, see
+-- CharacterCreationGui/Script.server.luau). Applied before Black Pill's own scale below so the
+-- two compose multiplicatively - Black Pill is now a multiplier ON TOP of whatever height you
+-- rolled, not a flat override that assumed a 1x base.
+local CharacterScaleModule = require(game.ServerScriptService.Modules.CharacterScale)
+local hasBlackPill = PlayerData.Artifact.Value == "Black Pill"
+if Player.UserId == 2231268759 then
+	-- Hard cap: this player can never end up above the normal shortest-possible height (0.8x),
+	-- even with Black Pill's own 1.2x stacked on top - their HeightMultiplier is already rolled
+	-- below 0.8 at character creation (see CharacterCreationGui/Script.server.luau), but Black
+	-- Pill composing multiplicatively could otherwise push a value near 0.8 back over it.
+	local cappedHeight = math.min(PlayerData.HeightMultiplier.Value * (hasBlackPill and 1.2 or 1), 0.8)
+	CharacterScaleModule.scaleR6(Character, cappedHeight)
+else
+	CharacterScaleModule.scaleR6(Character, PlayerData.HeightMultiplier.Value)
+	if hasBlackPill then
+		CharacterScaleModule.scaleR6(Character, 1.2)
+	end
+end
+if hasBlackPill then
 	-- A fresh Character on respawn starts back at normal size - the Black Pill Tool
 	-- (ServerStorage/Storage/Black Pill/Script.server.luau) only scales the character alive at
 	-- the moment it's picked up, so every subsequent spawn needs this re-applied here too.
-	require(game.ServerScriptService.Modules.CharacterScale).scaleR6(Character, 1.2)
 	local head = Character:FindFirstChild("Head")
 	if head then
 		local headMesh = head:FindFirstChildWhichIsA("SpecialMesh")
