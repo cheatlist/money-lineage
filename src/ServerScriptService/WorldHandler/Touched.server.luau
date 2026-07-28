@@ -7,6 +7,7 @@ local Requests = ReplicatedStorage:WaitForChild("Requests")
 local TagHumanoid = ServerStorage:WaitForChild("Requests"):WaitForChild("TagHumanoid")
 local Modules = ServerScriptService:WaitForChild("Modules")
 local Create = require(Modules:WaitForChild("Create"))
+local TerminationModule = require(game.ServerScriptService.Modules.TerminationModule)
 
 --[[
 for i,v in pairs(workspace:GetChildren()) do
@@ -464,6 +465,55 @@ for i,x in pairs(workspace.Seats:GetChildren())do
 						end)
 					end)
 				end
+
+				-- Mirror ClickDetector (2026-07-28): 'You can look at yourself'. If the
+				-- looker has the new self-image-misunderstanding injury, ANY injury, or an
+				-- existing facial scar marking, looking triggers Termination on themselves
+				-- instead of the normal branch below. Otherwise, Black Pill holders get a
+				-- temporary Confidence buff from seeing their bigger reflection.
+				local MirrorClick = Instance.new("ClickDetector")
+				MirrorClick.MaxActivationDistance = 12
+				MirrorClick.Parent = v
+				MirrorClick.MouseClick:Connect(function(Player)
+					local Character = Player.Character
+					if not Character or not Character:FindFirstChild("Humanoid") or Character.Humanoid.Health <= 0 then
+						return
+					end
+					if Character:FindFirstChild("MirrorLookCD") then
+						return
+					end
+					local MLCD = Instance.new("Accessory")
+					MLCD.Name = "MirrorLookCD"
+					MLCD.Parent = Character
+					game.Debris:AddItem(MLCD, 2)
+					local Data = game.ServerStorage.PlayerData:FindFirstChild(Player.Name)
+					if not Data then
+						return
+					end
+					local hasBadSelfImage = Data.Injuries.Value:find("self image misunderstanding") ~= nil
+					local hasInjuries = Data.Injuries.Value ~= ""
+					local hasScars = Data.FacialMark.Value ~= "None" and Data.FacialMark.Value ~= ""
+					if hasBadSelfImage or hasInjuries or hasScars then
+						TerminationModule.trigger(Character)
+						return
+					end
+					if Data.Artifact.Value == "Black Pill" and Character:FindFirstChild("Boosts") then
+						local confidenceSpeed = Instance.new("NumberValue")
+						confidenceSpeed.Name = "SpeedBoost"
+						confidenceSpeed.Value = 2
+						confidenceSpeed.Parent = Character.Boosts
+						game.Debris:AddItem(confidenceSpeed, 300)
+						local confidenceAtk = Instance.new("NumberValue")
+						confidenceAtk.Name = "AttackSpeedBoost"
+						confidenceAtk.Value = 1.1
+						confidenceAtk.Parent = Character.Boosts
+						game.Debris:AddItem(confidenceAtk, 300)
+						local marker = Instance.new("Accessory")
+						marker.Name = "Confidence"
+						marker.Parent = Character
+						game.Debris:AddItem(marker, 300)
+					end
+				end)
 			end
 		end
 	end

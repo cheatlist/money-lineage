@@ -14,6 +14,7 @@ local GetChildren,GetDescendants = game.GetChildren,game.GetDescendants
 local FindFirstChild,WaitForChild = game.FindFirstChild,game.WaitForChild
 local PlayerData = game.ServerStorage.PlayerData:WaitForChild(player.Name)
 local commands = require(game.ServerScriptService.Modules.Commands)
+local WorkoutModule = require(game.ServerScriptService.Modules.WorkoutModule)
 local newwait = task.wait
 local noregen = false
 local oldhealth = humanoid.Health
@@ -63,19 +64,24 @@ local function applyHealth()
 end
 local function haseldanrage()
 	if not FindFirstChild(character,"RageCooldown")and not FindFirstChild(character,"SuperStrength")then
+		-- Preworkout (ServerStorage/Storage/Preworkout) boosts Haseldan's racial rage: longer
+		-- HaseldanDamageMultiplier/SuperStrength uptime and a shorter RageCooldown while the
+		-- supplement's still active. See also Bloodline/Script.server.luau's "Supplement Rage"
+		-- variant, which is the manually-triggered counterpart of this same automatic rage.
+		local supplementBoosted = FindFirstChild(character,"Preworkout") ~= nil
 		game.ReplicatedStorage.Requests.AngryHaseldan:FireClient(player)
 		local v1 = Instance.new("Accessory")
 		v1.Name = "HaseldanDamageMultiplier"
 		v1.Parent = character
-		game.Debris:AddItem(v1,45)
+		game.Debris:AddItem(v1, supplementBoosted and 65 or 45)
 		local v2 = Instance.new("Accessory")
 		v2.Name = "SuperStrength"
 		v2.Parent = character
-		game.Debris:AddItem(v2,50)
+		game.Debris:AddItem(v2, supplementBoosted and 70 or 50)
 		local v3 = Instance.new("Accessory")
 		v3.Name = "RageCooldown"
 		v3.Parent = character
-		game.Debris:AddItem(v3,300)
+		game.Debris:AddItem(v3, supplementBoosted and 240 or 300)
 		if humanoid.Health>3 then
 			for _,v in pairs(GetChildren(character))do
 				if v.Name == "Knocked"then
@@ -104,6 +110,7 @@ spawn(function()
 		if character.Meditating.Value == true then
 			PlayerData.MinutesMeditated.Value += 1
 		end
+		WorkoutModule.tickMinute(character, PlayerData)
 		if PlayerData.MinutesSurvived.Value >= 15 then
 			PlayerData.DaysSurvived.Value += 1
 			PlayerData.MinutesSurvived.Value = 0

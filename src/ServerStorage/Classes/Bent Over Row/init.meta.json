@@ -1,0 +1,9 @@
+{
+  "className": "Tool",
+  "keepUnknowns": true,
+  "properties": {
+    "CanBeDropped": false,
+    "RequiresHandle": false,
+    "ToolTip": "Do bent over rows, requires Weights (3 min = 1 Back point)"
+  }
+}

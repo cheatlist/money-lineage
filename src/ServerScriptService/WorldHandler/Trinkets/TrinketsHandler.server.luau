@@ -66,6 +66,7 @@ local spawnrates = {
 		["Charming Stone"] = 90,
 		["Playful Stone"] = 90,
 		["Black Pill"] = 70,
+		["Weights"] = 300,
 	},
 	tundra = {
 		["Nothing"] = 5000,
@@ -115,6 +116,7 @@ local spawnrates = {
 		["Charming Stone"] = 90,
 		["Playful Stone"] = 90,
 		["Black Pill"] = 70,
+		["Weights"] = 300,
 	},
 	castlerock = {
 		["Nothing"] = 5000,
@@ -164,6 +166,7 @@ local spawnrates = {
 		["Charming Stone"] = 90,
 		["Playful Stone"] = 90,
 		["Black Pill"] = 70,
+		["Weights"] = 300,
 	},
 }
 

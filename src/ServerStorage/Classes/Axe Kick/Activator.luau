@@ -86,6 +86,7 @@ function v6.Active(p6, p7, p8, p9)
 		noparry = true,
 		hyperarmor = true,
 		axe = true,
+		kick = true,
 		move = "Axe Kick"
 	}, true)
 	task.wait(8)

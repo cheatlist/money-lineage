@@ -39,19 +39,27 @@ script.Parent.Activated:Connect(function()
 		game.Debris:AddItem(CD, 300)
 		local p2 = game.Players:GetPlayerFromCharacter(p1)
 		local data = game.ServerStorage.PlayerData:FindFirstChild(p2.Name)
+		-- Supplement Rage: a conditional variant of this same rise-from-Unconscious rage,
+		-- only available while a Preworkout dose (ServerStorage/Storage/Preworkout) is still
+		-- active. Consumes the dose; stronger/longer buffs, a shorter shared RageCooldown,
+		-- more health back, and (below) skips the vanilla forced-collapse drawback entirely.
+		local supplementRage = p1:FindFirstChild("Preworkout") ~= nil
+		if supplementRage then
+			p1.Preworkout:Destroy()
+		end
 		game.ReplicatedStorage.Requests.AngryHaseldan:FireClient(p2)
 		local v1 = Instance.new("Accessory")
 		v1.Name = "HaseldanDamageMultiplier"
 		v1.Parent = p1
-		game.Debris:AddItem(v1,30)
+		game.Debris:AddItem(v1, supplementRage and 45 or 30)
 		local v2 = Instance.new("Accessory")
 		v2.Name = "SuperStrength"
 		v2.Parent = p1
-		game.Debris:AddItem(v2,30)
+		game.Debris:AddItem(v2, supplementRage and 45 or 30)
 		local v3 = Instance.new("Accessory")
 		v3.Name = "RageCooldown"
 		v3.Parent = p1
-		game.Debris:AddItem(v3,300)
+		game.Debris:AddItem(v3, supplementRage and 240 or 300)
 		local v4 = Instance.new("Accessory")
 		v4.Name = "ResGlobalCD"
 		v4.Parent = p1
@@ -61,7 +69,7 @@ script.Parent.Activated:Connect(function()
 				v:Destroy()
 			end
 		end
-		if data.Ascended.Value ~= true then
+		if data.Ascended.Value ~= true and not supplementRage then
 			task.delay(30, function()
 				if not p1:FindFirstChild("Grabbed") and not game:GetService("CollectionService"):HasTag(p1, "BeingExecuted") then
 					local folder1 = Instance.new("Accessory")
@@ -80,7 +88,7 @@ script.Parent.Activated:Connect(function()
 				end
 			end)
 		end
-		p1.Humanoid.Health += 40
+		p1.Humanoid.Health += supplementRage and 60 or 40
 		p1.HumanoidRootPart.SCREAM1:Play()
 		wait(300)
 		canuse = true

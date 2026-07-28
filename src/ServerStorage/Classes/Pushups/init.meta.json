@@ -1,0 +1,9 @@
+{
+  "className": "Tool",
+  "keepUnknowns": true,
+  "properties": {
+    "CanBeDropped": false,
+    "RequiresHandle": false,
+    "ToolTip": "Do pushups (3 min = 1 Chest + 1 Shoulders point)"
+  }
+}

@@ -1651,6 +1651,81 @@ local dialogues = {
 			endchoice = "My will is Absolute",
 		}
 	};
+	
+	["As'endoCastellan"] = {
+		startedp1 = {
+			speaker = "As'endo",
+			msg = "{Ahaha! Another pathetic Vessel of Sorcery stumbles into my domain, came to ask me for a guide to power or should i dispose of you like the rest?}",
+			choices = {"I'm seeking the Ascencion Trial"},
+			endchoice = "...",
+		},
+		startedp2 = {
+			speaker = "As'endo",
+			msg = "{Ah, well you think you're such a big shot why not prove yourself? Tell you what, slay the Ancient Mage and bring me his Shard of Mana and i'll unlock that pesky Soul of yours.}",
+			choices = {"Where can he be found?"},
+			endchoice = "...",
+		},
+		startedp3 = {
+			speaker = "As'endo",
+			msg = "{Usually he wanders around that Big Glowy Tree in the middle of the realm, try looking there. Just don't underestimate him, his Mana surpasses that of an average Mage.}",
+			choices = {"I will not fail"},
+			endchoice = "...",
+		},
+		notyetengineer = {
+			speaker = "As'endo",
+			msg = "{Scared? Go slay the Mage or forget about Power.}",
+			endchoice = "...",
+		},
+		cameback = {
+			speaker = "As'endo",
+			msg = "{You're back. What have you learned?}",
+			choices = {"You tricked me"},
+			endchoice = "...",
+		},
+		cameback2 = {
+			speaker = "As'endo",
+			msg = "{Maybe, that old man's output never even compared to mine.}",
+			choices = {"What!?"},
+			endchoice = "...",
+		},
+		cameback3 = {
+			speaker = "As'endo",
+			msg = "{Oh come on, you seriously think i stay here because i'm scared to go out? I could evaporate this realm with a swipe of my hand if i felt like it.}",
+			choices = {"..."},
+		},
+		cameback4 = {
+			speaker = "As'endo",
+			msg = "{Say, don't you want to ascend?}",
+			choices = {"I don't have any other choice"},
+		},
+		cameback5 = {
+			speaker = "As'endo",
+			msg = "{Very well then! I will need some of your knowledge though. (20 insight)}",
+			choices = {"Let's do it"},
+			endchoice = "I'll think about it",
+		},
+		noinsight = {
+			speaker = "As'endo",
+			msg = "{Typical.}",
+			endchoice = "...",
+		},
+		ascended = {
+			speaker = "As'endo",
+			msg = "{Well then... Off you go, Vessel of Sorcery.}",
+			endchoice = "...",
+		},
+		camebackinsight = {
+			speaker = "As'endo",
+			msg = "{Oh, you're back. Have you come back a bit smarter?}",
+			choices = {"Let's do it"},
+			endchoice = "...",
+		},
+		overclockedone = {
+			speaker = "As'endo",
+			msg = "{Vessel of Sorcery, shan't your Mana's output be limited by this Husk of a Realm.}",
+			endchoice = "Shall My Mana Flow",
+		}
+	};
 
 	["As'endoMorvid"] = {
 		startedp1 = {
@@ -6953,6 +7028,12 @@ end
 dialogues["Clavicular"].v1 = function(p,v)
 	local character = p.Character
 	local data = game.ServerStorage.PlayerData:FindFirstChild(p.Name)
+	-- Workout system joke: maxed Shoulders + Back hypertrophy (both 30/30 = 10) kills you on
+	-- sight when talking to Clavicular, per the design brief. No further dialogue is returned.
+	if data and data.WorkoutShouldersPoints.Value >= 30 and data.WorkoutBackPoints.Value >= 30 then
+		_G.Death(p)
+		return
+	end
 	-- Black Pill holders get a knowing "*smirks*" greeting instead of the usual job pitch -
 	-- same functionality either way, this only swaps which p1-equivalent message is shown.
 	local function firstMessage()
@@ -12431,6 +12512,92 @@ local AscensionQuests = {
 			end
 		end
 	end,
+	["CastellanQuest"] = function(p,v)
+		local data = game.ServerStorage.PlayerData:FindFirstChild(p.Name)
+		local globaldata = game.ServerStorage.PlayerData:FindFirstChild(p.Name.."Global")
+		if not data or not p.Character then
+			return
+		end
+		local StoryMarker = HS:JSONDecode(data.StoryMarker.Value)
+		local GlobalQuests = HS:JSONDecode(globaldata.GlobalQuests.Value)
+		if v.page == 1 then
+			if GlobalQuests["Ascensions"] and GlobalQuests["Ascensions"]["Castellan"] == true then
+				StoryMarker["Ascension"] = {}
+				StoryMarker["Ascension"]["NoAs'endo"] = true
+				data.Ascended.Value = true
+				commands.RacialAbilities(p)
+				data.StoryMarker.Value = HS:JSONEncode(StoryMarker)
+				commands.Learn(p)
+				return dialogues["As'endoCastellan"].ascended
+			end
+			if not StoryMarker["Ascension"] or (#StoryMarker["Ascension"] == 0 and not StoryMarker["Ascension"]["Castellan"]) then
+				return dialogues["As'endoCastellan"].startedp1
+			elseif StoryMarker["Ascension"]["Castellan"] == "Started" then
+				return dialogues["As'endoCastellan"].notyetengineer
+			elseif StoryMarker["Ascension"]["Castellan"] == "SlayedMage" then
+				return dialogues["As'endoCastellan"].cameback
+			elseif StoryMarker["Ascension"]["Castellan"] == "Finished" then
+				return dialogues["As'endoCastellan"].camebackinsight
+			end
+		elseif v.choice == "I'm seeking the Ascencion Trial" then
+			return dialogues["As'endoCastellan"].startedp2
+		elseif v.choice == "Where can he be found?" then
+			return dialogues["As'endoCastellan"].startedp3
+		elseif v.choice == "I will not fail" then
+			StoryMarker["Ascension"] = {}
+			StoryMarker["Ascension"]["Castellan"] = "Started"
+			StoryMarker["Ascension"]["NoAs'endo"] = true
+			data.StoryMarker.Value = HS:JSONEncode(StoryMarker)
+			local spawns = game.ServerStorage.SpawnPoints[data.SpawnPoint.Value]:GetChildren()
+			local tpcf = spawns[math.random(1,#spawns)].CFrame
+			local a = Instance.new("Folder", p.Character)
+			a.Name = "TPSafe"
+			p.Character.HumanoidRootPart.CFrame = tpcf
+			task.delay(0.1,function()
+				create("Knocked",2,p.Character)
+			end)
+			task.delay(2, function()
+				a:Destroy()
+			end)
+			return dialogues["As'endo"].started
+		elseif v.choice == "You tricked me" then
+			return dialogues["As'endoCastellan"].cameback2
+		elseif v.choice == "What!?" then
+			return dialogues["As'endoCastellan"].cameback3
+		elseif v.choice == "..." then
+			return dialogues["As'endoCastellan"].cameback4
+		elseif v.choice == "I don't have any other choice" then
+			if GlobalQuests["Ascensions"] and GlobalQuests["Ascensions"]["Castellan"] == true then
+				StoryMarker["Ascension"] = {}
+				StoryMarker["Ascension"]["NoAs'endo"] = true
+				data.Ascended.Value = true
+				commands.RacialAbilities(p)
+				data.StoryMarker.Value = HS:JSONEncode(StoryMarker)
+				commands.Learn(p)
+				return dialogues["As'endoCastellan"].ascended
+			end
+			return dialogues["As'endoCastellan"].cameback5
+		elseif v.choice == "Let's do it" then
+			if commands.ChangeInsight(p,data, -20) then
+				StoryMarker["Ascension"] = {}
+				StoryMarker["Ascension"]["NoAs'endo"] = true
+				if not GlobalQuests["Ascensions"] then
+					GlobalQuests["Ascensions"] = {}
+				end
+				GlobalQuests["Ascensions"]["Castellan"] = true
+				globaldata.GlobalQuests.Value = game:GetService("HttpService"):JSONEncode(GlobalQuests)
+				data.Ascended.Value = true
+				commands.RacialAbilities(p)
+				data.StoryMarker.Value = HS:JSONEncode(StoryMarker)
+				commands.Learn(p)
+				return dialogues["As'endoCastellan"].ascended
+			else
+				StoryMarker["Ascension"]["Castellan"] = "Finished"
+				data.StoryMarker.Value = HS:JSONEncode(StoryMarker)
+				return dialogues["As'endoCastellan"].noinsight
+			end
+		end
+	end,
 	["MorvidQuest"] = function(p,v)
 		local data = game.ServerStorage.PlayerData:FindFirstChild(p.Name)
 		local globaldata = game.ServerStorage.PlayerData:FindFirstChild(p.Name.."Global")
@@ -12719,6 +12886,13 @@ local AscendedDialogues = {
 			return
 		end
 		return dialogues["As'endoGaian"].overclockedone
+	end,
+	["CastellanDialogue"] = function(p,v)
+		local data = game.ServerStorage.PlayerData:FindFirstChild(p.Name)
+		if not data or not p.Character or (p.Character and p.Character:FindFirstChild("Dead")) then
+			return
+		end
+		return dialogues["As'endoCastellan"].overclockedone
 	end,
 	["MorvidDialogue"] = function(p,v)
 		local data = game.ServerStorage.PlayerData:FindFirstChild(p.Name)

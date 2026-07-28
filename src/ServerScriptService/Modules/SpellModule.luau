@@ -83,6 +83,11 @@ function module.cast(character,info,data, pathing)
 	if info.signs and info.signs > 0 then
 		local cancelled = false
 		local casted = 0
+		local chantstatus = character:FindFirstChild("SignChant")
+		if chantstatus then
+			info.signs = 1
+			chantstatus:Destroy()
+		end
 		for i = 1,info.signs do
 			if character:FindFirstChild("NoDam")or character:FindFirstChild("Knocked")then
 				CollectionService:RemoveTag(character,"Casting")

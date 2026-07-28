@@ -43,6 +43,7 @@ script.Parent.Activated:Connect(function()
 			fist = true,
 			injury = "rib cage",
 			damage = 6.5,
+			kick = true,
 			move = "Spin Kick"
 		})
 		if hit then

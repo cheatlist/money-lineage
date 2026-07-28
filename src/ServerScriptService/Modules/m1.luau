@@ -190,6 +190,13 @@ return function(character,player,combatanims,data)
 		combo.Value = 2
 	end
 	local attackspeed = 0.475
+	if data and data:FindFirstChild("WorkoutCorePoints") then
+		-- Core hypertrophy (up to 10, see WorkoutModule.hypertrophy) makes unarmed M1 faster -
+		-- a direct divide here rather than routing through Boosts.AttackSpeedBoost, since that
+		-- Boost is the "some of your moves" effect (only read by weapon Activators), not m1 itself.
+		local corehypertrophy = math.floor(data.WorkoutCorePoints.Value / 3)
+		attackspeed = attackspeed / (1 + corehypertrophy * 0.05)
+	end
 	create("NoJump",1,character)
 	create("LightAttack",attackspeed,character)
 	create("ManaPause",0.05,character)

@@ -42,6 +42,7 @@ module.recipes = {
 	["Cooked Zombie Scroom"] = {recipe = {"Zombie Scroom"}},
 	
 	["Bone Grow"] = {recipe = {"Uncanny Tentacle","Strange Tentacle","Trote"}},
+	["Creatine"] = {recipe = {"Potato","Potato","Trote"}},
 	["Feather Feet"] = {recipe = {"Dire Flower","Creely","Polar Plant"}},
 	["Fire Protection"] = {recipe = {"Scroom","Scroom","Trote"}},
 	["Health Potion"] = {recipe = {"Scroom","Scroom","Lava Flower"}},
@@ -49,6 +50,7 @@ module.recipes = {
 	["Kingsbane"] = {recipe = {"Crown Flower","Vile Seed","Vile Seed"}},
 	["Liquid Wisdom"] = {recipe = {"Freeleaf","Desert Mist","Crown Flower","Periashroom"}},
 	["Lordsbane"] = {recipe = {"Crown Flower","Crown Flower","Crown Flower"}},
+	["Preworkout"] = {recipe = {"Vile Seed","Vile Seed","Scroom"}},
 	["Silver Sun"] = {recipe = {"Freeleaf","Polar Plant","Desert Mist"}},
 	["Switch Witch"] = {recipe = {"Dire Flower","Glow Shroom","Glow Shroom"}},
 	["Tespian Elixir"] = {recipe = {"Moss Plant","Moss Plant","Lava Flower","Scroom"}},

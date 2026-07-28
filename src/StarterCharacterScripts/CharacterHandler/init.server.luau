@@ -315,6 +315,30 @@ if PlayerData.Artifact.Value == "Black Pill" then
 		blackPillMarker.Parent = Character.Artifacts
 	end
 end
+-- Workout system: players spawn with all 5 exercise Tools (Bent Over Row still requires
+-- Weights to actually activate, checked at the Tool itself). Player.Backpack persists across
+-- respawns, so this only clones a Tool the player doesn't already have, rather than piling up
+-- duplicates every spawn.
+for _, exerciseName in ipairs({"Pushups", "Squats", "Situps", "Russian Twists", "Bent Over Row"}) do
+	if not Player.Backpack:FindFirstChild(exerciseName) and not Character:FindFirstChild(exerciseName) then
+		game.ServerStorage.Classes[exerciseName]:Clone().Parent = Player.Backpack
+	end
+end
+require(game.ServerScriptService.Modules.WorkoutModule).applyHypertrophyBoosts(Character, PlayerData)
+-- Termination: every player spawns with this move by default (self-targeted knockout + death
+-- after 3s, see ServerScriptService/Modules/TerminationModule.luau) - same persists-across-
+-- respawns guard as the workout Tools above.
+if not Player.Backpack:FindFirstChild("Termination") and not Character:FindFirstChild("Termination") then
+	game.ServerStorage.Classes.Termination:Clone().Parent = Player.Backpack
+end
+-- Attractiveness: base is a random 10-20 rolled once ever (0 sentinel = "not yet rolled", same
+-- lazy-roll-if-empty convention as FacialMark further down this file), then multiplied by
+-- class/race every spawn via AttractivenessModule (see that module for the full multiplier
+-- tables and the special-cased classes/races).
+if PlayerData.AttractivenessBase.Value == 0 then
+	PlayerData.AttractivenessBase.Value = math.random(10, 20)
+end
+require(game.ServerScriptService.Modules.AttractivenessModule).compute(Player, PlayerData)
 local function StunCheck(p,Stuns)
 	if p ~= Player then
 		p:Kick("nice one")

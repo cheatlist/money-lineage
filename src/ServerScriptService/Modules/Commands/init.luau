@@ -174,8 +174,14 @@ commands["UpdateAppearance"] = function(Player, playlearnsound)
 			Character.Head.face:Destroy()
 		end
 		
-		local SkinColor = game.Players:GetCharacterAppearanceInfoAsync(Player.UserId).bodyColor3s.torsoColor3
-		
+		-- Race-based skin color (2026-07-28): was previously the player's own Roblox account
+		-- avatar torso color (GetCharacterAppearanceInfoAsync) - now driven by the existing
+		-- ReplicatedStorage.Info.Races.<Race>.SkinColor Color3Value, same sibling convention as
+		-- RaceInfo.HairColor/RaceInfo.EyeColor read above. RaceInfo is already resolved to the
+		-- correct RaceVariant subfolder by this point (line ~108), so a variant's own SkinColor
+		-- (e.g. Dinakeri.Deep.SkinColor) is picked up automatically, same as HairColor/EyeColor.
+		local SkinColor = RaceInfo.SkinColor.Value
+
 		local FaceData = Data.Face.Value
 		local RaceData = Data:WaitForChild("Race")
 		if Data.Vampire.Value == true then
@@ -259,6 +265,18 @@ commands["UpdateAppearance"] = function(Player, playlearnsound)
 				c.Color = Color3.new(0.403922, 0, 0.00784314)
 			end
 		end
+	elseif Race == "Castellan" and Data.Ascended.Value == true then
+		task.delay(2,function()
+			local cosmetic = game.ReplicatedStorage.Assets.HeianArms:Clone()
+			cosmetic.Parent = Character
+			local motor = Instance.new("Motor6D",cosmetic.HeianRoot)
+			motor.Part0 = cosmetic.HeianRoot
+			motor.Part1 = Character.Torso
+			cosmetic.Shirt.ShirtTemplate = Character:WaitForChild("Shirt").ShirtTemplate
+			cosmetic.Shirt.Color3 = Character:WaitForChild("Shirt").Color3
+			cosmetic["Left Arm"].Color = Character["Left Arm"].Color
+			cosmetic["Right Arm"].Color = Character["Right Arm"].Color
+		end)
 	elseif Race == "Zelda"then
 		for _,v in pairs(GetChildren(Assets.ZeldaHorns))do
 			local c = v:Clone()
@@ -1491,6 +1509,13 @@ commands["RacialAbilities"] = function(Player,data)
 		local has = PlayerDatas[Player.Name].Skills.Value:find("Gate")
 		if not has then
 			PlayerDatas[Player.Name].Skills.Value ..= ",Gate"
+		end
+	elseif Race.Value == "Castellan"then
+		if data.Ascended.Value == true then
+			local has = Player.Backpack:FindFirstChild("Chant")or Player.Character:FindFirstChild("Chant")
+			if not has then
+				game.ServerStorage.RacialAbilities.Chant:Clone().Parent = Player.Backpack
+			end
 		end
 	elseif Race.Value == "Seraph"then
 		local has = Player.Backpack:FindFirstChild("Gate")or Player.Character:FindFirstChild("Gate")

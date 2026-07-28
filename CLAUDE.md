@@ -1577,3 +1577,504 @@ confirmed during the survey to not grant an unearned advantage the way the above
 `VanguardBuff`, and the various cooldown/state tags (`InjuryCooldown`, `ImpaleCD`, `LuckDodgeCD`,
 etc.) - all created only by the player's own real-time action or a real server ability script in
 direct response to it, not a standing passive that a spoofed marker could grant for free.
+
+## New system: Workout / Hypertrophy (added 2026-07-28)
+
+A new progression system layered on top of the existing Class/Race/Path stack: players spend
+real-time minutes exercising to earn small, permanent combat/movement buffs per body-part
+category. Built as 5 new Tools (`ServerStorage/Classes/Pushups|Squats|Situps|Russian
+Twists|Bent Over Row/`) plus a new shared module, `ServerScriptService/Modules/WorkoutModule.luau`,
+rather than hooking into the existing `/e` chat-emote system — confirmed during this session that
+`StarterCharacterScripts/Animate.client.luau`'s `/e` emotes are entirely client-local with no
+server-callable hook (no `commands.Emote`, no server `Humanoid:PlayEmote` anywhere in `src/`), the
+same finding documented for the `TheMaster` Ronin path's dance-emote workaround elsewhere in this
+file — so a system that grants real, persistent stat gains can't be driven by it. Instead this
+mirrors the existing `MinutesMeditated` pattern: a `Character.Meditating`-style flag
+(`Character.Exercising`, a StringValue naming the active exercise) ticked once per real minute
+from `StarterCharacterScripts/Health.server.luau`'s existing per-player `wait(60)` loop, which
+already increments `MinutesMeditated`/`MinutesSurvived`/`DaysSurvived` the same way.
+
+**Data model**: 5 new `PlayerData` NumberValues (0-30 raw points each, hypertrophy level =
+`math.floor(points/3)`, so 30 points = 10 hypertrophy = fully maxed): `WorkoutChestPoints`,
+`WorkoutLegsPoints`, `WorkoutCorePoints`, `WorkoutShouldersPoints`, `WorkoutBackPoints`, plus one
+`WeightsOwned` BoolValue. **These do not exist yet and can't be added by editing files alone** -
+per this repo's Argon convention (see top of this doc), new `PlayerData` defaults are registered
+through a Studio-only `Setup` folder (`script.Setup` under `GameLoaded`, consumed by
+`GameLoaded/init.server.luau` and `CharacterCreationGui/Script.server.luau`) that isn't part of
+the `src/` tree — all 6 fields need to be added there in Studio before this system does anything;
+every other line of code here already trusts they exist, matching how `MinutesMeditated`/
+`TotalGrips` are read with no defensive nil-checks elsewhere in this codebase.
+
+**Exercise → category mapping** (`WorkoutModule.EXERCISE_CATEGORIES`): Pushups → Chest **and**
+Shoulders (+1 each per completed session, not split); Squats → Legs; Situps and Russian Twists
+both feed the same Core pool (either exercise works); Bent Over Row → Back, and additionally
+requires `PlayerData.WeightsOwned.Value == true` before it'll even start - gated as a server-truth
+PlayerData flag rather than a Backpack-presence check, per this session's own spoofable-check
+security fix earlier in this doc. Weights (`ServerStorage/Storage/Weights/`) is a new
+find-or-buy-separately consumable, same one-shot pickup shape as Black Pill
+(`ServerStorage/Storage/Black Pill/Script.server.luau`) - sets the flag, then
+`Commands.RemoveFromInventory` + destroys itself.
+
+**Mechanics** (`WorkoutModule.toggleExercise`/`tickMinute`): pressing an exercise Tool toggles a
+`Character.Exercising` marker + a `Character.ExerciseMinutes` counter, plays the Tool's own
+`Anim` on loop (no `Anim` asset exists yet for any of the 5 - see asset debt below, same
+"references it by name, Studio has to add it" situation as every other new move Tool in this
+doc), and starts a `task.wait(0.2)` poll loop that cancels the session (matching
+`Meditating`'s own cancel-on-move check) if the player moves
+(`Humanoid.MoveDirection.Magnitude > 0.6`), unequips the Tool, or (Bent Over Row only) somehow
+loses `WeightsOwned`. Every real minute this ticks 3 times before rolling over into +1 point per
+mapped category (capped at 30) and re-running `applyHypertrophyBoosts`. Pressing the *same*
+Tool again while already exercising cancels early instead of starting a second session - a
+different exercise Tool is a no-op while one is already active (this session did not build a way
+to switch exercises mid-session without stopping first). Startup is gated through the existing
+shared `ServerScriptService/Modules/ActionCheck.luau` module (same `presentBlocks` shape every
+other move already uses), so e.g. `Charming Stone`'s `Charmed` status blocks starting a workout
+for free.
+
+**Combat/movement effects, all in `WorkoutModule.applyHypertrophyBoosts`** (re-run at spawn and
+on every point-gain, so mid-life level-ups apply immediately, not just next spawn):
+- **Legs**: standing `Boosts.SpeedBoost` (`hypertrophy * 0.3`, so +3 WalkSpeed at 10) for "run
+  slightly faster." Kick damage ("kicks dealing more damage") is a separate mechanism: a new
+  `info.kick` flag (added to `Axe Kick`'s and `Spin Kick`'s own `Info` tables - the only 2 kick
+  moves found in `ServerStorage/Classes/`) read centrally at
+  `TagHumanoid/init.server.luau` (~line 897, right after the existing `MeleeDamageMultiplier`
+  block) against the *attacker's* `PlayerData.WorkoutLegsPoints` directly (not a
+  Character/Backpack marker - server-truth, same reasoning as the security-fix pass), `1 +
+  hypertrophy*0.04` (so +40% at 10).
+- **Core**: `ServerScriptService/Modules/m1.luau`'s hardcoded `attackspeed = 0.475` local now
+  divides by `1 + corehypertrophy*0.05` (~33% faster unarmed M1 at 10) - m1 didn't read any
+  `Boosts` multiplier before this, so this is a direct, m1-only speed-up. Core *also* (along with
+  Chest, see below) contributes to a standing `Boosts.AttackSpeedBoost` for "some of your moves
+  faster" - this is the same NumberValue every weapon Activator already divides its own debounce
+  by (e.g. `Weapons/Dagger/Activator.luau:66-74`), so it only speeds up moves/weapons that already
+  read that Boost, not literally every move in the game.
+- **"The faster they get, the more damage they deal" (Core) / "minor attack speed and damage
+  boost" (Chest)**: implemented as two numbers both scaled off the same hypertrophy stats, not a
+  literal runtime speed measurement feeding into damage - a new `Boosts.HypertrophyDamageMultiplier`
+  (`1 + core*0.02 + chest*0.01`, so up to +30% at both maxed), read/clamped (0-2, same
+  spoofable-Boosts-value reasoning as `MeleeDamageMultiplier`) right next to that existing block.
+  Deliberately a distinctly-named NumberValue rather than folding into `MeleeDamageMultiplier`
+  itself, since a second system creating another same-named instance there would silently
+  overwrite/fight the existing one (only one `FindFirstChild` match is ever read).
+- **`Boosts.SpeedBoost`/`Boosts.AttackSpeedBoost` are shared, summed/stacked names** other systems
+  also create instances of (`Agility`, `TheMaster`'s permanent grant, etc. - `Input/init.client.luau`
+  sums every child literally named `SpeedBoost`, and every weapon Activator divides by every child
+  named `AttackSpeedBoost` in turn). Re-finding "my" instance by name alone on every recompute
+  would risk grabbing and overwriting an unrelated system's instance of the same name, so
+  `applyHypertrophyBoosts` tags its own instances (`CollectionService`, tag `"HypertrophyBoost"`)
+  and destroys+recreates only those every time it runs, instead of mutating in place.
+- **Chest's "push Creature more easily" is explicitly stubbed** - confirmed during this session's
+  research that no monster-push/resistance mechanic exists anywhere in this codebase (`Shove`
+  applies identical knockback regardless of target type; monsters are only ever distinguished via
+  `enemy:FindFirstChild("MonsterInfo")` for injury/status-immunity purposes, never knockback
+  scaling) and the user chose not to build one this session - only Chest's attack-speed/damage
+  contribution above is implemented.
+- **Shoulders / Back have no combat effect at all** - pure point/hypertrophy tracking, reserved
+  for the user's described future "heightmogging"/frame system, which doesn't exist yet (same
+  "data tracked now, mechanic built later" shape as every ascension system's pity flag before its
+  trial existed). The one thing both categories maxed *does* do right now: talking to
+  `Clavicular` (`dialogues["Clavicular"].v1`,
+  `WorldHandler/Dialogues/DialogueHandler/ModuleScript.luau`) with `WorkoutShouldersPoints >= 30
+  and WorkoutBackPoints >= 30` calls `_G.Death(p)` immediately instead of any normal dialogue -
+  the requested joke.
+
+**Asset debt** (same Argon caveat as every other feature in this doc needing a world/Studio-side
+addition): the 6 `PlayerData` `Setup`-folder fields above; 5 new exercise Animations (`Anim`
+under each of the 5 Tool folders - none exist yet, so each Tool's `LoadAnimation(tool.Anim)` call
+will run with no animation until Studio adds one, same "will error/no-op until the asset exists"
+situation already true of `Septic Burst`'s own `script.Parent.Anim` reference elsewhere in this
+doc); the Weights item's actual world placement/shop entry and mesh (like every other new
+`Storage` item in this repo); and Tool icons/models for all 5 exercise Tools (functional without
+one, but no bespoke model exists).
+
+**Interpretive calls worth flagging**: exact numbers throughout (0.3 SpeedBoost/point, 0.04
+kick-damage/point, 0.05 m1-speed/point, 0.04/0.02 AttackSpeedBoost per Core/Chest point, 0.02/0.01
+HypertrophyDamageMultiplier per Core/Chest point, the 0.6 MoveDirection-magnitude cancel
+threshold, the 0.2s poll interval) are feel-based, not spec-derived, matching this repo's own
+established practice of flagging tunable numbers rather than deriving them from a balance spec -
+flag for tuning. Pushups awarding a full point to *both* Chest and Shoulders (not split between
+them), Bent Over Row's Weights requirement being a permanent find/buy-once unlock rather than
+something that must be equipped simultaneously, and Chest's push-creature effect being stubbed
+entirely were all explicit user decisions made during this session's planning, not assumptions.
+
+## New system: Supplements (added 2026-07-28)
+
+A second new consumable category, layered on top of both the pre-existing Alchemy potion
+convention and the workout system above. Starts with one item, **Preworkout**
+(`ServerStorage/Storage/Preworkout/`), plus a new shared module,
+`ServerScriptService/Modules/SupplementModule.luau`, so future supplements reuse the same
+buff-application/Fischeran-bonus logic instead of each hardcoding it (same shape as
+`WorkoutModule` for the workout Tools).
+
+**Built on the existing Alchemy potion shape, not the Storage-artifact shape**: confirmed during
+this session's research that `ServerStorage/Alchemy/Tools/<Potion>/` (Health Potion, Ice
+Protection, Liquid Wisdom, etc.) is a distinct, already-established convention from the
+Black-Pill-style one-shot artifact Tools used elsewhere in this doc - a `Script.server.luau` +
+`LocalScript.client.luau` pair driven by a Tool-owned `RemoteEvent` with a `"Self"`/`"Pour"`
+`dtype` (left-click drinks it yourself, `P` pours it on whoever your mouse is over), consumed via
+`require(game.ServerScriptService.ToolHandler).RemoveTool(...)`, and costing `Toxicity` on use.
+`Preworkout` copies this shape exactly (including the same junk boilerplate header every existing
+potion script has - matched for consistency, not because it does anything) but lives under
+`ServerStorage/Storage/` (cloned by `commands.AddToInventory`, the same dialogue-purchase path
+Health Potion's own `Storage/Health Potion` copy uses) rather than also duplicating into
+`Alchemy/Tools/` - this session didn't build a crafting-recipe hookup for it, so Preworkout is
+buy/find-only for now; a brewable `Alchemy/Tools/Preworkout` mirror could be added later following
+Health Potion's own dual-location precedent if that's wanted.
+
+**`SupplementModule.applyBuff(character, buffName, speedBoost, atkSpeedBoost, duration,
+toxicity)`**: creates a Debris-timed marker named `buffName` on the Character (this is what
+Haseldan's rage checks below key off), an equivalent-shaped `Boosts.SpeedBoost`/
+`Boosts.AttackSpeedBoost` pair (not tagged/recreated like `WorkoutModule`'s hypertrophy boosts,
+since supplement buffs are always temporary/Debris-timed rather than standing recomputed values -
+a plain new instance each dose is fine here), and a `Toxicity` cost. **Preworkout's own numbers**:
+`SpeedBoost = 3`, `AttackSpeedBoost = 1.15`, `duration = 600` (10 minutes), `toxicity = 40` -
+feel-based, flagged for tuning like every other number in this doc.
+
+**Fischeran: "become part supplement" (per the design brief - they're liquid)** - built directly
+into `SupplementModule.applyBuff` itself (not Preworkout-specific), so every future supplement
+gets this for free: if the drinker's `PlayerData.Race.Value == "Fischeran"`, both `SpeedBoost` and
+`AttackSpeedBoost` are scaled `1.5x` before being applied, `Toxicity` cost is halved, and an
+additional `SupplementFischeran` marker (same Debris duration) is dropped on the Character -
+currently pure flavor/a hook for future Fischeran-specific content, not read anywhere else yet.
+No existing Fischeran lore ties them to liquid/water mechanically (confirmed via this session's
+research - their only prior racial hooks are the shared `Vind`/`Fischeran` regen bonus in
+`Health.server.luau` and the `WindDodges` dodge-charge mechanic shared with DullahanBawa) - this
+is new flavor established by this request, not an extension of something pre-existing.
+
+**Haseldan: Preworkout boosts their racial rage, in two places**:
+- **Automatic rage** (`StarterCharacterScripts/Health.server.luau`'s `haseldanrage()`, triggered
+  when a non-immune Haseldan's health drops low): if a `Preworkout` marker is present on the
+  Character at the moment rage triggers, `HaseldanDamageMultiplier` goes 45s→65s, `SuperStrength`
+  goes 50s→70s, and the shared `RageCooldown` (which blocks re-triggering either this or the
+  manual ability below) shortens 300s→240s. Doesn't consume the Preworkout dose - the automatic
+  proc can fire again with the same dose still active if health drops low a second time before it
+  expires.
+- **Manual "Supplement Rage"** (`ServerStorage/RacialAbilities/Bloodline/Script.server.luau`, the
+  existing player-activated "rise from Unconscious" Tool) - a genuinely new conditional *variant*
+  of the same rage rather than a separate Tool, since the request called it a "conditional
+  bloodline variant" and `Bloodline` is literally this ability's existing name. Checked once at
+  the top of the existing `Unconscious`-gated block: if `Preworkout` is present, it's consumed
+  immediately (one variant-trigger per dose) and the whole rest of the block reads a
+  `supplementRage` local instead of hardcoded numbers - `HaseldanDamageMultiplier`/`SuperStrength`
+  30s→45s, `RageCooldown` 300s→240s (same shortened value as the automatic rage above, for
+  consistency), health-back `+40`→`+60`, and - the biggest behavioral difference - **the vanilla
+  version's own drawback (a forced `Unconscious`/`Knocked` collapse 30s later for a non-Ascended
+  Haseldan) is skipped entirely** for the supplement-fueled variant, on the reading that a
+  controlled, supplement-assisted rise back up should be safer than an unstable racial outburst,
+  not just numerically stronger.
+
+**Asset debt**: Preworkout's Tool-owned `RemoteEvent` (a Studio-side child every existing potion
+Tool already has and isn't tracked in `src/`, same as their `Handle`/`Handle.Cork`/
+`Handle.Drinking` props - this session added no new asset requirement here, it's the same
+pre-existing gap every Alchemy potion already has); no shop/NPC purchase wiring exists yet for
+Preworkout specifically (same "world placement is on whoever has Studio access" caveat as every
+other new `Storage` item in this doc, e.g. Weights).
+
+**Interpretive calls worth flagging**: all exact numbers above (buff magnitudes, the 1.5x/0.5x
+Fischeran scale, the 65/70/240 and 45/45/240/60 Haseldan numbers, the 600s duration) are
+feel-based, not spec-derived, per this repo's own established practice. Reading "conditional
+bloodline variant" as a branch inside the existing `Bloodline` Tool (rather than a new Tool) and
+building the Fischeran bonus as a generic `SupplementModule` feature (rather than something
+Preworkout-only) were both judgment calls made to fit the brief's wording and this session's
+established "shared module for repeated logic" pattern, not things the brief specified outright.
+
+**Follow-up (still 2026-07-28): Preworkout is now craftable at the Alchemy Table.** Confirmed via
+research that potion crafting is a wholly separate system from both the artifact-Storage and
+supplement mechanics above: `ServerScriptService/Alchemy/init.server.luau`'s crucible logic
+(`concoct`, ~line 164) reads a flat, unordered, set-compared recipe table from
+`ServerScriptService/Alchemy/list_alchemy.luau` (`module.recipes`), and on a match clones the
+resulting Tool from **`ServerStorage/Alchemy/Tools/<Name>`** specifically (via
+`ToolHandler.GiveAlchemy`, `ServerScriptService/ToolHandler.luau:91`) - a completely different
+folder from the `ServerStorage/Storage/<Name>` copy dialogue-purchases clone from
+(`commands.AddToInventory`). Health Potion (and every other existing potion) already has both
+copies for this reason - one per acquisition method, not a dead duplicate - so making Preworkout
+craftable meant adding a matching `ServerStorage/Alchemy/Tools/Preworkout/` (identical
+`Script.server.luau`/`LocalScript.client.luau`/`init.meta.json` to the `Storage` copy built
+earlier) rather than moving/reusing the existing one.
+
+**Recipe**: `list_alchemy.luau`'s `module.recipes["Preworkout"] = {recipe =
+{"Vile Seed","Vile Seed","Scroom"}}` - two `Vile Seed` (whose existing in-game tooltip is "It's
+actually a bean," a pre-existing joke this recipe leans on for a stimulant/caffeine reading) plus
+one `Scroom` (already tagged `hot = true` in the ingredients table, i.e. thematically "energetic").
+Checked against every existing recipe for an exact-multiset collision (recipes are matched as an
+unordered set, first match wins) - distinct from `Kingsbane`'s `{Crown Flower, Vile Seed, Vile
+Seed}` and `Health Potion`'s `{Scroom, Scroom, Lava Flower}`, the two closest existing recipes.
+
+**Nothing else needed touching**: the crucible's matching loop, the `Potion Efficiency`
+double-yield skill check, and the miscraft-explosion logic are all fully data-driven off
+`list_alchemy.luau`/`Alchemy/Tools` - adding the one recipe entry plus the one Tool folder is a
+complete, working addition with no other file changes required. `Vile Seed` already appears in the
+crucible's volatile-ingredient miscraft-explosion list, but that only triggers on a *failed*
+(non-matching) combination - crafting the correct `Preworkout` recipe is a normal, safe brew.
+
+**"...and supplements" scope note**: confirmed there is no engine-level "supplements" grouping in
+the Alchemy system (every recipe maps 1:1 to one Tool name, no category concept exists) - so this
+follow-up request is satisfied by Preworkout now following the exact same dual-location
+(`Storage/` + `Alchemy/Tools/`) plus `list_alchemy.luau` recipe pattern as every other potion.
+Any future supplement built the same way (a `SupplementModule.applyBuff` call in its
+`potionEffect`) is automatically "craftable at the Alchemy Table" the moment someone adds its own
+`Alchemy/Tools/<Name>` copy and `list_alchemy.luau` recipe entry - no further system-level work is
+needed, just repeating this same two-step pattern per future supplement.
+
+No new asset debt: Preworkout's `Alchemy/Tools` copy relies on exactly the same pre-existing
+Studio-side `RemoteEvent`/`Handle` props every other potion Tool already needs (see the asset-debt
+note above) - nothing new was introduced by making it craftable.
+
+## New supplement: Creatine (added 2026-07-28)
+
+Second supplement, built purchasable *and* craftable from the start (both
+`ServerStorage/Storage/Creatine/` and `ServerStorage/Alchemy/Tools/Creatine/`, plus a
+`list_alchemy.luau` recipe) following the two-step pattern the Preworkout follow-up just
+established above, rather than needing a separate crafting request this time.
+
+**Deliberately a different lane from Preworkout, not a reskin.** Preworkout is speed/energy
+(stimulant flavor); Creatine is strength/mass (real-world creatine flavor: more power output,
+water-retention bulk), so `SupplementModule.applyBuff` gained three new optional trailing
+parameters (`damageMult`, `healthBoost`, `superStrength`) rather than Creatine just calling the
+existing speed/attack-speed params with different numbers:
+
+- **`damageMult`** creates a new, distinctly-named `Boosts.SupplementDamageMultiplier` -
+  deliberately *not* another `Boosts.MeleeDamageMultiplier` instance, since that name is already
+  shared by 7 existing grantors (Rage/Overclock/Plasticity/Dragon Blood/Dragon Awakening/True
+  Vision/Soul Rip per the earlier security-fix section) and `TagHumanoid` only reads *one* such
+  instance via `FindFirstChild` - a same-named second source would silently overwrite/lose
+  whichever isn't found first rather than stacking. Read/clamped (0-2) at
+  `TagHumanoid/init.server.luau` right next to the workout system's own `HypertrophyDamageMultiplier`
+  block, same collision-avoidance reasoning.
+- **`healthBoost`** reuses the *existing* `Boosts.HealthBoost` name on purpose - confirmed via
+  `Health.server.luau`'s `applyHealth()` that this one already sums every matching Boosts child
+  (a `for`-loop, not `FindFirstChild`), so it was already safe to stack and needed no new name.
+- **`superStrength`** reuses the existing knockback-doubling mechanic
+  (`TagHumanoid/init.server.luau:342`, `character.Boosts:FindFirstChild("SuperStrength")`), parented
+  to `Boosts` specifically (not directly to Character) so it can never collide with Haseldan's own
+  Character-parented rage version of the same name.
+
+**Creatine's own numbers**: `damageMult = 1.15` (+15%), `healthBoost = 0.08` (+8% max health,
+"water retention"), `superStrength = true` (doubled knockback for the duration), `duration = 600`
+(10 minutes, same as Preworkout), `toxicity = 25` (lower than Preworkout's 40 - creatine's
+real-world reputation as one of the more benign supplements). Fischeran get the usual amplified/
+discounted treatment for all of this automatically, since it's all still routed through the same
+`SupplementModule.applyBuff` - no Creatine-specific Fischeran code was needed.
+
+**Recipe**: `{"Potato","Potato","Trote"}` - two `Potato` (existing tooltip "I can't eat this raw,"
+a bulk/mass pun fitting creatine's bodybuilding association) plus `Trote` (already flavored as "a
+binding agent," read here as "binds/builds the body"). Checked for exact-multiset collisions
+against every existing recipe (none - `Bone Grow`/`Fire Protection`/`Ice Protection` are the only
+other recipes using `Trote`, all with different other two ingredients).
+
+**Interpretive calls worth flagging**: this request didn't ask for a Haseldan/Fischeran-style
+racial hook like Preworkout's follow-up did, so none was added beyond the automatic generic
+Fischeran bonus every supplement already gets for free - if Creatine is meant to interact with a
+specific race's ability the way Preworkout ties into Haseldan's rage, that's still open. All exact
+numbers (1.15/0.08/25/600, the ingredient choice) are feel-based, not spec-derived, per this
+repo's established practice.
+
+## Fixed: Black Pill accessories didn't scale with the rig (2026-07-28)
+
+`ServerScriptService/Modules/CharacterScale.luau`'s `scaleR6` (used by the Black Pill artifact,
+see that section above) resized the 7 named R6 BaseParts and rescaled every `Motor6D`'s C0/C1
+*position* so joints stay lined up - but accessories (hats, hair, etc.) kept their original
+physical size, just moving out to a rescaled attachment point. Two fixes, both in the same
+function:
+
+1. **The join-scan now also covers `Weld`** (`joint:IsA("Motor6D") or joint:IsA("Weld")`), not
+   just `Motor6D`. Confirmed most accessories in this game attach via a plain `Weld` baked in at
+   authoring time in Studio, not `Motor6D` - the original comment's "rare, but some do this"
+   framing had it backwards; Motor6D-attached accessories are the rare case. This means most
+   accessories' attachment offsets were **never actually being rescaled** before this fix, not
+   just under-scaled - a real, if quiet, bug in the original Black Pill work.
+2. **New: every `Accessory`'s `Handle` (a direct child of Character, standard Roblox layout) has
+   its own `Size` multiplied by the same factor, plus its `SpecialMesh.Scale` if it has one** -
+   this is the actual "accessories scale with the rig" fix the Weld/Motor6D change above doesn't
+   provide on its own (that only moves the attachment point; this makes the object itself bigger).
+
+Both changes are inside the same `scaleR6(character, factor)` call, so nothing else needed
+touching - Black Pill's own Tool script and `CharacterHandler/init.server.luau`'s spawn-time
+re-application both already call this function and get the fix automatically.
+
+## New: race-based skin color (2026-07-28)
+
+Character skin color was previously read from the *player's own Roblox account avatar*
+(`game.Players:GetCharacterAppearanceInfoAsync(Player.UserId).bodyColor3s.torsoColor3`, in the
+character-appearance setup inside `Commands/init.luau`'s big per-character-load function) - so
+two players of the same race could look completely different, and a player's chosen race had no
+visual bearing on their skin tone at all.
+
+**Corrected mid-session**: the first pass wrongly assumed no per-race skin color data existed and
+built a brand new `ReplicatedStorage/Info/RaceSkinColors.luau` data module to hold one. That
+module has since been **deleted** - `ReplicatedStorage.Info.Races.<Race>.SkinColor` (a
+`Color3Value`) already exists in Studio as a sibling of the `HairColor`/`EyeColor` values this same
+function already reads (confirmed by the user, not discoverable from `src/` alone since, like the
+rest of `Info.Races`, it's a Studio-only Instance tree with no corresponding files in git - same
+asset-debt situation as every other Studio-side data tree in this doc). The actual fix is a
+one-line swap in `Commands/init.luau`'s character-appearance `task.spawn` block: `local SkinColor
+= RaceInfo.SkinColor.Value` in place of the `GetCharacterAppearanceInfoAsync` call - `RaceInfo` is
+already resolved earlier in the same function (~line 102-108: base race folder, swapped for
+`"Ascended"..Race` if ascended, then descended into `RaceInfo[RaceVariant]` if a variant folder by
+that name exists - e.g. `Dinakeri.Deep`), so reading `RaceInfo.SkinColor.Value` at the point
+`HairColor`/`EyeColor` are already being read from the same resolved `RaceInfo` automatically picks
+up a variant's own `SkinColor` too, with no extra code needed for that.
+
+The Vampire-specific desaturation logic immediately below the color lookup (`SkinColor:ToHSV()`
+halving saturation) was left completely untouched - it now desaturates the race-data color instead
+of the old account-based one, same mechanic either way.
+
+No asset debt: every race's `SkinColor`/`HairColor`/`EyeColor` already exists in Studio today (this
+data predates this session entirely) - this change only swaps which source the code reads from.
+
+**Bug noticed but not touched** (pre-existing, unrelated to this change): `Commands/init.luau`
+~line 121, `if Race.Value == "Rigan"or Race.Value == "Fischeran" then` - `Race` here is a plain
+string local (`local Race = Data.Race.Value`, line 102), not a `Value`-holding Instance, so
+`Race.Value` silently evaluates to `nil` (Lua doesn't error on indexing a string with a
+nonexistent field) and this branch's condition is always `false`. The special Rigan/Fischeran
+face-lookup it guards (`ReplicatedAssets.Faces.Rigan`) appears to never actually run. Flagged per
+this doc's own convention for incidentally-found bugs (see the `ModStop` stray-backtick note
+above) rather than fixed, since it's unrelated to the skin-color change that surfaced it.
+
+## New: Termination, Mirror self-image death, and the "self image misunderstanding" injury (2026-07-28)
+
+Three linked pieces, all built around a single new shared module.
+
+**`ServerScriptService/Modules/TerminationModule.luau`** (new) - `module.trigger(character)`:
+guards on `Immortal`/an existing `Terminating` marker/already-dead, then applies `Terminating`
+(3s, a dedicated re-trigger guard) plus the standard `Knocked`+`Unconscious` accessories (also 3s),
+plays the existing `HumanoidRootPart.SCREAM1` sound (reused from `Bloodline`, no new asset needed),
+and after a `task.delay(3, ...)` calls `_G.Death(player)` - guarded by re-checking the character
+still exists and has `Health > 0`, so it can't double-kill someone who already died some other way
+in the meantime. Built as a shared module rather than two copies (or trying to simulate a Tool
+`Activated` from a non-Tool script) because it needed two independent callers - same "one place,
+multiple callers" shape as `WorkoutModule`/`SupplementModule` elsewhere in this doc.
+
+**`ServerStorage/Classes/Termination/`** (new Tool) - a thin `Activated` handler: the usual shared
+`ActionCheck.luau` guard (`presentBlocks` list matching every other move Tool's shape), then calls
+`TerminationModule.trigger` on `script.Parent.Parent` (self, not a target - this is a self-directed
+move, never something you use on an enemy). Granted to every player at spawn
+(`CharacterHandler/init.server.luau`, right after the workout Tools' own spawn-grant block, same
+`Backpack:FindFirstChild`/`Character:FindFirstChild` persists-across-respawns guard). No cooldown -
+using it kills you, so there's nothing to gate re-use of beyond the next respawn.
+
+**Mirror `ClickDetector`s** (`WorldHandler/Touched.server.luau`, inside the existing
+`workspace.Seats.MirrorPair.Mirror` loop that already wires up the `In`/`Out` `Touched` events for
+the Dark Sigil Knight/`WraithTraining` teleport mechanic): a `ClickDetector` is now created and
+parented to each `Mirror` instance **entirely in code**, at the same point the existing Touched
+connections are wired - no Studio placement needed for the detector itself, since (unlike a new Tool
+folder) this is just an `Instance.new` call inside an already-live, already-running world script,
+same pattern this file already uses to wire up the `In`/`Out` `Touched` events on those same
+pre-existing Mirror objects. `MouseClick` resolves the clicking player's `PlayerData` and branches:
+- **Self-image death**: if `Data.Injuries.Value:find("self image misunderstanding")`, OR the
+  player has *any* injury at all (`Data.Injuries.Value ~= ""`), OR they have an existing facial
+  scar (`Data.FacialMark.Value ~= "None" and ~= ""` - see below, this is nearly universal by
+  default for most races already) - looking in the mirror calls `TerminationModule.trigger`
+  on themselves instead of anything else.
+- **Otherwise, Black Pill holders get a "Confidence" buff**: seeing their artificially-enlarged
+  reflection grants a temporary `Boosts.SpeedBoost` (+2) and `Boosts.AttackSpeedBoost` (+10%, 5
+  minutes, plus a `Confidence` marker Accessory for flavor/future checks) - reuses the same
+  additive `Boosts` idiom as every other standing buff in this doc rather than inventing a new
+  mechanism.
+- A `MirrorLookCD` Character marker (2s) debounces rapid re-clicking - independent of the
+  teleport side's own `NoMirror` marker, since the two guards serve different purposes (one
+  prevents click-spam on this new interaction, the other prevents repeat teleportation).
+
+**"Scars" already existed, no new system needed**: confirmed via `CharacterHandler/init.server.luau`
+(~line 2610-2615, ~2795-2801) that `PlayerData.FacialMark.Value` already holds a randomly-assigned
+facial scar name (from `Assets.FacialMarkings.Scars`) for every character of most races at creation
+time (a handful of races - Fischeran, Seraph, Gaian, Scroom, Vind, Phoenix - are blacklisted from
+getting one) - so "having scars" for the mirror check is simply reading that existing value, not
+new content.
+
+**"self image misunderstanding" is a new injury string**, added to the existing random-injury pool
+both `info.torture`/`info.torture2` already draw from (`TagHumanoid/init.server.luau` ~lines 1174
+and 1195 - two separate literal arrays, not a shared list, so both needed the same edit) - the same
+mechanism that already grants `brokenleg`/`brokenarm`/`heat`/`chestgash`/`Frostbite`/`blind`/`dizzy`
+from a torture-flagged hit. This was the closest existing "list of grantable injuries" in the
+codebase, and thematically fits (torture inflicting a psychological/body-image injury alongside the
+physical ones). Like `BrokenRib`/`rib cage` elsewhere in this same system, it's a pure flag with no
+dedicated visual effect in `ApplyInjuries.luau` - its only mechanical effect right now is enabling
+the Mirror's Termination trigger above. Spaces inside the injury name are fine - `"rib cage"` is an
+existing precedent for the same comma-separated `Injuries.Value` storage tolerating them.
+
+**Asset debt**: none. Unlike most new content in this doc, this required no new Studio-side
+placement at all - the `ClickDetector`s are code-created on existing world objects, `Termination`
+reuses an existing sound, and the injury is just a new string in an existing array.
+
+**Interpretive calls worth flagging**: exact numbers (3s knockout/death delay, 2s `MirrorLookCD`
+debounce, +2/+10%/5-minute Confidence buff) are feel-based, not spec-derived, per this repo's
+established practice. "Termination... make players spawn with it by default" was read as
+self-targeted only (no enemy-targeting variant was built, consistent with how it's used from the
+Mirror) - if a combat/offensive version was also wanted, that's a separate follow-up. The Confidence
+buff's exact shape (`SpeedBoost`/`AttackSpeedBoost`, matching the existing standing-buff idiom) was
+picked since no specific mechanical ask was given beyond the name.
+
+## New stat: Attractiveness (added 2026-07-28)
+
+`ServerScriptService/Modules/AttractivenessModule.luau` (new). Two new `PlayerData` fields:
+`AttractivenessBase` (a random 10-20, rolled **once ever** - `CharacterHandler/init.server.luau`
+checks `if PlayerData.AttractivenessBase.Value == 0 then` at spawn, the same "0 as an unrolled
+sentinel" idiom already used for `FacialMark`'s own lazy roll-if-empty check further down that
+same file) and `Attractiveness` (the current computed value, cached for display - **not** the
+source of truth; `AttractivenessModule.compute(player, data)` is recomputed at every spawn and can
+be called again any time a fresh read is needed, since nothing hooks recomputation into every
+possible mid-life class/race-changing event). Both fields need adding to the Studio `Setup`
+folder like every other new `PlayerData` default in this doc - same asset debt, same convention.
+
+**Formula**: `AttractivenessBase * classMultiplier * raceMultiplier`, both multiplier tables
+living in `AttractivenessModule.CLASS_MULTIPLIERS`/`RACE_MULTIPLIERS`, exactly the values given in
+the request; anything not listed falls back to a neutral `1`. Two special cases pulled out of the
+flat tables since they're conditional, not fixed per-class/race numbers:
+- **SigilKnight**: `1.75`, or `1.95` if the player has `Solan's Will`
+  (`data.Skills.Value:find("Solan's Will")` - the same skill flagged elsewhere in this doc as a
+  Templar-only grant via the Regnier dialogue; implemented exactly as literally requested, not
+  second-guessed, since whether a Sigil-classed character can also hold it is a game-design
+  question outside this change's scope).
+- **Morvid** (race): `0.9` if `Alignment.Value >= 0` (orderly), `1.3` if `< 0` (chaotic) - same
+  orderly/chaotic threshold `Randomize/init.luau`'s own `module.Spawn` already uses.
+
+**Madrasian's "you can shift into other races for attractiveness"**: confirmed via
+`RacialAbilities/Shift/Script.server.luau` that Shift (Madrasian's racial ability) does **not**
+change `PlayerData.Race.Value` - it only overwrites cosmetic appearance
+(`ServerScriptService/Modules/ShiftAppearance.luau`), recording the shifted-to **player's name**
+(not a race) on a `Shifted` StringValue parented to the `Player` instance itself. A Madrasian's
+race multiplier therefore resolves that name back to a `PlayerData` entry and uses **that
+player's** race multiplier (including their own Alignment for a Morvid target) instead of
+Madrasian's own `1.2x`, falling back to `1.2x` if there's no active shift or the target can't be
+resolved anymore (e.g. they've left).
+
+**Known limitation, inherited rather than fixed**: `Shifted` is not cleared anywhere in this
+codebase when a player reverts to their original appearance (`ShiftAppearance.restoreOriginal`) -
+it only gets overwritten the *next* time Shift is used on a new target. This means a Madrasian who
+shifted once and later reverted may still read as "currently shifted" here, using the stale
+target's race multiplier instead of falling back to Madrasian's own `1.2x`, until they shift again.
+Fixing this would mean adding new state-clearing to the Shift ability itself, which felt like scope
+creep for a stat-formula request - flagged here rather than silently worked around.
+
+**Corrected mid-session**: the first pass read "Druid"/"Bard"/"Blacksmith" from the request as
+literal `ClassData.luau` keys - `Druid` isn't a real class at all (already flagged elsewhere in
+this doc, `ClassDataDriftCheck.luau`'s section, as "a stale 'Druid' entry that was never a real
+class"), and `Bard`/base `Blacksmith` have no `class` field in `ClassData.luau` at all, so
+`teachskill` (`if info.class then ... data.Class.Value = info.class ... end`,
+`DialogueHandler/ModuleScript.luau` ~line 133) never actually writes those strings to
+`PlayerData.Class.Value` - those three entries would have been permanently unreachable. The user
+clarified these were flavor names for this codebase's real classes: **Florist** (the Botanist
+line's ultra tier) for "Druid," **Candence** (an existing ultra class - `Joyous Dance`/`Song of
+Lethargy`/`Sweet Soothing`, genuinely bard-flavored) for "Bard," and **Lapidarist**
+(`SuperBlacksmith`'s ultra tier) for "Blacksmith." `CLASS_MULTIPLIERS` now uses these three real
+keys instead, all correctly reachable through normal play.
+
+**Abysswalker's "dependent on race and height, base stat is 1x"**: only the "base stat is 1x" and
+"race" halves are implemented - `Abysswalker`'s own class multiplier is a flat `1`, and the normal
+race multiplier still applies on top via the usual formula. The "height" half cannot be built yet -
+no height/scale stat is tracked anywhere in this codebase today (the closest existing concept,
+"frame," is explicitly reserved for a future "heightmogging" update per the workout system's
+Shoulders/Back notes elsewhere in this doc, and still has no mechanical implementation). Revisit
+once that system exists.
+
+**Interpretive calls worth flagging**: "Sigil"/"DSK"/"Necro"/"Dragon Slayer"/"Deep Knight" were
+mapped to their real `ClassData.luau` key spellings (`SigilKnight`, `DarkSigilKnight`,
+`Necromancer`, `DragonSlayer`, `DeepKnight`) rather than used as literal string keys, since those
+shorthand forms don't match anything `Class.Value` would ever actually hold. Only the exact classes
+named in the request got entries - prerequisite/ultra tiers not explicitly named (e.g.
+`DragonKnight`, `Master Necromancer`, `Master Illusionist`, `Whisper`, `SigilKnightCommander`) fall
+back to the neutral `1x` default rather than inheriting their line's other tier's multiplier, which
+reads as intentional given the request specifically picked certain tiers over others (e.g.
+`DragonSlayer` the ultra, not `DragonKnight` the base). Every numeric value is exactly what was
+given in the request, not independently chosen.

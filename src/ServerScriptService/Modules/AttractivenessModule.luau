@@ -1,0 +1,106 @@
+--[[
+	Attractiveness = PlayerData.AttractivenessBase (a random 10-20, rolled once ever - see the
+	lazy "0 sentinel means not yet rolled" check in CharacterHandler/init.server.luau, same
+	convention already used there for FacialMark) multiplied by a class multiplier and a race
+	multiplier. Recomputed at every spawn into PlayerData.Attractiveness (a cached/display value,
+	not the source of truth - call module.compute again any time a fresh read is needed, e.g.
+	after a class change mid-life, since nothing currently hooks Attractiveness recomputation into
+	every possible class/race-changing event).
+
+	Every multiplier below is exactly what was requested; unlisted classes/races fall back to a
+	neutral 1x rather than erroring. "Druid"/"Bard"/"Blacksmith" in the request were flavor names
+	for this codebase's real class keys - Florist (the Botanist line's ultra tier), Candence (the
+	actual performance/bard-flavored ultra class), and Lapidarist (SuperBlacksmith's ultra tier),
+	respectively - confirmed with the user and mapped accordingly. See CLAUDE.md for the one
+	remaining entry that can't currently be reached in practice (Abysswalker's "height" half - no
+	height stat exists yet).
+]]
+
+local module = {}
+
+module.CLASS_MULTIPLIERS = {
+	DragonSage = 1.45,
+	Oni = 1.5,
+	Illusionist = 0.8,
+	Florist = 1, -- "Druid" in the request - the Botanist line's actual ultra tier (class = "Florist")
+	Necromancer = 1.6,
+	Spy = 1.2,
+	Candence = 1.1, -- "Bard" in the request - Candence is this codebase's real performance/bard-flavored ultra class. "Victim of fighting power based hypergamy"
+	Faceless = 1.55,
+	Shinobi = 1.35,
+	DragonSlayer = 1.65,
+	DeepKnight = 1.6,
+	SigilKnight = 1.75, -- 1.95 if Solan's Will - handled in getClassMultiplier, not this table
+	DarkSigilKnight = 1.75,
+	Lapidarist = 1.65, -- "Blacksmith" in the request - SuperBlacksmith's actual ultra tier (class = "Lapidarist")
+	Samurai = 1.2,
+	Abysswalker = 1, -- "dependent on race and height" - height isn't a tracked stat; race multiplier still applies normally on top
+}
+
+module.RACE_MULTIPLIERS = {
+	Dzin = 1.65,
+	Vind = 1.7,
+	Fischeran = 1.2,
+	-- Morvid is alignment-dependent, handled in getRaceMultiplier, not this table
+	Dinakeri = 1.5,
+	Madrasian = 1.2, -- overridden by whatever race you're currently Shifted into, see compute()
+	Navaran = 0.3,
+	Scroom = 0.1,
+	Gaian = 1,
+	Kasparan = 1.1,
+	Castellan = 1.65,
+	Ashiin = 1.5,
+	Rigan = 1.4,
+	Haseldan = 1.2,
+}
+
+local DEFAULT_MULTIPLIER = 1
+
+function module.getClassMultiplier(data)
+	local class = data.Class.Value
+	if class == "SigilKnight" then
+		return data.Skills.Value:find("Solan's Will") and 1.95 or 1.75
+	end
+	return module.CLASS_MULTIPLIERS[class] or DEFAULT_MULTIPLIER
+end
+
+function module.getRaceMultiplier(data)
+	local race = data.Race.Value
+	if race == "Morvid" then
+		return data.Alignment.Value < 0 and 1.3 or 0.9
+	end
+	return module.RACE_MULTIPLIERS[race] or DEFAULT_MULTIPLIER
+end
+
+-- Madrasian's "shift into other races for attractiveness": Shift (RacialAbilities/Shift) doesn't
+-- change PlayerData.Race.Value, only cosmetic appearance, recording the shifted-to PLAYER's name
+-- (not race) on a `Shifted` StringValue parented to the Player instance itself (see
+-- RacialAbilities/Shift/Script.server.luau). This resolves that name back to a race multiplier at
+-- read time rather than trying to track a live "currently shifted" boolean - `Shifted` isn't
+-- cleared on reverting to normal appearance elsewhere in this codebase, so this inherits that same
+-- imperfect semantics (a Madrasian who shifted earlier and later reverted may still read as
+-- shifted here) - flagged in CLAUDE.md rather than building new state-tracking to fix it.
+local function madrasianRaceMultiplier(player, data)
+	if player and player:FindFirstChild("Shifted") and player.Shifted.Value ~= "" then
+		local shiftedData = game.ServerStorage.PlayerData:FindFirstChild(player.Shifted.Value)
+		if shiftedData then
+			return module.getRaceMultiplier(shiftedData)
+		end
+	end
+	return module.RACE_MULTIPLIERS.Madrasian
+end
+
+function module.compute(player, data)
+	local raceMult
+	if data.Race.Value == "Madrasian" then
+		raceMult = madrasianRaceMultiplier(player, data)
+	else
+		raceMult = module.getRaceMultiplier(data)
+	end
+	local classMult = module.getClassMultiplier(data)
+	local result = data.AttractivenessBase.Value * classMult * raceMult
+	data.Attractiveness.Value = result
+	return result
+end
+
+return module

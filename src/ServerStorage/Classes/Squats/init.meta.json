@@ -1,0 +1,9 @@
+{
+  "className": "Tool",
+  "keepUnknowns": true,
+  "properties": {
+    "CanBeDropped": false,
+    "RequiresHandle": false,
+    "ToolTip": "Do squats (3 min = 1 Legs point)"
+  }
+}

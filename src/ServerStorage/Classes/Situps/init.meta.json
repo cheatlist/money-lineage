@@ -1,0 +1,9 @@
+{
+  "className": "Tool",
+  "keepUnknowns": true,
+  "properties": {
+    "CanBeDropped": false,
+    "RequiresHandle": false,
+    "ToolTip": "Do situps (3 min = 1 Core point, shared with Russian Twists)"
+  }
+}

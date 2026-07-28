@@ -894,6 +894,27 @@ function taghumanoid(character,enemy,info)
 		-- uses a value in the 1.1-1.4 range, so 2.5 leaves real headroom without being exploitable.
 		info.damage *= math.clamp(character.Boosts.MeleeDamageMultiplier.Value, 0, 2.5)
 	end
+	if info.kick and info.damage and playerdata then
+		-- Legs hypertrophy (workout system): kicks (Axe Kick, Spin Kick) hit harder. Read from
+		-- PlayerData rather than a Character/Backpack marker, same server-truth convention as
+		-- every other real gameplay gate fixed in this session's spoofable-check pass.
+		local legshypertrophy = math.floor(playerdata.WorkoutLegsPoints.Value / 3)
+		if legshypertrophy > 0 then
+			info.damage *= 1 + (legshypertrophy * 0.04)
+		end
+	end
+	if character.Boosts:FindFirstChild("HypertrophyDamageMultiplier") and info.damage and info.physical and not info.snarvin then
+		-- Core+Chest hypertrophy (workout system): a distinctly-named Boosts multiplier so it
+		-- doesn't fight MeleeDamageMultiplier for the same NumberValue - see WorkoutModule.
+		-- Clamped for the same spoofable-Boosts-value reason as MeleeDamageMultiplier above.
+		info.damage *= math.clamp(character.Boosts.HypertrophyDamageMultiplier.Value, 0, 2)
+	end
+	if character.Boosts:FindFirstChild("SupplementDamageMultiplier") and info.damage and info.physical and not info.snarvin then
+		-- Supplement system (SupplementModule.applyBuff's damageMult param, e.g. Creatine) - a
+		-- third distinctly-named Boosts multiplier, same collision-avoidance reasoning as
+		-- HypertrophyDamageMultiplier above.
+		info.damage *= math.clamp(character.Boosts.SupplementDamageMultiplier.Value, 0, 2)
+	end
 	if enemy:FindFirstChild("Weakness") and info.damage and info.damage > 0 then
 		info.damage *= 2
 	end
@@ -1150,7 +1171,7 @@ function taghumanoid(character,enemy,info)
 			end
 		end
 		if info.torture2 and not enemy:FindFirstChild("MonsterInfo") then
-			local injuries = {"brokenleg", "brokenarm", "heat", "chestgash", "Frostbite", "blind", "dizzy"}
+			local injuries = {"brokenleg", "brokenarm", "heat", "chestgash", "Frostbite", "blind", "dizzy", "self image misunderstanding"}
 			local choseninjury = nil
 			for i = 1,#injuries do
 				if not enemydata.Injuries.Value:find(injuries[i]) then
@@ -1171,7 +1192,7 @@ function taghumanoid(character,enemy,info)
 			return
 		end
 		if info.torture and not enemy:FindFirstChild("MonsterInfo") then
-			local injuries = {"brokenleg", "brokenarm", "heat", "chestgash", "Frostbite", "blind", "dizzy"}
+			local injuries = {"brokenleg", "brokenarm", "heat", "chestgash", "Frostbite", "blind", "dizzy", "self image misunderstanding"}
 			local choseninjury = nil
 			for i = 1,#injuries do
 				if not enemydata.Injuries.Value:find(injuries[i]) then
