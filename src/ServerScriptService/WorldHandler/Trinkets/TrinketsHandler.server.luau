@@ -365,11 +365,15 @@ while task.wait(10) do
 						if not char then continue end
 						if not char:FindFirstChild("HumanoidRootPart") then continue end
 						if (char.HumanoidRootPart.Position - v.Position).magnitude < 200 then
+							trinkets[v] = nil
 							return
 						end
 					end
 					--print("Spawned "..trinket)
-					if not script:FindFirstChild(trinket) then return end
+					if not script:FindFirstChild(trinket) then
+						trinkets[v] = nil
+						return
+					end
 					local trinketmodel = script[trinket]:Clone()
 					trinketmodel.Position = v.Position
 					trinketmodel.Name = ""
@@ -449,8 +453,6 @@ while task.wait(10) do
 					end)
 				end
 			end)
-		else
-			continue
 		end
 	end
 end
