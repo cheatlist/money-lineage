@@ -32,6 +32,7 @@ function ActionCheck(Parent)
 	return false
 end
 local canuse = true
+local canuse2 = true
 
 local chants = {"Phase","Twilight","Eyes of Wisdom","Pillar of Light","Paramita","Nine Ropes","Polarized Light","Scale of the Dragon","Recoil","Twin Meteors","Pair of Meteors","Open","Weave the Mind","Through Gaia to Khei","From Khei to Gaia","Kai"}
 
@@ -100,10 +101,10 @@ function module.Active2(p5,p6,p7,p8)
 	if ActionCheck(p1)then
 		return
 	end
-	if not canuse then
+	if not canuse2 then
 		return
 	end
-	if p1.Cooldowns:FindFirstChild("Chant") then
+	if p1.Cooldowns:FindFirstChild("ChantDomain") then
 		return
 	end
 	if p1:FindFirstChild("SignChant") then
@@ -113,6 +114,16 @@ function module.Active2(p5,p6,p7,p8)
 	local data = game.ServerStorage.PlayerData:FindFirstChild(p2.Name)
 	local ascended = data and data.Ascended.Value == true and data.Race.Value == "Castellan"
 	local cooldown = 300
+	
+	local CD = Instance.new("NumberValue")
+	CD.Name = "ChantDomain"
+	CD.Value = cooldown
+	CD.Parent = p1.Cooldowns
+	game.Debris:AddItem(CD, cooldown)
+	canuse2 = false
+	task.delay(cooldown,function()
+		canuse2 = true
+	end)
 	
 	p1.Humanoid.Animator:LoadAnimation(script.Handsign):Play(0.1,1,1)
 	
