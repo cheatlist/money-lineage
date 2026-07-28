@@ -2461,3 +2461,49 @@ required for `watchForLateAccessories` to have one number to hand late-arriving 
 than needing to track a running product across multiple calls. The UserId `2231268759` height cap
 logic is otherwise unchanged, just expressed as one `totalScaleFactor` branch instead of two
 sequential calls.
+
+## Fixed: achieving an ultra class could DECREASE Attractiveness, softlocking players out of NPCs (2026-07-28)
+
+Root cause: five of `AttractivenessModule.CLASS_MULTIPLIERS`' entries were keyed to the wrong
+tier. `ClassData.luau` splits classes into a `supers` tier and an `ultraclass3` tier - the
+original Attractiveness request named classes like "Illusionist"/"Necro"/"Spy"/"Samurai"/"Sigil"
+informally, and those strings happen to be the literal `Class.Value` for the **super** tier
+(`Illusionist`, `Necromancer`, `Spy`, `Samurai`, `SigilKnight`), not the **ultra** tier the
+request actually meant. Since the super tier then held the requested multiplier while the real
+ultra classes (`Master Illusionist`, `Master Necromancer`, `Whisper`/`Wanderer`,
+`SigilKnightCommander`) weren't in the table at all and fell back to the neutral `1x` default,
+**a player who ground all the way to their real ultra class would see their computed
+Attractiveness drop** the moment `Class.Value` updated (e.g. Samurai `1.2x` → Ronin `1x` on
+promotion) - confirmed as the direct cause of the reported softlock, since the NPC-ignore gate
+added earlier this session (`< 30`, gated on `data.IsUltra.Value == true`) fires *right as* a
+player reaches ultra status, with no way to raise Attractiveness back up afterward.
+
+**Fix**: moved the five affected entries to their real ultra-tier keys - `Master Illusionist`,
+`Master Necromancer`, `Whisper`, `SigilKnightCommander` - each keeping the exact multiplier the
+request gave for that class line. Also added `Wanderer` (`= 1.2`), Spy's *other* ultra branch
+(the request only gave one number for "Spy," not knowing it splits into two ultra tiers) - without
+this, a player who chose Wanderer over Whisper would hit the identical bug. The `SigilKnight`
+Solan's-Will special case in `getClassMultiplier` was moved to check `SigilKnightCommander`
+instead, since that's the actual ultra tier "Sigil" always meant. `DarkSigilKnight`/`Florist`/
+`Candence`/`Lapidarist`/`DragonSage`/`Oni`/`Faceless`/`Shinobi`/`DragonSlayer`/`DeepKnight` were
+already correctly keyed to their ultra tier from the start and needed no change.
+
+**One case deliberately left alone**: "Illusionist" was explicitly given `0.8` (below neutral) in
+the original request. `Master Illusionist` now correctly holds that `0.8`, meaning promoting from
+the super tier (unlisted, neutral `1x`) to the ultra *still* reads as a decrease - but this is the
+literal number the user gave, not an accidental side effect of a wrong key like the other four
+were, so it wasn't changed. A Master Illusionist whose combined stats land under the NPC-gate
+threshold can still hit the same softlock shape - just as a deliberate consequence of that class's
+own requested multiplier, not a calculation bug.
+
+**Not otherwise investigated/changed**: a background research pass (prompted while chasing this)
+also surfaced a smaller, pre-existing decrease for `SigilKnight` players with `Solan's Will`
+promoting specifically to `DarkSigilKnight` (`1.95x` → `1.75x`, since the Solan's-Will bonus is
+tied only to the "Sigil"/`SigilKnightCommander` branch, exactly as originally requested) - this is
+the two-ultra-branches-from-one-prerequisite shape working as designed, not a bug, so left as-is.
+Building a general "walk the whole `requiredclass` chain and take the max multiplier ever
+achieved" fix (which would also future-proof against any *other* class ClassData.luau ever adds)
+was considered but not implemented - `ClassData.luau` has real edge cases that would need careful
+handling first (a self-referential `requiredclass` on `Templar`, an `EnibrasTeaching` entry whose
+outer key doesn't match its own `.class` field, `Warrior` having no `.class` field at all) - the
+direct fix above resolves every concretely-reported case without that added complexity/risk.

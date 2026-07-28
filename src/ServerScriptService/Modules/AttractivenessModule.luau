@@ -14,6 +14,26 @@
 	respectively - confirmed with the user and mapped accordingly. See CLAUDE.md for the one
 	remaining entry that can't currently be reached in practice (Abysswalker's "height" half - no
 	height stat exists yet).
+
+	Corrected 2026-07-28 (second correction, after the request's numbers were live): "Illusionist"/
+	"Necro"/"Spy"/"Samurai"/"Sigil" were originally keyed to their SUPER-tier class string
+	(ClassData.luau's `supers` table: Illusionist/Necromancer/Spy/Samurai/SigilKnight), not their
+	ULTRA tier - per the user, the request always meant the ultra tier. Since the super tier was
+	then left unlisted (defaulting to a neutral 1x) while its ultra sat at the LOWER neutral
+	default too (the ultra class strings weren't in this table at all), reaching the real ultra
+	class actually *decreased* computed Attractiveness versus staying at the super tier - the root
+	cause of a live "attractiveness goes down when you get your ultra class" bug report. Fixed by
+	moving each entry's key to the real ultra-tier class string: Master Illusionist, Master
+	Necromancer, Whisper (+ Wanderer, Spy's other ultra branch - the request gave one number for
+	the whole Spy line, not two), SigilKnightCommander. Now the super tier is the one that
+	defaults to neutral 1x, and the ultra tier holds the real requested value - so promoting from
+	super to ultra is a net increase again for every one of these, matching how every other class
+	in this table (DragonSage, Oni, Faceless, Shinobi, DragonSlayer, DeepKnight, DarkSigilKnight,
+	Florist, Candence, Lapidarist) was already correctly keyed to its ultra tier from the start.
+	One exception, not a bug: "Illusionist" was explicitly given `0.8` (below neutral) in the
+	original request - Master Illusionist ending up LESS attractive than the neutral-default super
+	tier is what the user's own number says, not an unintended side effect like the other four
+	were, so it's left as-is.
 ]]
 
 local module = {}
@@ -21,19 +41,20 @@ local module = {}
 module.CLASS_MULTIPLIERS = {
 	DragonSage = 1.45,
 	Oni = 1.5,
-	Illusionist = 0.8,
+	["Master Illusionist"] = 0.8, -- "Illusionist" in the request - real ultra tier (see correction note above). Deliberately below neutral, not a bug like the other four corrections.
 	Florist = 1, -- "Druid" in the request - the Botanist line's actual ultra tier (class = "Florist")
-	Necromancer = 1.6,
-	Spy = 1.2,
+	["Master Necromancer"] = 1.6, -- "Necro" in the request - real ultra tier (was wrongly "Necromancer", the super tier)
+	Whisper = 1.2, -- "Spy" in the request - real ultra tier (was wrongly "Spy", the super tier)
+	Wanderer = 1.2, -- Spy's OTHER ultra branch - same value, the request only gave one number for the whole Spy line
 	Candence = 1.1, -- "Bard" in the request - Candence is this codebase's real performance/bard-flavored ultra class. "Victim of fighting power based hypergamy"
 	Faceless = 1.55,
 	Shinobi = 1.35,
 	DragonSlayer = 1.65,
 	DeepKnight = 1.6,
-	SigilKnight = 1.75, -- 1.95 if Solan's Will - handled in getClassMultiplier, not this table
-	DarkSigilKnight = 1.75,
+	SigilKnightCommander = 1.75, -- "Sigil" in the request - real ultra tier (was wrongly "SigilKnight", the super tier). 1.95 if Solan's Will - handled in getClassMultiplier, not this table
+	DarkSigilKnight = 1.75, -- "DSK" in the request - SigilKnight's OTHER ultra branch, already correctly keyed from the start
 	Lapidarist = 1.65, -- "Blacksmith" in the request - SuperBlacksmith's actual ultra tier (class = "Lapidarist")
-	Samurai = 1.2,
+	Ronin = 1.2, -- "Samurai" in the request - real ultra tier (was wrongly "Samurai", the super tier)
 	Abysswalker = 1, -- "dependent on race and height" - height isn't a tracked stat; race multiplier still applies normally on top
 }
 
@@ -60,7 +81,7 @@ local LOW_ATTRACTIVENESS_CD = 300
 
 function module.getClassMultiplier(data)
 	local class = data.Class.Value
-	if class == "SigilKnight" then
+	if class == "SigilKnightCommander" then
 		return data.Skills.Value:find("Solan's Will") and 1.95 or 1.75
 	end
 	return module.CLASS_MULTIPLIERS[class] or DEFAULT_MULTIPLIER
