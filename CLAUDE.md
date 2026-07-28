@@ -2429,3 +2429,35 @@ but not the former. Any new field this codebase multiplies, divides, or otherwis
 factor should get an explicit sanity floor/ceiling wherever it's actually consumed, not just an
 existence check, especially anywhere it feeds a visual/physical effect that fails silently (size,
 transparency, position) rather than throwing.
+
+## Fixed: bigger characters' hair/accessories scaling smaller than they should (2026-07-28)
+
+A second, unrelated bug in the same height system: `scaleR6` only scales whatever `Accessory`
+instances are already parented to the character *at the moment it's called*. Race-specific hair
+attaches asynchronously - `Commands.UpdateAppearance` (`Modules/Commands/init.luau` ~line 149)
+does the actual `Hairs`/`Accessories` cloning-and-parenting inside its own `task.spawn`, and is
+itself called from `GameLoaded/init.server.luau` - a **completely separate script** from
+`CharacterHandler/init.server.luau` (where height is applied) with no execution-order guarantee
+between the two. When hair attaches after `scaleR6` already ran, it's simply never touched -
+staying at its original, unscaled size while the body is already bigger, which reads as "hair
+too small," and gets more visually obvious the bigger the character rolled (matching exactly what
+was reported).
+
+**The fix**: `CharacterScale.luau` gained `module.watchForLateAccessories(character, factor)` - a
+`character.ChildAdded` connection that applies the same per-accessory scaling `scaleR6` already
+does (factored out into a shared local `scaleAccessory`) to any `Accessory` that shows up *after*
+the initial call, using whatever total factor was already applied to the body. Left connected for
+the character's whole life rather than disconnected after a short window, since re-deriving "how
+long could the async hair-load possibly take" is more fragile than just handling every future
+Accessory addition the same way - it only ever touches real cosmetic Accessories with a `Handle`
+child, so it can't misfire on the many state-flag Accessory objects this codebase uses as markers
+(`Stun`, `Knocked`, etc. never have a `Handle`).
+
+**Also simplified while fixing this**: `CharacterHandler/init.server.luau` previously called
+`scaleR6` twice (once for `HeightMultiplier`, once more for Black Pill's `1.2x`) relying on the two
+calls composing multiplicatively. Collapsed into a single `totalScaleFactor` computed once and
+applied in one `scaleR6` call - mathematically identical (multiplication is associative) but
+required for `watchForLateAccessories` to have one number to hand late-arriving accessories rather
+than needing to track a running product across multiple calls. The UserId `2231268759` height cap
+logic is otherwise unchanged, just expressed as one `totalScaleFactor` branch instead of two
+sequential calls.

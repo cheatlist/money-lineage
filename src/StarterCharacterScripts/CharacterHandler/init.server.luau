@@ -337,19 +337,23 @@ end
 if heightMultiplier <= 0 then
 	heightMultiplier = 1
 end
+-- Computed as ONE combined factor (rather than two sequential scaleR6 calls, height then Black
+-- Pill) so there's a single number to hand to watchForLateAccessories below - race-specific hair
+-- attaches asynchronously via Commands.UpdateAppearance (GameLoaded/init.server.luau, a separate
+-- script with no ordering guarantee relative to this one), so anything that arrives after this
+-- point needs to know the character's total scale to apply the same factor retroactively.
+local totalScaleFactor
 if Player.UserId == 2231268759 then
 	-- Hard cap: this player can never end up above the normal shortest-possible height (0.8x),
 	-- even with Black Pill's own 1.2x stacked on top - their HeightMultiplier is already rolled
 	-- below 0.8 at character creation (see CharacterCreationGui/Script.server.luau), but Black
 	-- Pill composing multiplicatively could otherwise push a value near 0.8 back over it.
-	local cappedHeight = math.min(heightMultiplier * (hasBlackPill and 1.2 or 1), 0.8)
-	CharacterScaleModule.scaleR6(Character, cappedHeight)
+	totalScaleFactor = math.min(heightMultiplier * (hasBlackPill and 1.2 or 1), 0.8)
 else
-	CharacterScaleModule.scaleR6(Character, heightMultiplier)
-	if hasBlackPill then
-		CharacterScaleModule.scaleR6(Character, 1.2)
-	end
+	totalScaleFactor = heightMultiplier * (hasBlackPill and 1.2 or 1)
 end
+CharacterScaleModule.scaleR6(Character, totalScaleFactor)
+CharacterScaleModule.watchForLateAccessories(Character, totalScaleFactor)
 if hasBlackPill then
 	-- A fresh Character on respawn starts back at normal size - the Black Pill Tool
 	-- (ServerStorage/Storage/Black Pill/Script.server.luau) only scales the character alive at
