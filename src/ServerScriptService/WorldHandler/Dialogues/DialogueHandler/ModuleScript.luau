@@ -1827,6 +1827,30 @@ local dialogues = {
 		},
 	};
 
+	["Therapist"] = {
+		onCooldown = {
+			speaker = "Therapist",
+			msg = "{I've only got so much in me to give each day. Come back tomorrow.}",
+			endchoice = "...",
+		},
+		p1 = {
+			speaker = "Therapist",
+			msg = "{Talk to me. Whatever's eating at you - the vomiting, the picky eating, the anger, the fear - let's see what we can undo today.}",
+			choices = {"Help me."},
+			endchoice = "Not today.",
+		},
+		success = {
+			speaker = "Therapist",
+			msg = "{There. That's a start, isn't it? You look lighter already.}",
+			endchoice = "Thank you.",
+		},
+		failure = {
+			speaker = "Therapist",
+			msg = "{...We didn't get anywhere today. That happens, sometimes. Come back tomorrow.}",
+			endchoice = "...",
+		},
+	};
+
 	["As'endoAshiin"] = {
 		startedp1 = {
 			speaker = "As'endo",
@@ -12063,6 +12087,43 @@ function dialogues.Xenyari.v1(p,v)
 		end
 	end
 end
+
+-- Heals all 5 injuries added alongside the Mogging system (VomitForcer/LackEater/AnythingEater/
+-- Rage/Squeamish) in one visit - 90% chance of working, same "once per in-game day" LastX ~=
+-- DaysSurvived snapshot idiom Xenyari's gacha already uses above, rather than a real-time cooldown
+-- (the cooldown applies whether or not the visit actually worked - a therapy session still took
+-- place either way).
+local THERAPIST_HEALABLE_INJURIES = {"VomitForcer", "LackEater", "AnythingEater", "Rage", "Squeamish"}
+function dialogues.Therapist.v1(p,v)
+	local data = game.ServerStorage.PlayerData:FindFirstChild(p.Name)
+	if not data or not p.Character then
+		return
+	end
+	if v.page == 1 then
+		if data.LastTherapist.Value == data.DaysSurvived.Value then
+			return dialogues.Therapist.onCooldown
+		end
+		return dialogues.Therapist.p1
+	elseif v.page == 2 then
+		if data.LastTherapist.Value == data.DaysSurvived.Value then
+			return dialogues.Therapist.onCooldown
+		end
+		data.LastTherapist.Value = data.DaysSurvived.Value
+		if math.random() < 0.9 then
+			local parts = string.split(data.Injuries.Value, ",")
+			local kept = {}
+			for _, part in ipairs(parts) do
+				if not table.find(THERAPIST_HEALABLE_INJURIES, part) then
+					table.insert(kept, part)
+				end
+			end
+			data.Injuries.Value = table.concat(kept, ",")
+			return dialogues.Therapist.success
+		else
+			return dialogues.Therapist.failure
+		end
+	end
+end
 function dialogues.Knight.v1(p,v)
 	local data = game.ServerStorage.PlayerData:FindFirstChild(p.Name)
 	if not data or not p.Character then
@@ -13634,8 +13695,12 @@ function dialogues.Doctor.v1(p,v)
 	elseif v.page == 3 then
 		if commands.ChangeMoney(p,data,-15)then
 			local crazy = ""
-			local Unfixable = {"MetalArm","vampirism","armless"}
-			for i,v in pairs(Unfixable) do 
+			-- The 5 injuries added alongside Mogging (VomitForcer/LackEater/AnythingEater/
+			-- Rage/Squeamish) are Therapist-only - the Doctor's blanket "wipe everything except
+			-- Unfixable" cure would otherwise heal them for free, bypassing Therapist's 90%
+			-- chance/1-day cooldown entirely.
+			local Unfixable = {"MetalArm","vampirism","armless","VomitForcer","LackEater","AnythingEater","Rage","Squeamish"}
+			for i,v in pairs(Unfixable) do
 				if data.Injuries.Value:find(v) then
 					crazy = crazy..","..v
 				end

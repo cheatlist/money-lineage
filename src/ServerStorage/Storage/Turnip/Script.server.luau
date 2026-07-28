@@ -1,4 +1,5 @@
 local u3 = require(game.ServerScriptService.Modules.Commands)
+local FoodModule = require(game.ServerScriptService.Modules.FoodModule)
 local Tool = script.Parent
 local TweenService = game:GetService("TweenService")
 local function ActionCheck(Parent): boolean
@@ -26,12 +27,15 @@ Tool.Activated:Connect(function()
 		Tool.Handle.Cough:Play()
 		return
 	end
+	local data = game.ServerStorage.PlayerData:FindFirstChild(p1.Name)
+	if not FoodModule.eat(p1, data, "Turnip", 50) then
+		Tool.Handle.Cough:Play()
+		return
+	end
 	canuse = false
 	u3.RemoveFromInventory(game.Players:GetPlayerFromCharacter(p1),"Turnip")
 	p1.Humanoid:LoadAnimation(Tool.Animation):Play()
 	wait(0.175)
 	Tool.Handle.Sound:Play()
 	task.delay(.65, Tool.Destroy, Tool)
-	local stomach: number = math.clamp(p1.Stomach.Value+50,0,p1.Humanoid.MaxHealth)
-	p1.Stomach.Value = stomach
 end)

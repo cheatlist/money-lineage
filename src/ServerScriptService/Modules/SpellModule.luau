@@ -40,6 +40,9 @@ function module.cast(character,info,data, pathing)
 	if character:FindFirstChild("SpellBlocking")or character:FindFirstChild("CurseBlocking")then
 		return nil
 	end
+	if character:FindFirstChild("Squeamish")then
+		return nil
+	end
 	if cdcheck(character,info.name)then
 		return nil
 	end
@@ -183,6 +186,9 @@ function module.castnew(character, info, data, pathing)
 		return nil
 	end
 	if character:FindFirstChild("SpellBlocking")or character:FindFirstChild("CurseBlocking")then
+		return nil
+	end
+	if character:FindFirstChild("Squeamish")then
 		return nil
 	end
 	if info.name == "Gate" and game.Lighting.WarLocation.Value ~= "" then

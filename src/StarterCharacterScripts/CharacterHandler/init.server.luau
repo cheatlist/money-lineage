@@ -339,6 +339,11 @@ if PlayerData.AttractivenessBase.Value == 0 then
 	PlayerData.AttractivenessBase.Value = math.random(10, 20)
 end
 require(game.ServerScriptService.Modules.AttractivenessModule).compute(Player, PlayerData)
+-- Mogging: every player spawns with this move by default (see ServerScriptService/Modules/
+-- MoggingModule.luau), same guarded-clone pattern as Termination/the workout Tools above.
+if not Player.Backpack:FindFirstChild("Mogging") and not Character:FindFirstChild("Mogging") then
+	game.ServerStorage.Classes.Mogging:Clone().Parent = Player.Backpack
+end
 local function StunCheck(p,Stuns)
 	if p ~= Player then
 		p:Kick("nice one")
@@ -3896,6 +3901,15 @@ Player.Chatted:Connect(function(Message)
 				end
 				anim:Stop()
 			end)
+			return
+		end
+		if string.lower(msgtable[2])=="eat" then
+			-- AnythingEater: consumes a non-food Backpack item for minor hunger (see
+			-- ServerScriptService/Modules/FoodModule.luau). Item name is everything after "eat"
+			-- (table.concat rather than msgtable[3] alone) so multi-word item names still work,
+			-- e.g. "eat Health Potion". No-op without the injury or a matching item.
+			local itemName = table.concat(msgtable, " ", 3)
+			require(game.ServerScriptService.Modules.FoodModule).eatAnything(Player, Character, PlayerData, itemName)
 			return
 		end
 		if string.lower(msgtable[2])=="meditate" then

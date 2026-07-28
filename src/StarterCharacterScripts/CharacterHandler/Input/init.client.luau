@@ -503,6 +503,10 @@ local function Sprint(Value)
 		return
 	end
 
+	if FindFirstChild(Character, "Squeamish") then
+		return
+	end
+
 	if Value ~= true or not (not Sprinting)then
 		if Sprinting then
 			Sprinting = false
@@ -648,6 +652,9 @@ local function ClimbFunc(p10)
 			return
 		end
 		if FindFirstChild(Character, "SpellBlocking") then
+			return
+		end
+		if FindFirstChild(Character, "Squeamish") then
 			return
 		end
 		if HasTag(CollectionService, Character, "Casting") or FindFirstChild(Character, "ActiveCast") then

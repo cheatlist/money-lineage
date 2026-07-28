@@ -2078,3 +2078,186 @@ back to the neutral `1x` default rather than inheriting their line's other tier'
 reads as intentional given the request specifically picked certain tiers over others (e.g.
 `DragonSlayer` the ultra, not `DragonKnight` the base). Every numeric value is exactly what was
 given in the request, not independently chosen.
+
+## New: Mogging, Rage/Squeamish, and 3 eating injuries (added 2026-07-28)
+
+A full "mogging" social-combat loop built on the Attractiveness stat above: a `Mogging` Tool every
+player spawns with, two new debuff injuries it (and low Attractiveness itself) can inflict, three
+new food-related injuries only reachable through mogging, and a global NPC-dialogue gate that
+ignores unattractive players.
+
+**Locked in via user confirmation before building**: this codebase has no QTE (quick-time event)
+system anywhere - the "mogging battle" for comparable-Attractiveness players is a **weighted
+instant resolution**, not a real interactive minigame (which would need a new client GUI, a
+RemoteEvent round-trip, a timing window, and its own exploit surface - a separate undertaking).
+Squeamish's "unable to run and mana climb" was read as **three separate lockouts** - Sprint,
+spellcasting (mana), and climbing - not one combined mechanic.
+
+### New shared modules
+
+**`ServerScriptService/Modules/FoodModule.luau`** - centralizes eating for `Turnip`/`Meat`
+(`module.eat(character, data, itemName, hungerAmount)`, now called from both items' scripts in
+place of their own inline `Stomach.Value` math): blocks eating entirely if `AnythingEater` is
+present (food is the one thing an AnythingEater *can't* eat - plays the same `Handle.Cough` cue
+both items already use for other blocked races/conditions), enforces `LackEater`'s daily caps (3
+Turnip / 1 Meat - two new `PlayerData` NumberValues, `TurnipsEatenToday`/`MeatEatenToday`, reset
+alongside the existing `CameoCD` reset at `Health.server.luau`'s day-rollover check rather than
+building new day-tracking from scratch), and - if `VomitForcer` is present - schedules a
+`task.delay(120, ...)` that applies a 2s Stun and zeroes `Stomach.Value` ("vomit everything out").
+`module.eatAnything(player, character, data, itemName)` is the `AnythingEater` path: consumes a
+non-food Backpack Tool for a flat `+10` hunger ("way less than normal food"), triggered by a new
+`eat <item>` chat command in `CharacterHandler/init.server.luau` (mirroring the existing
+`meditate` chat-command parsing already in that file, `table.concat`-ing everything after `"eat"`
+so multi-word item names like "Health Potion" still work) rather than retrofitting all ~239
+`Storage` items individually.
+
+**Incidental fix while centralizing**: `Meat/Script.server.luau`'s own `Stomach.Value` clamp was
+commented out (`--//local stomach = math.clamp(...)`, an unclamped `+= 50` in its place) - routing
+through `FoodModule.eat` (which always clamps, matching `Turnip`'s own behavior) fixes this as a
+side effect, not a separately-requested change.
+
+**`ServerScriptService/Modules/MoggingModule.luau`** - the shared mog-consequence logic, called by
+both the `Mogging` Tool and `AttractivenessModule.compute`'s own low-Attractiveness self-trigger
+(one implementation, not two copies):
+- `applyMogDebuffs(character, data)`: three **independent** rolls - 10% one of the 3 new eating
+  injuries (`VomitForcer`/`LackEater`/`AnythingEater`, picked among whichever aren't already
+  owned), 30% `Squeamish`, 40% `Rage` - read literally as three separate chances per the request's
+  phrasing, not a mutually-exclusive 100%-summing pick, so 0-3 can land from one mog. Each lasts
+  900 real seconds (one in-game day, matching `Health.server.luau`'s own day length - no existing
+  "debuff for N in-game days" precedent was found anywhere in this codebase, confirmed by research,
+  so this is a flat real-time Debris/task.delay window rather than tracking actual day-boundaries).
+  `Rage`/`Squeamish` each separately roll a further 15% chance to immediately call
+  `TerminationModule.trigger` when granted ("may auto trigger termination").
+- `resolve(casterCharacter, casterData, casterAttr, targetCharacter, targetData, targetAttr)`: the
+  `Mogging` Tool's actual branch logic (numbers below).
+- **Rage/Squeamish are real `PlayerData.Injuries.Value` entries** (consistent with the request's
+  own "injuries" framing, and matching how last session's Mirror "any injury" check already reads
+  `Injuries.Value ~= ""` generically) **but are also mirrored as a Character-parented Accessory
+  marker** with the same lifetime - a technical necessity, not redundancy: the two client-side
+  consumers (`Sprint()`/`ClimbFunc()` in `CharacterHandler/Input/init.client.luau`) run on the
+  client and can never read `game.ServerStorage.PlayerData` at all (`ServerStorage` never
+  replicates to clients), so only a replicated Character Instance is visible to them. Both the
+  string entry and the marker are granted and expired together
+  (`task.delay`/`game.Debris:AddItem`, respectively).
+
+### `ServerStorage/Classes/Mogging/` (new Tool, granted at spawn like `Termination`)
+
+20s cooldown. Targets by mouse-aim, reusing the exact "find the player my mouse is over"
+resolution already solved in `RacialAbilities/Shift/Script.server.luau`
+(`_G.MouseData(Player)` + `HumanoidRootPart` + `PlayerData` validation) rather than inventing new
+targeting - Mogging reads as a targeted social interaction, not an AOE attack. On a valid target
+within 20 studs, both sides' Attractiveness is computed fresh
+(`AttractivenessModule.compute` - so a live Madrasian shift/Sigil Solans-Will bonus/current
+Morvid Alignment is reflected, not a possibly-stale cached value) and `diff = casterAttr -
+targetAttr`:
+- `diff >= 8`: caster clearly wins - `applyMogDebuffs` on the **target**.
+- `diff <= -8`: the target actually outclasses the caster - **not explicitly described in the
+  request** (which only covers "clearly ahead" and "comparable"), but leaving this direction a
+  no-op would make mogging someone more attractive than you risk-free, which read as an
+  unintended gap rather than an intended asymmetry - `applyMogDebuffs` is applied to the
+  **caster** instead, symmetrically. Flagged as an interpretive completion.
+- Otherwise (`|diff| < 8`, "within your range"): the weighted "QTE" - `P(caster wins) =
+  clamp(0.5 + diff * 0.03, 0.1, 0.9)` - loser gets `applyMogDebuffs`, winner takes nothing (the
+  "boost" is the tilted win probability itself, not a separate reward). No dedicated clash
+  sound/VFX exists (asset debt) - none is played rather than reusing something that wouldn't fit
+  a winning outcome.
+
+### Rage - `TagHumanoid/init.server.luau` and `m1.luau`
+
+- **Less damage dealt**: `info.damage *= 0.8`, checked on the *attacker's* own `Injuries.Value`
+  (`playerdata`, not `enemydata`) right next to the existing `chestgash` damage-taken modifier -
+  the first injury-driven modifier in this file to affect outgoing rather than incoming damage.
+- **Longer cooldowns - partial, flagged as such**: confirmed via research that no
+  global-cooldown-multiplier mechanism exists anywhere to hook into, and editing all ~130
+  individual move Tool cooldowns individually was judged out of scope for this request. Only
+  unarmed M1 is centrally reachable (the same `attackspeed` local already touched for Core
+  hypertrophy) - Rage multiplies it `* 1.3` (slower). Per-move Tool cooldowns are untouched.
+
+### Squeamish - three lockouts plus one NPC block
+
+- **Sprint**: `CharacterHandler/Input/init.client.luau`'s `Sprint(Value)` function, right next to
+  its existing `LegBroken` early-return.
+- **Mana (spellcasting)**: `SpellModule.luau` - both `module.cast` and `module.castnew` (the
+  `Rework`-tagged-tool path with no mana-window check, per earlier session notes) now return
+  `nil` if `Squeamish` is present, next to the existing `SpellBlocking`/`CurseBlocking` check.
+- **Climbing**: `ClimbFunc(p10)` in the same `Input/init.client.luau`, next to its existing
+  `SpellBlocking` early-exit.
+- **NPC interaction**: `DialogueHandler/init.server.luau` - both dialogue-start entry points
+  (`npcclick`, the `ClickDetector`-driven path, and the `DialogueCreate` bindable event a few
+  lines below it - confirmed both are near-identical guard chains for starting a conversation)
+  now return early if `Squeamish` is present, same as the Attractiveness gate below.
+- **May auto trigger Termination**: handled in `MoggingModule.applyMogDebuffs` (15% chance),
+  shared with Rage.
+
+### NPCs ignore low-Attractiveness players
+
+Same two `DialogueHandler/init.server.luau` entry points as Squeamish's NPC block: if
+`AttractivenessModule.compute(...)` is below `30` (the requested 25-35 range's midpoint), the NPC
+simply never responds - no dialogue opens, no rejection message (nothing beyond "npcs don't talk
+to you" was asked for). Gated once at the shared choke point rather than per-NPC, so it applies
+universally with no other file needing to change.
+
+### Interpretive calls worth flagging
+
+All exact numbers (the 8-point mogging threshold, 0.03 QTE scale, 20-stud range/20s cooldown, the
+10%/30%/40% debuff rolls, 15% auto-Termination chance, 900s duration, 0.8x Rage damage/1.3x Rage
+M1 slowdown, the 12-point low-Attractiveness threshold and its 300s recheck debounce, the 30-point
+NPC-ignore threshold, `+10` AnythingEater hunger) are feel-based, not spec-derived, per this
+repo's established practice. The reversed "target outclasses caster" branch, treating all three
+independent debuff rolls as expiring together after one in-game day (rather than the 3 eating
+injuries being permanent), and Rage's cooldown effect being partial (M1 only) rather than global
+were the three biggest interpretive completions - all flagged inline above where they're
+implemented, not silently assumed.
+
+## New NPC: Therapist (added 2026-07-28)
+
+Heals all 5 injuries added alongside Mogging (`VomitForcer`/`LackEater`/`AnythingEater`/`Rage`/
+`Squeamish`) in one visit - 90% chance of working, a 1-in-game-day cooldown that applies either
+way (a therapy session took place whether or not it helped). `dialogues.Therapist.v1` and its
+content table both live in `DialogueHandler/ModuleScript.luau`, right after `Xenyari`'s gacha
+dialogue and `Corvax`'s ascension-trial dialogue respectively, which supplied the two conventions
+this reuses directly:
+
+- **The cooldown is the same `LastX ~= DaysSurvived.Value` snapshot idiom `Xenyari`'s once-per-day
+  gacha roll already uses** (`ModuleScript.luau` ~line 12017/12023), not a new real-time timer -
+  `page == 1` shows the offer or an `onCooldown` rejection depending on whether
+  `data.LastTherapist.Value == data.DaysSurvived.Value`; `page == 2` (reached only via the single
+  "Help me." choice, same "no `v.choice` check needed, reaching this page already means they
+  chose it" shape `Xenyari`'s own page 2 uses) sets the cooldown snapshot **before** rolling
+  success/failure, then does a `string.split`/`table.find`/rejoin over `Injuries.Value` to strip
+  out any of the 5 healable names the player currently has (silently a no-op for whichever they
+  don't).
+- **No new driver wiring needed**: both dialogue-start entry points already dispatch to any NPC
+  name present in the `dialogues` table generically (`v1[v.Name]`/`v1[v]`, confirmed while adding
+  the Attractiveness NPC-gate above) - the same pattern already true for every other NPC added
+  this session (Corvax/Doyen/Zephyra) - so adding the content table and function here is a complete,
+  working addition.
+- **Emergent interaction, not separately built**: the low-Attractiveness NPC-ignore gate added
+  alongside Squeamish above already applies universally to both entry points, so a player too
+  unattractive to be worth talking to also can't be helped by the Therapist - an intentional-
+  feeling irony that falls out of the existing gate for free, not new code.
+
+**Asset debt**: `Therapist` is a brand-new NPC with no placed instance yet (same caveat as every
+other new NPC this session - Corvax/Doyen/Zephyra - needs an actual NPC placed in Studio with the
+usual click-trigger/dialogue-hookup before reachable in-game). One new `PlayerData` field,
+`LastTherapist` (NumberValue), needs adding to the Studio `Setup` folder - **must default to `-1`,
+not `0`**: `DaysSurvived` itself starts at `0` for a new character, so a `0` default here would
+make `LastTherapist.Value == DaysSurvived.Value` true immediately, putting every brand-new
+character on cooldown before their first-ever visit - the same pitfall `Xenyari`'s `LastGacha`
+presumably already avoids (not independently confirmed, since its own default lives in the same
+un-inspectable Studio `Setup` folder, but `-1` is the safe choice regardless of what it uses).
+
+**Interpretive calls worth flagging**: the exact 90% success rate and the flavor dialogue text are
+not spec-derived. Read "all of the new injuries can be healed" as one visit clearing all 5 at once
+(whichever the player currently has) rather than a per-injury selection menu, since nothing in the
+request suggested choosing one at a time.
+
+**Follow-up (still 2026-07-28): the 5 new injuries are Therapist-exclusive.** A pre-existing
+`Doctor` NPC (`dialogues.Doctor.v1`, `ModuleScript.luau` ~line 13665) already does a blanket
+injury cure for 15 Money - `data.Injuries.Value = ""` then restores only whatever's in a
+hardcoded `Unfixable` list (previously `{"MetalArm","vampirism","armless"}`), i.e. it would have
+healed all 5 new injuries too, for free, completely bypassing Therapist's 90% chance and 1-day
+cooldown. Added `VomitForcer`/`LackEater`/`AnythingEater`/`Rage`/`Squeamish` to that same
+`Unfixable` list (~line 13702) so the Doctor's cure now preserves them exactly like it already
+preserves `MetalArm`/`vampirism`/`armless` - the smallest possible change, reusing an existing
+exclusion list rather than adding new branching logic.

@@ -115,6 +115,9 @@ spawn(function()
 			PlayerData.DaysSurvived.Value += 1
 			PlayerData.MinutesSurvived.Value = 0
 			PlayerData.CameoCD.Value = false
+			-- LackEater's daily caps (3 Turnip / 1 Meat, see FoodModule.luau) reset with the day.
+			PlayerData.TurnipsEatenToday.Value = 0
+			PlayerData.MeatEatenToday.Value = 0
 		end
 		toxicity.Value-=1
 		wait(60)

@@ -1,7 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "Bash(perl -i -pe ' *)"
+      "Bash(perl -i -pe ' *)",
+      "Bash(perl -0777 -i -pe 's/\\(local function Sprint\\\\\\(Value\\\\\\)\\\\n\\\\n\\\\tif LegBroken then\\\\n\\\\t\\\\treturn\\\\n\\\\tend\\\\n\\)/$1\\\\n\\\\tif FindFirstChild\\(Character, \"Squeamish\"\\) then\\\\n\\\\t\\\\treturn\\\\n\\\\tend\\\\n/' \"src/StarterCharacterScripts/CharacterHandler/Input/init.client.luau\")",
+      "Bash(perl -0777 -i -pe 's/\\(\\\\t\\\\tif FindFirstChild\\\\\\(Character, \"SpellBlocking\"\\\\\\) then\\\\n\\\\t\\\\t\\\\treturn\\\\n\\\\t\\\\tend\\\\n\\)/$1\\\\t\\\\tif FindFirstChild\\(Character, \"Squeamish\"\\) then\\\\n\\\\t\\\\t\\\\treturn\\\\n\\\\t\\\\tend\\\\n/' \"src/StarterCharacterScripts/CharacterHandler/Input/init.client.luau\")"
     ]
   }
 }

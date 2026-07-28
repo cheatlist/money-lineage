@@ -197,6 +197,13 @@ return function(character,player,combatanims,data)
 		local corehypertrophy = math.floor(data.WorkoutCorePoints.Value / 3)
 		attackspeed = attackspeed / (1 + corehypertrophy * 0.05)
 	end
+	if data and data.Injuries.Value:find("Rage") then
+		-- Rage's "longer cooldowns... because you're afraid of looking stupid" (Mogging/low-
+		-- Attractiveness injury, see MoggingModule.luau) - only unarmed M1 is centrally reachable
+		-- without editing every one of the ~130 individual move Tool cooldowns, so this is a
+		-- partial implementation of "longer cooldowns," flagged as such in CLAUDE.md.
+		attackspeed = attackspeed * 1.3
+	end
 	create("NoJump",1,character)
 	create("LightAttack",attackspeed,character)
 	create("ManaPause",0.05,character)

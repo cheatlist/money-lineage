@@ -953,6 +953,12 @@ function taghumanoid(character,enemy,info)
 	if not enemy:FindFirstChild("MonsterInfo") and enemydata and enemydata.Injuries.Value:find("chestgash") and info.damage and info.physical then
 		info.damage *= 1.1
 	end
+	if playerdata and playerdata.Injuries.Value:find("Rage") and info.damage and info.physical then
+		-- Rage (Mogging/low-Attractiveness injury, see MoggingModule.luau): "makes you do less
+		-- damage" - checked on the attacker's own Injuries, unlike the chestgash/heat checks
+		-- above which are about damage the *defender* takes.
+		info.damage *= 0.8
+	end
 	if info.injury and info.injury == "rib cage" and not blocking then
 		create("Knocked", 1, enemy)
 		if not enemy:FindFirstChild("MonsterInfo") and not enemydata.Injuries.Value:find(info.injury) and enemydata.Race.Value ~= "Lich" then

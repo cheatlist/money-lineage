@@ -55,6 +55,8 @@ module.RACE_MULTIPLIERS = {
 }
 
 local DEFAULT_MULTIPLIER = 1
+local LOW_ATTRACTIVENESS_THRESHOLD = 12
+local LOW_ATTRACTIVENESS_CD = 300
 
 function module.getClassMultiplier(data)
 	local class = data.Class.Value
@@ -100,6 +102,23 @@ function module.compute(player, data)
 	local classMult = module.getClassMultiplier(data)
 	local result = data.AttractivenessBase.Value * classMult * raceMult
 	data.Attractiveness.Value = result
+
+	-- "You can get/give these injuries upon being ... attractiveness mogged" - having a low
+	-- Attractiveness on its own (not just being on the receiving end of the Mogging Tool) can
+	-- also trigger Rage/Squeamish, via the same MoggingModule.applyMogDebuffs the Tool uses.
+	-- Debounced per-character (LowAttractivenessCD) since compute() can be called repeatedly in
+	-- quick succession (every spawn, plus both sides of every Mogging Tool use).
+	if player and player.Character and result < LOW_ATTRACTIVENESS_THRESHOLD then
+		local character = player.Character
+		if not character:FindFirstChild("LowAttractivenessCD") then
+			local cd = Instance.new("Accessory")
+			cd.Name = "LowAttractivenessCD"
+			cd.Parent = character
+			game.Debris:AddItem(cd, LOW_ATTRACTIVENESS_CD)
+			require(game.ServerScriptService.Modules.MoggingModule).applyMogDebuffs(character, data)
+		end
+	end
+
 	return result
 end
 

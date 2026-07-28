@@ -2,6 +2,7 @@ function sub(...)
 	coroutine.wrap(...)()
 end
 local u3 = require(game.ServerScriptService.Modules.Commands)
+local FoodModule = require(game.ServerScriptService.Modules.FoodModule)
 local CollectionService = game.CollectionService
 local HasTag = CollectionService.HasTag
 local TweenService = game:GetService("TweenService")
@@ -38,15 +39,17 @@ script.Parent.Activated:Connect(function()
 		return
 	end
 	if script.Parent.PoisonAmount.Value <= 0 then
+		local data = game.ServerStorage.PlayerData:FindFirstChild(p1.Name)
+		if not FoodModule.eat(p1, data, "Meat", 50) then
+			script.Parent.Handle.Cough:Play()
+			return
+		end
 		canuse = false
 		u3.RemoveFromInventory(game.Players:GetPlayerFromCharacter(p1),"Meat")
 		p1.Humanoid:LoadAnimation(script.Parent.Animation):Play()
 		wait(0.175)
 		script.Parent.Handle.Sound:Play()
 		game.Debris:AddItem(script.Parent,0.65)
-
-		--//local stomach = math.clamp(p1.Stomach.Value+50,0,p1.Humanoid.MaxHealth)
-		p1.Stomach.Value += 50 --//= stomach
 	else
 		canuse = false
 		u3.RemoveFromInventory(game.Players:GetPlayerFromCharacter(p1),"Meat")

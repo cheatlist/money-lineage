@@ -61,6 +61,19 @@ local function npcclick(p1,v)
 	if p2:FindFirstChild("Dialogue")then
 		return
 	end
+	if p2:FindFirstChild("Squeamish")then
+		return
+	end
+	do
+		-- NPCs ignore low-Attractiveness players entirely (threshold picked from the requested
+		-- 25-35 range) - gated at both dialogue-start entry points (ClickDetector-driven
+		-- `npcclick` and the bindable-driven `DialogueCreate` path below), not per-NPC, so it
+		-- applies universally with no other file needing to change.
+		local data = game.ServerStorage.PlayerData:FindFirstChild(p1.Name)
+		if data and require(game.ServerScriptService.Modules.AttractivenessModule).compute(p1, data) < 30 then
+			return
+		end
+	end
 
 	local magmax: number = 16
 
@@ -161,6 +174,19 @@ game.ServerStorage.Requests.DialogueCreate.Event:Connect(function(p1,v)
 	end
 	if p2:FindFirstChild("Dialogue")then
 		return
+	end
+	if p2:FindFirstChild("Squeamish")then
+		return
+	end
+	do
+		-- NPCs ignore low-Attractiveness players entirely (threshold picked from the requested
+		-- 25-35 range) - gated at both dialogue-start entry points (ClickDetector-driven
+		-- `npcclick` and the bindable-driven `DialogueCreate` path below), not per-NPC, so it
+		-- applies universally with no other file needing to change.
+		local data = game.ServerStorage.PlayerData:FindFirstChild(p1.Name)
+		if data and require(game.ServerScriptService.Modules.AttractivenessModule).compute(p1, data) < 30 then
+			return
+		end
 	end
 
 	local magmax: number = 16
