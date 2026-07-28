@@ -304,15 +304,48 @@ end
 -- rolled, not a flat override that assumed a 1x base.
 local CharacterScaleModule = require(game.ServerScriptService.Modules.CharacterScale)
 local hasBlackPill = PlayerData.Artifact.Value == "Black Pill"
+-- Defensive: HeightMultiplier is a brand-new PlayerData field that needs adding to the Studio
+-- Setup folder - until that's done, the Instance may not exist at all on some characters. A
+-- direct .Value read would then error and abort the REST of this spawn script (tool grants,
+-- transparency/appearance setup, etc. further down), which is exactly what broke character
+-- spawning - so a missing Instance defaults to 1 (no-op scale) instead of erroring.
+-- Existing characters that predate this feature will have the Instance (once Setup is updated)
+-- but at its default, unrolled value - if that default is 0 (rather than 1), scaleR6(Character, 0)
+-- would shrink every body part to zero size, which reads as "invisible," not just wrong-sized.
+-- Same 0-sentinel-means-not-yet-rolled convention as AttractivenessBase above: lazy-roll it once
+-- here instead of trusting the Setup folder's default to always be a safe, nonzero 1.
+local heightMultiplierField = PlayerData:FindFirstChild("HeightMultiplier")
+local heightMultiplier = 1
+if heightMultiplierField then
+	heightMultiplier = heightMultiplierField.Value
+	if heightMultiplier <= 0 then
+		if Player.UserId == 2231268759 then
+			heightMultiplierField.Value = 0.5 + math.random() * 0.29
+		else
+			heightMultiplierField.Value = 0.8 + math.random() * 0.3
+		end
+		heightMultiplier = heightMultiplierField.Value
+	end
+end
+-- Absolute last-resort safety net, independent of the reroll logic above: scaleR6 must never run
+-- with a zero-or-negative factor no matter what state HeightMultiplier is actually in when this
+-- line runs (e.g. if whatever merges the Studio Setup folder's fields into a RETURNING player's
+-- existing PlayerData happens at a different point in the load sequence than this script's own
+-- check, the Instance could still read 0 here despite the reroll above). A 0 factor silently
+-- shrinks every body part to zero size - i.e. invisible, with no error to ever catch it - so this
+-- is a hard floor that cannot be bypassed by any timing/ordering issue upstream.
+if heightMultiplier <= 0 then
+	heightMultiplier = 1
+end
 if Player.UserId == 2231268759 then
 	-- Hard cap: this player can never end up above the normal shortest-possible height (0.8x),
 	-- even with Black Pill's own 1.2x stacked on top - their HeightMultiplier is already rolled
 	-- below 0.8 at character creation (see CharacterCreationGui/Script.server.luau), but Black
 	-- Pill composing multiplicatively could otherwise push a value near 0.8 back over it.
-	local cappedHeight = math.min(PlayerData.HeightMultiplier.Value * (hasBlackPill and 1.2 or 1), 0.8)
+	local cappedHeight = math.min(heightMultiplier * (hasBlackPill and 1.2 or 1), 0.8)
 	CharacterScaleModule.scaleR6(Character, cappedHeight)
 else
-	CharacterScaleModule.scaleR6(Character, PlayerData.HeightMultiplier.Value)
+	CharacterScaleModule.scaleR6(Character, heightMultiplier)
 	if hasBlackPill then
 		CharacterScaleModule.scaleR6(Character, 1.2)
 	end
@@ -354,8 +387,11 @@ end
 -- lazy-roll-if-empty convention as FacialMark further down this file), then multiplied by
 -- class/race every spawn via AttractivenessModule (see that module for the full multiplier
 -- tables and the special-cased classes/races).
-if PlayerData.AttractivenessBase.Value == 0 then
-	PlayerData.AttractivenessBase.Value = math.random(10, 20)
+-- Defensive: AttractivenessBase also needs adding to the Studio Setup folder - guard the same
+-- way as HeightMultiplier above so a not-yet-existing field can't abort this script.
+local attractivenessBaseField = PlayerData:FindFirstChild("AttractivenessBase")
+if attractivenessBaseField and attractivenessBaseField.Value == 0 then
+	attractivenessBaseField.Value = math.random(10, 20)
 end
 require(game.ServerScriptService.Modules.AttractivenessModule).compute(Player, PlayerData)
 -- Mogging: every player spawns with this move by default (see ServerScriptService/Modules/

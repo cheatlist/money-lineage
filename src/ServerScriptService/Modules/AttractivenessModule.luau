@@ -93,6 +93,18 @@ local function madrasianRaceMultiplier(player, data)
 end
 
 function module.compute(player, data)
+	-- Defensive: AttractivenessBase/Attractiveness are new PlayerData fields that need adding to
+	-- the Studio Setup folder - compute() is called from many places (spawn, Mogging, both NPC
+	-- gates, SolanBall), so an unguarded .Value read here could break any of them the moment the
+	-- Instance doesn't exist yet, not just the spawn path. Falls back to a neutral base (15, the
+	-- midpoint of the normal 10-20 roll) rather than erroring; doesn't try to persist anything
+	-- back if the field doesn't exist, since there'd be nowhere to write it.
+	local baseField = data:FindFirstChild("AttractivenessBase")
+	local base = baseField and baseField.Value or 15
+	if baseField and base == 0 then
+		base = 15
+	end
+
 	local raceMult
 	if data.Race.Value == "Madrasian" then
 		raceMult = madrasianRaceMultiplier(player, data)
@@ -100,8 +112,11 @@ function module.compute(player, data)
 		raceMult = module.getRaceMultiplier(data)
 	end
 	local classMult = module.getClassMultiplier(data)
-	local result = data.AttractivenessBase.Value * classMult * raceMult
-	data.Attractiveness.Value = result
+	local result = base * classMult * raceMult
+	local resultField = data:FindFirstChild("Attractiveness")
+	if resultField then
+		resultField.Value = result
+	end
 
 	-- Pushes the fresh value to the StarterGui/CurrencyGui Attractiveness label (see
 	-- CurrencyClient.client.luau) every time it's recomputed - spawn, Mogging, low-Attractiveness
@@ -116,7 +131,11 @@ function module.compute(player, data)
 	-- also trigger Rage/Squeamish, via the same MoggingModule.applyMogDebuffs the Tool uses.
 	-- Debounced per-character (LowAttractivenessCD) since compute() can be called repeatedly in
 	-- quick succession (every spawn, plus both sides of every Mogging Tool use).
-	if player and player.Character and result < LOW_ATTRACTIVENESS_THRESHOLD then
+	-- Only runs off a REAL roll (baseField must exist) - the 15 fallback above is a guess, not a
+	-- real stat, and combined with a low race multiplier (Scroom 0.1x, Navaran 0.3x) could easily
+	-- land under the threshold on every single spawn for those races before Setup is updated,
+	-- repeatedly Knocking/killing them off of made-up data.
+	if baseField and player and player.Character and result < LOW_ATTRACTIVENESS_THRESHOLD then
 		local character = player.Character
 		if not character:FindFirstChild("LowAttractivenessCD") then
 			local cd = Instance.new("Accessory")

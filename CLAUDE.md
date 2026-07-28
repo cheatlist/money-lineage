@@ -2390,3 +2390,42 @@ Playful-Stone-effect grant and the "Playful Guy" `FirstName` override, both in
 **Interpretive calls worth flagging**: the exact sub-floor range (`0.5`-`0.79`) is feel-based, not
 spec-derived - the request only established the floor it must stay under (`0.8`) and that it
 should still vary "on a range," not a specific lower bound.
+
+## Fixed: existing characters spawning invisible (2026-07-28)
+
+Root cause: several new `PlayerData` fields added earlier this session (`HeightMultiplier` above
+being the sharpest case) were read with direct, unguarded `.Value` access at spawn. Once the user
+added `HeightMultiplier` to the Studio `Setup` folder, it defaulted to `0` (Roblox's default for a
+freshly-placed `NumberValue`, not `1`) for every existing character - and
+`CharacterScale.scaleR6(Character, 0)` scales every body part to zero size, which is invisible
+with **no error at all**, since it's a mathematically valid (if degenerate) operation, not a
+script fault. This is a materially different failure mode from a missing-field error and took a
+second report to fully track down.
+
+**The fix, `CharacterHandler/init.server.luau`**: `heightMultiplier` now has two layers of
+protection instead of one - (1) a reroll-if-`<=0` check (upgraded from the original `== 0` check
+to also catch negatives) that lazy-rolls a proper value the same way `AttractivenessBase` already
+does, **and** (2) an unconditional final floor (`if heightMultiplier <= 0 then heightMultiplier = 1
+end`) positioned immediately before either `scaleR6` call, independent of whether the reroll above
+actually ran. The second layer exists because the reroll alone didn't resolve the user's repro -
+the exact mechanism was never fully confirmed (a plausible theory: whatever merges the Studio
+`Setup` folder's fields into a *returning* player's already-saved `PlayerData` may run at a
+different point in the load sequence than this script's own check, so the Instance could still
+read `0` here despite the reroll) - rather than chase that ordering issue further, the final floor
+makes it structurally impossible for a zero-or-negative factor to ever reach `scaleR6` from this
+script, regardless of root cause or timing.
+
+**Also fixed while investigating**: `AttractivenessModule.compute`'s low-Attractiveness
+self-trigger (grants Rage/Squeamish, chance of `TerminationModule.trigger`) was still able to fire
+off the module's own `AttractivenessBase`-missing fallback (a guessed neutral `15`) - for
+low-race-multiplier races (Scroom `0.1x`, Navaran `0.3x`) that guess could still land under the
+threshold, repeatedly Knocking/killing those characters on made-up data every spawn. Now gated on
+`baseField` actually existing (a real roll), not just the computed result - see that section above.
+
+**Lesson for future sessions**: a defaulted-but-technically-present Studio value (`0` for a
+`NumberValue`, `""` for a `StringValue`, etc.) is a *silent* failure mode, categorically different
+from and easier to miss than a missing-Instance error - `FindFirstChild` guards catch the latter
+but not the former. Any new field this codebase multiplies, divides, or otherwise uses as a scale
+factor should get an explicit sanity floor/ceiling wherever it's actually consumed, not just an
+existence check, especially anywhere it feeds a visual/physical effect that fails silently (size,
+transparency, position) rather than throwing.

@@ -52,8 +52,11 @@ end)
 -- Attractiveness (2026-07-28): same Get-then-Changed-event pattern as Money/Insight above.
 -- floor()'d for display only - AttractivenessModule.compute keeps the underlying value
 -- unrounded, since Mogging/NPC-gate thresholds compare against the exact computed number.
+-- Defensive: the server-side Get handler now skips any field that doesn't exist yet on
+-- PlayerData (see RequestHandler.server.luau), so .Attractiveness can come back nil until the
+-- Studio Setup folder has this field - fall back to 0 rather than erroring on math.floor(nil).
 local Attractiveness = script.Parent.Attractiveness
-Attractiveness.Value.Text = formatnumber(math.floor(Requests.Get:InvokeServer({"Attractiveness"}).Attractiveness))
+Attractiveness.Value.Text = formatnumber(math.floor(Requests.Get:InvokeServer({"Attractiveness"}).Attractiveness or 0))
 Requests.AttractivenessChanged.OnClientEvent:Connect(function(Number)
 	Attractiveness.Value.Text = formatnumber(math.floor(Number))
 end)

@@ -116,8 +116,18 @@ spawn(function()
 			PlayerData.MinutesSurvived.Value = 0
 			PlayerData.CameoCD.Value = false
 			-- LackEater's daily caps (3 Turnip / 1 Meat, see FoodModule.luau) reset with the day.
-			PlayerData.TurnipsEatenToday.Value = 0
-			PlayerData.MeatEatenToday.Value = 0
+			-- Defensive: these are new PlayerData fields that need adding to the Studio Setup
+			-- folder - an unguarded write here would error and abort this ENTIRE per-minute tick
+			-- (breaking DaysSurvived/CameoCD/MinutesMeditated/workout progress for every player)
+			-- the moment either field doesn't exist yet, not just LackEater's own daily cap.
+			local turnipsField = PlayerData:FindFirstChild("TurnipsEatenToday")
+			if turnipsField then
+				turnipsField.Value = 0
+			end
+			local meatField = PlayerData:FindFirstChild("MeatEatenToday")
+			if meatField then
+				meatField.Value = 0
+			end
 		end
 		toxicity.Value-=1
 		wait(60)

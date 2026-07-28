@@ -282,7 +282,14 @@ Requests.Get.OnServerInvoke = function(plr, key, ...)
 	local Return = {}
 
 	for _, Target in next, TargetValues do
-		Return[Target] = PlayerData[Target].Value
+		-- Defensive: "Attractiveness" is a new PlayerData field that needs adding to the Studio
+		-- Setup folder - every caller of Requests.Get (Money/Insight/Backpack/Weapon/Stat UI, not
+		-- just the Attractiveness label) shares this one loop, so an unguarded read erroring on
+		-- a missing field would break ALL of them for that player, not just this one field.
+		local field = PlayerData:FindFirstChild(Target)
+		if field then
+			Return[Target] = field.Value
+		end
 	end
 
 	return Return

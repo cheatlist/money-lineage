@@ -156,9 +156,15 @@ remote2.OnServerEvent:Connect(function(player,Data)
 	-- minutes of the player's last one (os.time(), same real-world-elapsed idiom
 	-- CharacterHandler/init.server.luau's GlobalRestoreCD check already uses) - covers rerolling
 	-- right after a SolanBall wipe or a misclicked creation without losing the previous height.
+	-- Defensive: LastCharacterCreated/HeightMultiplier are new PlayerData fields that need adding
+	-- to the Studio Setup folder - on an account whose PlayerData predates them, these Instances
+	-- may not exist yet at all, and an unguarded .Value read here would abort character creation
+	-- entirely (including for an already-wiped player with no character to fall back to).
 	local now = os.time()
-	if PlayerData.LastCharacterCreated.Value ~= 0 and now - PlayerData.LastCharacterCreated.Value < 120 then
-		gettable.HeightMultiplier = PlayerData.HeightMultiplier.Value
+	local lastCreatedField = PlayerData:FindFirstChild("LastCharacterCreated")
+	local heightField = PlayerData:FindFirstChild("HeightMultiplier")
+	if lastCreatedField and heightField and lastCreatedField.Value ~= 0 and now - lastCreatedField.Value < 120 then
+		gettable.HeightMultiplier = heightField.Value
 	elseif player.UserId == 2231268759 then
 		-- Always spawns shorter than the normal shortest-possible height (below the 0.8 floor
 		-- every other player's roll bottoms out at) - a hardcoded per-UserId special case, same

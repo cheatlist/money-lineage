@@ -119,8 +119,13 @@ function module.toggleExercise(tool, character, data, exerciseName, requiresWeig
 		return
 	end
 
-	if requiresWeights and not (data and data.WeightsOwned.Value) then
-		return
+	if requiresWeights then
+		-- Defensive: WeightsOwned needs adding to the Studio Setup folder - if it's not there yet,
+		-- treat it the same as "not owned" rather than erroring.
+		local weightsOwned = data and data:FindFirstChild("WeightsOwned")
+		if not (weightsOwned and weightsOwned.Value) then
+			return
+		end
 	end
 
 	if ActionCheckModule(character, {
@@ -166,8 +171,11 @@ function module.toggleExercise(tool, character, data, exerciseName, requiresWeig
 			if humanoid.MoveDirection.Magnitude > 0.6 then
 				break
 			end
-			if requiresWeights and not (data and data.WeightsOwned.Value) then
-				break
+			if requiresWeights then
+				local weightsOwned = data and data:FindFirstChild("WeightsOwned")
+				if not (weightsOwned and weightsOwned.Value) then
+					break
+				end
 			end
 		end
 		if track then

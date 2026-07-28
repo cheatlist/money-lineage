@@ -12109,16 +12109,22 @@ function dialogues.Therapist.v1(p,v)
 	if not data or not p.Character then
 		return
 	end
+	-- Defensive: LastTherapist needs adding to the Studio Setup folder - until then, treat the
+	-- Therapist as always available rather than erroring the whole dialogue.
+	local lastTherapistField = data:FindFirstChild("LastTherapist")
+	local onCooldown = lastTherapistField and lastTherapistField.Value == data.DaysSurvived.Value
 	if v.page == 1 then
-		if data.LastTherapist.Value == data.DaysSurvived.Value then
+		if onCooldown then
 			return dialogues.Therapist.onCooldown
 		end
 		return dialogues.Therapist.p1
 	elseif v.page == 2 then
-		if data.LastTherapist.Value == data.DaysSurvived.Value then
+		if onCooldown then
 			return dialogues.Therapist.onCooldown
 		end
-		data.LastTherapist.Value = data.DaysSurvived.Value
+		if lastTherapistField then
+			lastTherapistField.Value = data.DaysSurvived.Value
+		end
 		if math.random() < 0.9 then
 			local parts = string.split(data.Injuries.Value, ",")
 			local kept = {}
