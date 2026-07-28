@@ -7,6 +7,9 @@
 	server hook and can't be trusted for a stat that grants real combat buffs.
 ]]
 
+local ServerScriptService = game:GetService("ServerScriptService")
+
+local Commands = require(ServerScriptService.Modules.Commands)
 local ActionCheckModule = require(game.ServerScriptService.Modules.ActionCheck)
 local CollectionService = game:GetService("CollectionService")
 
@@ -152,7 +155,6 @@ function module.toggleExercise(tool, character, data, exerciseName, requiresWeig
 	local track
 	if anim then
 		track = humanoid:LoadAnimation(anim)
-		track.Looped = true
 		track:Play()
 	end
 
@@ -210,6 +212,7 @@ function module.tickMinute(character, data)
 	for _, category in ipairs(categories) do
 		local stat = data:FindFirstChild(CATEGORY_STAT[category])
 		if stat and stat.Value < 30 then
+			Commands.Learn(character)
 			stat.Value = math.min(30, stat.Value + 1)
 			changed = true
 		end

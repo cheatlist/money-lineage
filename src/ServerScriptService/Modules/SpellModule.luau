@@ -51,7 +51,7 @@ function module.cast(character,info,data, pathing)
 		return nil
 	end
 	if info.name == "Gate" then
-		if StoryMarker["NoGate"] and StoryMarker["NoGate"] == true then
+		if StoryMarker["NoGate"] and StoryMarker["NoGate"] == true or character:FindFirstChild("NOGATE") then
 			return nil
 		end
 	end
