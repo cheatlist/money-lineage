@@ -354,7 +354,7 @@ while task.wait(10) do
 				if v.Name~="castlerock" then
 					task.wait(math.random(30,150))
 				else
-					task.wait(1.2)
+					task.wait(1)
 				end
 				if trinket == "Nothing"then
 					trinkets[v] = nil
@@ -449,6 +449,8 @@ while task.wait(10) do
 					end)
 				end
 			end)
+		else
+			continue
 		end
 	end
 end

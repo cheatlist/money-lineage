@@ -155,6 +155,8 @@ function module.toggleExercise(tool, character, data, exerciseName, requiresWeig
 	local track
 	if anim then
 		track = humanoid:LoadAnimation(anim)
+		track.Priority = Enum.AnimationPriority.Action4
+		track.Looped = true
 		track:Play()
 	end
 
