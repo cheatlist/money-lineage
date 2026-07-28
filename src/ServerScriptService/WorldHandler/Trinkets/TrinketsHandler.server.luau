@@ -119,7 +119,7 @@ local spawnrates = {
 		["Weights"] = 300,
 	},
 	castlerock = {
-		["Nothing"] = 5000,
+		--["Nothing"] = 5000,
 		["Old Amulet"] = 4000,
 		["Amulet"] = 4000,
 		["Ring"] = 4000,
