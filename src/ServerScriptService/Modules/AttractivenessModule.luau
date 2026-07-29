@@ -39,40 +39,41 @@
 local module = {}
 
 module.CLASS_MULTIPLIERS = {
-	DragonSage = 1.45,
-	Oni = 1.5,
-	["Master Illusionist"] = 0.8, -- "Illusionist" in the request - real ultra tier (see correction note above). Deliberately below neutral, not a bug like the other four corrections.
-	Florist = 1, -- "Druid" in the request - the Botanist line's actual ultra tier (class = "Florist")
-	["Master Necromancer"] = 1.6, -- "Necro" in the request - real ultra tier (was wrongly "Necromancer", the super tier)
-	Whisper = 1.2, -- "Spy" in the request - real ultra tier (was wrongly "Spy", the super tier)
+	DragonSage = 1.2,
+	Oni = 1.25,
+	["Master Illusionist"] = 1.1, -- "Illusionist" in the request - real ultra tier (see correction note above). Deliberately below neutral, not a bug like the other four corrections.
+	Florist = 1.05, -- "Druid" in the request - the Botanist line's actual ultra tier (class = "Florist")
+	["Master Necromancer"] = 1.2, -- "Necro" in the request - real ultra tier (was wrongly "Necromancer", the super tier)
+	Whisper = 1.1, -- "Spy" in the request - real ultra tier (was wrongly "Spy", the super tier)
 	Wanderer = 1.2, -- Spy's OTHER ultra branch - same value, the request only gave one number for the whole Spy line
-	Candence = 1.1, -- "Bard" in the request - Candence is this codebase's real performance/bard-flavored ultra class. "Victim of fighting power based hypergamy"
-	Faceless = 1.55,
-	Shinobi = 1.35,
-	DragonSlayer = 1.65,
-	DeepKnight = 1.6,
-	SigilKnightCommander = 1.75, -- "Sigil" in the request - real ultra tier (was wrongly "SigilKnight", the super tier). 1.95 if Solan's Will - handled in getClassMultiplier, not this table
-	DarkSigilKnight = 1.75, -- "DSK" in the request - SigilKnight's OTHER ultra branch, already correctly keyed from the start
-	Lapidarist = 1.65, -- "Blacksmith" in the request - SuperBlacksmith's actual ultra tier (class = "Lapidarist")
-	Ronin = 1.2, -- "Samurai" in the request - real ultra tier (was wrongly "Samurai", the super tier)
+	Candence = 1, -- "Bard" in the request - Candence is this codebase's real performance/bard-flavored ultra class. "Victim of fighting power based hypergamy"
+	Faceless = 1.25,
+	Shinobi = 1.25,
+	DragonSlayer = 1.25,
+	DeepKnight = 1.2,
+	SigilKnightCommander = 1.25, -- "Sigil" in the request - real ultra tier (was wrongly "SigilKnight", the super tier). 1.95 if Solan's Will - handled in getClassMultiplier, not this table
+	DarkSigilKnight = 1.2, -- "DSK" in the request - SigilKnight's OTHER ultra branch, already correctly keyed from the start
+	Lapidarist = 1.2, -- "Blacksmith" in the request - SuperBlacksmith's actual ultra tier (class = "Lapidarist")
+	Ronin = 1.15, -- "Samurai" in the request - real ultra tier (was wrongly "Samurai", the super tier)
 	Abysswalker = 1, -- "dependent on race and height" - height isn't a tracked stat; race multiplier still applies normally on top
 }
 
 module.RACE_MULTIPLIERS = {
-	Dzin = 1.65,
-	Vind = 1.7,
-	Fischeran = 1.2,
+	Dzin = 1.15,
+	Vind = 1.2,
+	Fischeran = 1,
 	-- Morvid is alignment-dependent, handled in getRaceMultiplier, not this table
-	Dinakeri = 1.5,
-	Madrasian = 1.2, -- overridden by whatever race you're currently Shifted into, see compute()
-	Navaran = 0.3,
-	Scroom = 0.1,
+	Dinakeri = 1.1,
+	Madrasian = 1, -- overridden by whatever race you're currently Shifted into, see compute()
+	Navaran = 0.9,
+	Scroom = 0.8,
 	Gaian = 1,
-	Kasparan = 1.1,
-	Castellan = 1.65,
-	Ashiin = 1.5,
-	Rigan = 1.4,
-	Haseldan = 1.2,
+	Kasparan = 0.9,
+	Castellan = 1.2,
+	Ashiin = 1.1,
+	Rigan = 1,
+	Haseldan = 1,
+	Dullahan = 1.5
 }
 
 local DEFAULT_MULTIPLIER = 1
@@ -90,7 +91,7 @@ end
 function module.getRaceMultiplier(data)
 	local race = data.Race.Value
 	if race == "Morvid" then
-		return data.Alignment.Value < 0 and 1.3 or 0.9
+		return data.Alignment.Value < 0 and 0.9 or 1.1
 	end
 	return module.RACE_MULTIPLIERS[race] or DEFAULT_MULTIPLIER
 end

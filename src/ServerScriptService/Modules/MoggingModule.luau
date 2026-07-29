@@ -18,6 +18,7 @@ local EATING_INJURIES = {"VomitForcer", "LackEater", "AnythingEater"}
 local DEBUFF_DURATION = 900 -- 1 in-game day, matches Health.server.luau's day length (15 min)
 local TERMINATION_CHANCE = 0.15
 local ATTRACTIVENESS_THRESHOLD = 8
+local TERMINATION_THRESHOLD = 10
 local QTE_SCALE = 0.03
 
 local module = {}
@@ -77,16 +78,10 @@ function module.applyMogDebuffs(character, data)
 
 	if math.random() < 0.30 then
 		grantTimedInjury(character, data, "Squeamish", DEBUFF_DURATION)
-		if math.random() < TERMINATION_CHANCE then
-			TerminationModule.trigger(character)
-		end
 	end
 
 	if math.random() < 0.40 then
 		grantTimedInjury(character, data, "Rage", DEBUFF_DURATION)
-		if math.random() < TERMINATION_CHANCE then
-			TerminationModule.trigger(character)
-		end
 	end
 end
 
@@ -99,26 +94,36 @@ function module.resolve(casterCharacter, casterData, casterAttr, targetCharacter
 
 	if diff >= ATTRACTIVENESS_THRESHOLD then
 		module.applyMogDebuffs(targetCharacter, targetData)
-		return "won"
-	elseif diff <= -ATTRACTIVENESS_THRESHOLD then
-		-- Not explicitly described in the request (which only covers "clearly ahead" and
-		-- "comparable") - mogging someone clearly more attractive than you leaving no downside
-		-- read as an unintended gap rather than an intended asymmetry, so this mirrors the
-		-- outright-win branch back onto the caster instead of no-op'ing.
-		module.applyMogDebuffs(casterCharacter, casterData)
-		return "outclassed"
-	else
-		-- The "QTE": no QTE/minigame system exists anywhere in this codebase, and building one
-		-- (client GUI, RemoteEvent round-trip, timing window, its own exploit surface) is a
-		-- separate undertaking - resolved as a weighted instant coin-flip instead, per the user's
-		-- own confirmed direction.
-		local casterWinChance = math.clamp(0.5 + diff * QTE_SCALE, 0.1, 0.9)
-		if math.random() < casterWinChance then
-			module.applyMogDebuffs(targetCharacter, targetData)
-			return "qte_won"
-		else
-			module.applyMogDebuffs(casterCharacter, casterData)
-			return "qte_lost"
+		if diff >= TERMINATION_THRESHOLD then
+			if math.random() < TERMINATION_CHANCE then
+				TerminationModule.trigger(targetCharacter)
+			end
+			return "won"
+		elseif diff <= -ATTRACTIVENESS_THRESHOLD then
+			-- Not explicitly described in the request (which only covers "clearly ahead" and
+			-- "comparable") - mogging someone clearly more attractive than you leaving no downside
+			-- read as an unintended gap rather than an intended asymmetry, so this mirrors the
+			-- outright-win branch back onto the caster instead of no-op'ing.
+			if diff <= -TERMINATION_THRESHOLD then
+				if math.random() < TERMINATION_CHANCE then
+					TerminationModule.trigger(casterCharacter)
+				end
+				module.applyMogDebuffs(casterCharacter, casterData)
+				return "outclassed"
+			else
+				-- The "QTE": no QTE/minigame system exists anywhere in this codebase, and building one
+				-- (client GUI, RemoteEvent round-trip, timing window, its own exploit surface) is a
+				-- separate undertaking - resolved as a weighted instant coin-flip instead, per the user's
+				-- own confirmed direction.
+				local casterWinChance = math.clamp(0.5 + diff * QTE_SCALE, 0.1, 0.9)
+				if math.random() < casterWinChance then
+					module.applyMogDebuffs(targetCharacter, targetData)
+					return "qte_won"
+				else
+					module.applyMogDebuffs(casterCharacter, casterData)
+					return "qte_lost"
+				end
+			end
 		end
 	end
 end

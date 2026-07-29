@@ -77,7 +77,7 @@ local function npcclick(p1,v)
 		-- low-Attractiveness players, so this gate would otherwise make that content
 		-- unreachable for its own target audience.
 		local data = game.ServerStorage.PlayerData:FindFirstChild(p1.Name)
-		if v.Name ~= "SolanBall" and data and data.IsUltra.Value == true and require(game.ServerScriptService.Modules.AttractivenessModule).compute(p1, data) < 30 then
+		if v.Name ~= "SolanBall" and data and data.IsUltra.Value == true and require(game.ServerScriptService.Modules.AttractivenessModule).compute(p1, data) < 15 then
 			return
 		end
 	end
@@ -182,7 +182,7 @@ game.ServerStorage.Requests.DialogueCreate.Event:Connect(function(p1,v)
 	if p2:FindFirstChild("Dialogue")then
 		return
 	end
-	if p2:FindFirstChild("Squeamish") and v ~= "SolanBall" then
+	if p2:FindFirstChild("Squeamish") and v ~= "SolanBall" and v ~= "Therapist" then
 		-- SolanBall is exempt: it's the only way to give up a life or come back to life
 		-- (dialogues.SolanBall.v1), so Squeamish can't be allowed to lock a player out of it.
 		return

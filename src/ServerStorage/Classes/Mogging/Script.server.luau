@@ -14,6 +14,7 @@ local COOLDOWN = 20
 -- Targeting: reuses the exact "find the player my mouse is over" resolution already solved in
 -- RacialAbilities/Shift/Script.server.luau, rather than a new HitDetection-style AOE - Mogging
 -- reads as a targeted social interaction, not an attack.
+local canuse = true
 script.Parent.Activated:Connect(function()
 	local character = script.Parent.Parent
 	local player = game.Players:GetPlayerFromCharacter(character)
@@ -26,12 +27,16 @@ script.Parent.Activated:Connect(function()
 	if character.Cooldowns:FindFirstChild("Mogging") then
 		return
 	end
+	if canuse == false then
+		return
+	end
 
 	local casterData = game.ServerStorage.PlayerData:FindFirstChild(player.Name)
 	if not casterData then
 		return
 	end
-
+	
+	canuse = false
 	local validTarget = nil
 	local mouse = _G.MouseData(player)
 	if mouse.Target and mouse.Target:IsDescendantOf(workspace.Live) and not mouse.Target:IsDescendantOf(character) then
@@ -42,15 +47,18 @@ script.Parent.Activated:Connect(function()
 		end
 	end
 	if not validTarget then
+		canuse = true
 		return
 	end
 	if (validTarget.HumanoidRootPart.Position - character.HumanoidRootPart.Position).Magnitude > RANGE then
+		canuse = true
 		return
 	end
 
 	local targetPlayer = game.Players:GetPlayerFromCharacter(validTarget)
 	local targetData = game.ServerStorage.PlayerData:FindFirstChild(validTarget.Name)
 	if not targetPlayer or not targetData then
+		canuse = true
 		return
 	end
 
@@ -66,4 +74,5 @@ script.Parent.Activated:Connect(function()
 	local targetAttr = AttractivenessModule.compute(targetPlayer, targetData)
 
 	MoggingModule.resolve(character, casterData, casterAttr, validTarget, targetData, targetAttr)
+	canuse = true
 end)
