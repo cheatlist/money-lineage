@@ -2419,6 +2419,81 @@ Turnip/Meat, an AnythingEater player could still eat them normally. Both now rou
 block), so "you cannot eat food" is now actually enforced for every real food item, not just two
 of them.
 
+**Follow-up (2026-07-29): the chat-typed "eat" command replaced with a click button** ("since some
+players dont have access to roblox chat"):
+
+- **`ReplicatedStorage/Info/FoodCategories.luau`** (new): `FOOD_ITEMS`/`POTION_ITEMS`/
+  `ARTIFACT_ITEMS` moved out of `FoodModule.luau` into a shared data module both the server
+  (`FoodModule.eatAnything`, unchanged logic) and the new client button can read, so the button's
+  visibility check can never drift out of sync with what the server will actually allow.
+- **`StarterGui/AnythingEaterGui/`** (new ScreenGui + LocalScript, fully code-built like
+  `AlertGui` - no Studio asset debt for the GUI itself): shows an "Eat &lt;ToolName&gt;" button
+  whenever the local Character has the `"AnythingEater"` marker (the same replicated Accessory
+  `MoggingModule.grantTimedInjury` already creates for the client-side Rage/Squeamish consumers -
+  reused here rather than adding a second marker) AND has a Tool equipped that isn't in
+  `FOOD_ITEMS`/`POTION_ITEMS` (artifacts are NOT filtered out here, since eating a *duplicate*
+  artifact is still valid - the button just may not succeed if the server-side check disagrees,
+  same as clicking any button that turns out not to apply). Clicking fires
+  `Requests.EatEquipped:FireServer()` with **no arguments** - deliberately not sending an item name
+  at all.
+- **`ServerScriptService/RequestHandler.server.luau`** (new `Requests.EatEquipped.OnServerEvent`
+  handler): resolves `Character:FindFirstChildWhichIsA("Tool")` itself - the actual equipped
+  Tool - and calls `FoodModule.eatAnything` with that Tool's own real name. Not trusting a
+  client-supplied item name was a deliberate hardening over the old chat command (which took the
+  typed string directly): a client can't spoof what Tool is really equipped server-side, so this
+  removes even the narrow, probably-already-safe "does a string argument matter" surface the old
+  command had.
+- **`CharacterHandler/init.server.luau`**: the old `if string.lower(msgtable[2])=="eat" then ...
+  end` chat-command branch was deleted outright (not soft-disabled) - fully replaced by the above,
+  no reason to keep a dead code path here.
+- `FoodModule.eatAnything`'s own signature and internal logic (case-insensitive resolution, the
+  food/potion block, the artifact already-own-one gate) are unchanged - only the caller changed,
+  from a chat-parsed string to a server-resolved Tool instance.
+
+**Asset debt**: `ReplicatedStorage.Requests.EatEquipped` (a RemoteEvent) needs creating in Studio,
+same `Requests` folder as every other remote referenced in this doc - confirmed
+`ReplicatedStorage/Requests` is a Studio-only instance tree with no corresponding files in `src/`,
+same situation as `Alert`/`AttractivenessChanged`/etc. The GUI itself needs no Studio assets (fully
+`Instance.new`-built).
+
+**Follow-up (2026-07-29): the 5 mog-related injuries didn't survive death.**
+`PlayerData.Injuries.Value` itself was never the problem - `MoggingModule.grantTimedInjury`'s
+`task.delay(duration, ...)` removal isn't tied to the Character, so the string entry already
+correctly persisted and expired at the right real time regardless of dying. What broke was the
+Character-parented `Accessory` marker `grantTimedInjury` also creates alongside it - the thing
+client-side code (`Sprint()`/`ClimbFunc()` in `CharacterHandler/Input/init.client.luau`) and even
+some server-side checks (`SpellModule.luau`'s own Squeamish gate) actually read, since neither can
+see `ServerStorage.PlayerData` at all. A fresh Character on respawn never got that marker
+recreated, so a player who died while still logically Squeamish/Raging/etc. (per `Injuries.Value`)
+would silently regain Sprint/spellcasting/etc. on respawn even though the injury hadn't actually
+expired yet.
+
+**Fixed in `CharacterHandler/Modules/ApplyInjuries.luau`**, not with a new mechanism - this
+function already re-applies every *other* injury's effect (blind/dizzy/chestgash/heat/Frostbite/
+brokenleg/brokenarm/armless) reactively, since `CharacterHandler/init.server.luau` calls it once at
+spawn AND again on every `PlayerData.Injuries.Changed`. Added a loop over the 5 mog-related names
+using that exact same shape: create the `Accessory` marker if the name is in `Injuries.Value` and
+it's missing, destroy it if the name is gone and it's still present. This means a fresh Character
+gets the marker back immediately (as long as the injury is still active) and the marker still gets
+cleaned up automatically whenever `grantTimedInjury`'s own scheduled removal eventually fires and
+updates `Injuries.Value` - no separate timer needed here, since the existing reactive re-run
+already does that work. Uses `Instance.new("Accessory")` directly (not this file's own `create()`
+helper parameter, which makes a `Folder`) to match `grantTimedInjury`'s marker type exactly.
+
+**Noticed while in this function, not fixed (pre-existing, unrelated to this fix)**:
+`ApplyInjuries.luau` reads `Injuries2 = string.split(PlayerData.Injuries.Value, ",")` (a
+comma-separated split) for every check in this function, but `RequestHandler.server.luau`'s real
+`Injure()` function actually stores `Injuries.Value` as a **JSON-encoded array**
+(`HttpService:JSONEncode(Injuries)`), not a comma-separated string. Splitting a JSON array like
+`["blind","dizzy"]` by comma produces mangled fragments (`'["blind"'`, `'"dizzy"]'`) that would
+never exactly match `table.find(Injuries2, "blind")` - meaning the blind/dizzy/chestgash/etc.
+redisplay-at-spawn checks in this same function may already be broken for any player whose
+`Injuries.Value` was ever written by the real `Injure()` path. This doesn't affect the mog-related
+fix above - `MoggingModule.grantTimedInjury` always appends its own names with a clean leading
+comma (`..= "," .. name`), so as the *last* comma-separated segment they still split out cleanly
+regardless of whatever malformed JSON precedes them - but it's a real, separate, pre-existing bug
+worth a dedicated look if blind/dizzy/etc. ever get reported as "not restoring after death" too.
+
 ## New NPC: Therapist (added 2026-07-28)
 
 Heals all 5 injuries added alongside Mogging (`VomitForcer`/`LackEater`/`AnythingEater`/`Rage`/

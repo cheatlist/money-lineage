@@ -10,71 +10,14 @@ local DAILY_CAPS = {
 	Meat = 1,
 }
 
--- Every real "food" item, added 2026-07-29 alongside the AnythingEater fixes below - Turnip/Meat
--- already went through module.eat (and thus the AnythingEater block), but Pizza/Pork Bun/the
--- Meat-quality-tier family/the 4 crafted Cooked-mushroom foods never did, so an AnythingEater
--- player could still eat plain food as long as it wasn't specifically Turnip or Meat. Matches
--- NonStackableItems.luau's own Meat-family list (a different concern - stacking - but the same
--- real-world item set) plus Pizza/Pork Bun/the cooked mushrooms, none of which are in that list
--- since they don't have the stacking-corruption problem those exclusions exist for.
-local FOOD_ITEMS = {
-	Turnip = true,
-	Meat = true,
-	["Uncooked Meat"] = true,
-	["Delicious Meat"] = true,
-	["Mouth-Watering Meat"] = true,
-	["Savory Meat"] = true,
-	["Tasty Meat"] = true,
-	Vint = true,
-	["Weak Poisonous Meat"] = true,
-	["Mediocre Poisonous Meat"] = true,
-	["Strong Poisonous Meat"] = true,
-	["Fatal Poisonous Meat"] = true,
-	["Hallucination Poisonous Meat"] = true,
-	["Five Demisesous Meat"] = true,
-	Pizza = true,
-	["Pork Bun"] = true,
-	["Cooked Scroom"] = true,
-	["Cooked Glowshroom"] = true,
-	["Cooked Periashroom"] = true,
-	["Cooked Zombie Scroom"] = true,
-}
-
--- Every potion/brewed consumable (the 13 items under ServerStorage/Alchemy/Tools that aren't the
--- generic Ingredient template) - "non food/non potion items should be eatable" excludes these too.
-local POTION_ITEMS = {
-	["Bone Grow"] = true,
-	Creatine = true,
-	["Feather Feet"] = true,
-	["Fire Protection"] = true,
-	["Health Potion"] = true,
-	["Ice Protection"] = true,
-	Kingsbane = true,
-	["Liquid Wisdom"] = true,
-	Lordsbane = true,
-	Preworkout = true,
-	["Silver Sun"] = true,
-	["Switch Witch"] = true,
-	["Tespian Elixir"] = true,
-}
-
--- The 13 single-slot artifacts (see the "New system: Alert popups" section of CLAUDE.md, which
--- already enumerates this exact set for the artifact-conflict alert wiring).
-local ARTIFACT_ITEMS = {
-	["Black Pill"] = true,
-	["Charming Stone"] = true,
-	Exoskeleton = true,
-	["Playful Stone"] = true,
-	["Lannis Amulet"] = true,
-	["Phoenix Feather"] = true,
-	Fairfrozen = true,
-	Nightstone = true,
-	["Philosophers Stone"] = true,
-	["Pocket Watch"] = true,
-	["Unwavering Focus"] = true,
-	["Spider Cloak"] = true,
-	["Howler Friend"] = true,
-}
+-- FOOD_ITEMS/POTION_ITEMS/ARTIFACT_ITEMS moved into ReplicatedStorage/Info/FoodCategories.luau
+-- (2026-07-29) so the AnythingEaterGui client button can read the same categorization (to decide
+-- whether to even show an "Eat" button) without duplicating - and risking drifting from - this
+-- list. See that module for what's in each category and why.
+local FoodCategories = require(game.ReplicatedStorage.Info.FoodCategories)
+local FOOD_ITEMS = FoodCategories.FOOD_ITEMS
+local POTION_ITEMS = FoodCategories.POTION_ITEMS
+local ARTIFACT_ITEMS = FoodCategories.ARTIFACT_ITEMS
 
 local module = {}
 
@@ -118,9 +61,12 @@ function module.eat(character, data, itemName, hungerAmount)
 end
 
 -- AnythingEater: consumes any non-food, non-potion Backpack/Character item for a flat, small
--- hunger amount ("way less than normal food"). Triggered by the "eat <item>" chat command in
--- CharacterHandler, not a per-item Tool script, since retrofitting ~239 Storage items individually
--- is out of scope.
+-- hunger amount ("way less than normal food"). Now triggered by clicking the AnythingEaterGui
+-- "Eat" button (StarterGui/AnythingEaterGui, via Requests.EatEquipped -> RequestHandler.server.luau),
+-- which resolves and passes the player's currently-equipped Tool's name - not a per-item Tool
+-- script, since retrofitting ~239 Storage items individually is out of scope. Previously a typed
+-- "eat <item>" chat command (removed 2026-07-29 - "some players don't have access to Roblox
+-- chat"); this function's own signature/logic didn't need to change for that swap, only the caller.
 --
 -- Fixed 2026-07-29 (the injury "didn't work" - two real bugs found):
 -- 1. Item lookup was an exact-case FindFirstChild - a chat-typed name that didn't match a Tool's

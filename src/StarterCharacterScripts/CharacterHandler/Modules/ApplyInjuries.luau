@@ -82,4 +82,33 @@ return function(Character, Player, PlayerData, Race, Torso, create, CollectionSe
 			Character:FindFirstChild("Left Arm").Transparency = 0
 		end
 	end
+
+	-- Mog-related injuries (added 2026-07-29, fixed): Injuries.Value itself already survives
+	-- death fine (MoggingModule.grantTimedInjury's task.delay-scheduled removal isn't tied to the
+	-- Character), but the Character-parented Accessory marker it ALSO creates - the thing
+	-- client-side code (Sprint()/ClimbFunc() in CharacterHandler/Input/init.client.luau) and some
+	-- server-side checks (SpellModule's own Squeamish gate) actually read, since they can't see
+	-- ServerStorage.PlayerData - was never recreated on a new Character after death. A player who
+	-- died while still logically Squeamish/Rage/etc. would silently lose the marker (and thus the
+	-- effect) on respawn even though the injury hadn't actually expired. Fixed the same reactive
+	-- way every injury above already works: this whole function re-runs on every
+	-- PlayerData.Injuries.Changed (see the call site in CharacterHandler/init.server.luau), so this
+	-- both restores the marker on a fresh Character (as long as Injuries.Value still lists it) and
+	-- removes it automatically once MoggingModule's own scheduled removal fires and updates
+	-- Injuries.Value - no separate timer needed here. Uses Instance.new("Accessory") directly
+	-- (not the create() helper's Folder) to match grantTimedInjury's own marker type exactly.
+	for _, name in ipairs({"Rage", "Squeamish", "VomitForcer", "LackEater", "AnythingEater"}) do
+		if table.find(Injuries2, name) then
+			if not Character:FindFirstChild(name) then
+				local marker = Instance.new("Accessory")
+				marker.Name = name
+				marker.Parent = Character
+			end
+		else
+			local marker = Character:FindFirstChild(name)
+			if marker then
+				marker:Destroy()
+			end
+		end
+	end
 end

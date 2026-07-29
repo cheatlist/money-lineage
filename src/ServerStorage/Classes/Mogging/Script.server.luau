@@ -62,6 +62,9 @@ script.Parent.Activated:Connect(function()
 		return
 	end
 
+	character.HumanoidRootPart.AgilityEmit:Emit(40)
+	validTarget.HumanoidRootPart.AgilityEmit:Emit(40)
+
 	local CD = Instance.new("NumberValue")
 	CD.Name = "Mogging"
 	CD.Value = COOLDOWN

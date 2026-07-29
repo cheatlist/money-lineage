@@ -4015,15 +4015,11 @@ Player.Chatted:Connect(function(Message)
 			end)
 			return
 		end
-		if string.lower(msgtable[2])=="eat" then
-			-- AnythingEater: consumes a non-food Backpack item for minor hunger (see
-			-- ServerScriptService/Modules/FoodModule.luau). Item name is everything after "eat"
-			-- (table.concat rather than msgtable[3] alone) so multi-word item names still work,
-			-- e.g. "eat Health Potion". No-op without the injury or a matching item.
-			local itemName = table.concat(msgtable, " ", 3)
-			require(game.ServerScriptService.Modules.FoodModule).eatAnything(Player, Character, PlayerData, itemName)
-			return
-		end
+		-- The "/e eat <item>" chat command was removed (2026-07-29, by request - "some players
+		-- don't have access to Roblox chat") - AnythingEater is now triggered by clicking the
+		-- AnythingEaterGui "Eat" button (StarterGui/AnythingEaterGui), which fires
+		-- Requests.EatEquipped -> a handler in RequestHandler.server.luau that resolves the
+		-- player's currently-equipped Tool itself, rather than trusting a typed item name.
 		if string.lower(msgtable[2])=="meditate" then
 			spawn(function()
 				local anim = Humanoid:LoadAnimation(game.ServerStorage.NPCAnims.Meditate)

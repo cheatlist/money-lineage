@@ -412,7 +412,27 @@ Requests.BardStreak.OnServerEvent:Connect(function(plr, amount)
 	char.MusicMeter.Value = char.MusicMeter.Value + amount
 
 	wait(4.99)
-	Collection:RemoveTag(char, "MusicStreakCD") 
+	Collection:RemoveTag(char, "MusicStreakCD")
+end)
+
+-- AnythingEater "Eat" button (added 2026-07-29, replaces the old "/e eat <item>" chat command -
+-- "some players don't have access to Roblox chat"): fired by StarterGui/AnythingEaterGui's click
+-- handler with no arguments - the server resolves the player's own currently-equipped Tool itself
+-- rather than trusting any client-supplied item name, so there's nothing here for a client to spoof.
+Requests.EatEquipped.OnServerEvent:Connect(function(Player)
+	local Character = Player.Character
+	if not Character then
+		return
+	end
+	local Data = ServerStorage.PlayerData:FindFirstChild(Player.Name)
+	if not Data then
+		return
+	end
+	local tool = Character:FindFirstChildWhichIsA("Tool")
+	if not tool then
+		return
+	end
+	require(ServerScriptService.Modules.FoodModule).eatAnything(Player, Character, Data, tool.Name)
 end)
 
 ServerStorage.Requests.GetStoryMarker.OnInvoke = function(Player, Marker)
