@@ -26,9 +26,17 @@ local QTE_SCALE = 0.03
 -- codebase's own established practice of flagging tunable numbers rather than deriving them from
 -- a balance spec.
 local MOG_POINTS_PER_ATTRACTIVENESS = 10 -- "starts you out with a higher base mog points... scales linearly"
-local MOG_POINTS_FLOOR = 1 -- never 0, so 0 stays a safe "not yet seeded" sentinel (see seedMogPoints)
+-- Never 0, so 0 stays a safe "not yet seeded" sentinel (see seedMogPoints) - and, as of
+-- 2026-07-29, the hard floor enforcing "players cannot have negative mog points" everywhere
+-- MogPoints.Value gets written (seedMogPoints and transferMogPoints both clamp to this).
+local MOG_POINTS_FLOOR = 1
 local MOG_STEAL_BASE = 5
-local MOG_STEAL_GAP_FACTOR = 0.1 -- "higher mog points difference losing you more points"
+-- Directional (ELO-style) as of 2026-07-29 - "mogging someone lower mogpoints than you should
+-- give less and less, mogging someone higher should do the opposite." Multiplies a SIGNED
+-- (loser's points - winner's points) difference, not the absolute gap the original version used -
+-- see transferMogPoints below for why this generalizes correctly to every resolve() outcome, not
+-- just "the caster mogs someone weaker."
+local MOG_STEAL_DIFF_FACTOR = 0.1
 local MOG_STEAL_MIN = 5
 local MOG_STEAL_MAX = 100
 
@@ -133,7 +141,13 @@ function module.seedMogPoints(data)
 		return
 	end
 	local mogPointsField = data:FindFirstChild("MogPoints")
-	if not mogPointsField or mogPointsField.Value ~= 0 then
+	-- <= 0, not ~= 0 (2026-07-29, "players cannot have negative mog points") - a stray negative
+	-- value (Setup-folder misconfiguration, corrupted save data, etc.) would otherwise permanently
+	-- read as "already seeded" under a strict ~= 0 check and never get corrected, since
+	-- transferMogPoints alone can't recover an already-negative balance (it only ever moves points
+	-- between two accounts, it can't conjure a fresh positive one). This re-seeds anything at or
+	-- below 0, same as a genuinely fresh account.
+	if not mogPointsField or mogPointsField.Value > 0 then
 		return
 	end
 	local attractivenessField = data:FindFirstChild("Attractiveness")
@@ -141,16 +155,24 @@ function module.seedMogPoints(data)
 	mogPointsField.Value = math.max(math.floor(attractiveness * MOG_POINTS_PER_ATTRACTIVENESS), MOG_POINTS_FLOOR)
 end
 
--- Transfers MogPoints from the loser to the winner (added 2026-07-29) - "whenever you mog a
--- target you gain mog points, getting mogged loses you mog points with higher mog points
--- difference losing you more points, while being similarly ranked will not steal as many points."
--- Read literally: the stolen amount scales with the absolute MogPoints gap between the two
--- players (not a win-margin/attractiveness-diff calculation), a flat base amount for near-equal
--- ranks, clamped so a single mog can't swing an absurd amount. Zero-sum - the winner only ever
--- gains exactly what's actually removed from the loser (respecting MOG_POINTS_FLOOR), never
--- points from nowhere. Fires the "you have gained/lost X mog points" alert on both sides and pokes
--- MogRankHandler to resync that player's global Chad rank immediately, rather than waiting for the
--- next periodic resort.
+-- Transfers MogPoints from the loser to the winner (added 2026-07-29, made directional/ELO-style
+-- 2026-07-29). Original version scaled the stolen amount off the ABSOLUTE MogPoints gap
+-- (direction-agnostic - "higher mog points difference losing you more points"). Superseded by a
+-- direct request: "mogging someone who is lower mogpoints than you should give you less and less
+-- mog points, while mogging someone higher should do the opposite" - i.e. beating a WEAKER
+-- opponent should reward less, beating a STRONGER one should reward more, not just "bigger gap in
+-- either direction = bigger reward." Implemented as a SIGNED diff (loserPoints - winnerPoints):
+-- negative when the winner had more points than the loser (mogged someone weaker - pulls the
+-- reward down toward MOG_STEAL_MIN), positive when the winner had fewer (an upset - pulls it up
+-- toward MOG_STEAL_MAX). At equal points this lands on MOG_STEAL_BASE, matching "similarly ranked
+-- will not steal as many points." This generalizes correctly to every resolve() outcome, not just
+-- "the caster mogs someone weaker" - "winner"/"loser" here are whoever actually won the exchange
+-- (which can be the target in the "outclassed"/QTE-loss branches), so the same beat-a-stronger-
+-- opponent-for-more principle applies symmetrically regardless of who initiated the mog.
+-- Zero-sum either way - the winner only ever gains exactly what's actually removed from the loser
+-- (respecting MOG_POINTS_FLOOR), never points from nowhere. Fires the "you have gained/lost X mog
+-- points" alert on both sides and pokes MogRankHandler to resync that player's global Chad rank
+-- immediately, rather than waiting for the next periodic resort.
 local function transferMogPoints(winnerPlayer, winnerData, loserPlayer, loserData)
 	if not winnerData or not loserData then
 		return
@@ -161,15 +183,22 @@ local function transferMogPoints(winnerPlayer, winnerData, loserPlayer, loserDat
 		return
 	end
 
-	local gap = math.abs(winnerPointsField.Value - loserPointsField.Value)
-	local wanted = math.floor(math.clamp(MOG_STEAL_BASE + gap * MOG_STEAL_GAP_FACTOR, MOG_STEAL_MIN, MOG_STEAL_MAX))
+	local diff = loserPointsField.Value - winnerPointsField.Value
+	local wanted = math.floor(math.clamp(MOG_STEAL_BASE + diff * MOG_STEAL_DIFF_FACTOR, MOG_STEAL_MIN, MOG_STEAL_MAX))
 	local stolen = math.min(wanted, math.max(loserPointsField.Value - MOG_POINTS_FLOOR, 0))
 	if stolen <= 0 then
 		return
 	end
 
-	loserPointsField.Value -= stolen
-	winnerPointsField.Value += stolen
+	-- Unconditional final floor (2026-07-29, "players cannot have negative mog points") - the
+	-- `stolen` cap above should already keep this non-negative under normal conditions, but
+	-- assigning through math.max(...,  MOG_POINTS_FLOOR) here guarantees it regardless of how
+	-- either value got here (e.g. a corrupted/negative starting balance from before
+	-- seedMogPoints's own <= 0 recovery check existed) rather than trusting the upstream math
+	-- alone - same "clamp at the point of use, not just at the point of computation" habit as
+	-- this file's height factor and TagHumanoid's MeleeDamageMultiplier elsewhere in this doc.
+	loserPointsField.Value = math.max(loserPointsField.Value - stolen, MOG_POINTS_FLOOR)
+	winnerPointsField.Value = math.max(winnerPointsField.Value + stolen, MOG_POINTS_FLOOR)
 
 	if winnerPlayer then
 		AlertModule.send(winnerPlayer, "You have gained "..stolen.." mog points.")

@@ -1930,11 +1930,10 @@ New `PlayerData.MogPoints` NumberValue (needs adding to the Studio Setup folder,
   character must not reset a player's rank progress.
 - **`transferMogPoints(winnerPlayer, winnerData, loserPlayer, loserData)`** (local, called from
   all three branches of the now-fixed `resolve()`): steals
-  `clamp(5 + gap * 0.1, 5, 100)` points, where `gap = abs(winnerPoints - loserPoints)` - read
-  literally per the request ("higher mog points difference losing you more points, while being
-  similarly ranked will not steal as many points"), not an ELO-style "upset size" calculation.
-  Zero-sum - the winner only ever gains what's actually removed from the loser (respecting the
-  floor of `1`), never points from nowhere. Sends the requested
+  `clamp(5 + diff * 0.1, 5, 100)` points, where `diff = loserPoints - winnerPoints` **(signed, not
+  absolute - see the follow-up right below; this replaced the original `abs(...)` version the same
+  day)**. Zero-sum - the winner only ever gains what's actually removed from the loser (respecting
+  the floor of `1`), never points from nowhere. Sends the requested
   `"You have gained/lost X mog points."` alert to both sides via `AlertModule.send`, and fires
   `MogRankHandler`'s `UpdateMogPoints` BindableEvent for both players so their global Chad rank
   resyncs immediately rather than waiting on a periodic resort. All four constants
@@ -1947,6 +1946,34 @@ New `PlayerData.MogPoints` NumberValue (needs adding to the Studio Setup folder,
   self-trigger (which calls `applyMogDebuffs` directly, not `resolve()`) is untouched and does NOT
   transfer MogPoints - there's no "opponent" in that self-trigger case, and the request only
   described the Mogging-Tool interaction between two players.
+
+**Follow-up (still 2026-07-29): steal formula made directional/ELO-style**, superseding the
+original "absolute gap" reading above. Per direct request - "mogging someone who is lower
+mogpoints than you should give you less and less mog points, while mogging someone higher should
+do the opposite" - `transferMogPoints` now computes a **signed** `diff = loserPoints - winnerPoints`
+instead of `abs(winnerPoints - loserPoints)`: negative when the winner had more points than the
+loser (mogged someone weaker - pulls the reward down toward the `5` floor), positive when the
+winner had fewer (an upset - pulls it up toward the `100` cap). At equal points this still lands on
+the `5` base, so "similarly ranked won't steal as many points" from the original request still
+holds. Read `winner`/`loser` as whoever actually won the *exchange*, not "the caster" specifically -
+in the "outclassed"/QTE-loss branches of `resolve()` the target is the winner, and the same
+beat-a-stronger-opponent-for-more principle was applied there too, symmetrically, rather than only
+to the literal "caster mogs someone" framing the request used.
+
+**Follow-up (still 2026-07-29): explicit guarantee that MogPoints can never go negative.** Both
+writers now clamp defensively rather than relying on the surrounding math alone:
+- `seedMogPoints`'s "already seeded, skip" guard changed from `mogPointsField.Value ~= 0` to
+  `mogPointsField.Value > 0` - a stray negative value (corrupted save, Setup-folder
+  misconfiguration) previously read as "already seeded" under the strict `~= 0` check and could
+  never self-correct, since `transferMogPoints` only ever moves points between two accounts and
+  can't conjure a fresh positive balance for an already-negative one. Now anything at or below 0
+  gets properly re-seeded like a genuinely fresh account.
+- `transferMogPoints` assigns through `math.max(newValue, MOG_POINTS_FLOOR)` on both sides at the
+  point of write, rather than trusting the `stolen` cap computed earlier in the function to have
+  already guaranteed non-negativity - the same "clamp at the point of use, not just at the point of
+  computation" habit this file's height factor and `TagHumanoid`'s `MeleeDamageMultiplier` already
+  use elsewhere in this doc. Under normal conditions the earlier cap already prevented this; this
+  is an unconditional backstop regardless of how either balance got to its current value.
 
 ### Chad rank replaces Grip-based Prestige (`ServerScriptService/WorldHandler/MogRankHandler.server.luau`, new)
 
