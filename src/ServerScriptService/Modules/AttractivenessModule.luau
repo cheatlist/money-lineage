@@ -212,17 +212,23 @@ function module.compute(player, data)
 	-- CurrencyClient.client.luau) every time it's recomputed - spawn, Mogging, low-Attractiveness
 	-- self-trigger, the NPC gates, SolanBall, etc. all call compute(), so centralizing the push
 	-- here means every one of those already keeps the display live for free.
-	-- Defensive FindFirstChild (2026-07-29): AttractivenessChanged is Studio-only asset debt (see
-	-- that section of CLAUDE.md) that may not exist yet - compute() runs unconditionally on EVERY
-	-- spawn from deep inside CharacterHandler/init.server.luau, so indexing a missing RemoteEvent
-	-- via plain dot-notation here (which throws) would have hard-errored that entire script every
-	-- single spawn, silently skipping everything after this call for the rest of that script's
-	-- run - a serious, high-blast-radius risk for something that's just a cosmetic HUD push.
+	-- No longer Studio-asset-debt (2026-07-29): AttractivenessChanged used to be assumed as a
+	-- Studio-placed RemoteEvent and just skipped if missing - but compute() runs unconditionally
+	-- on EVERY spawn from deep inside CharacterHandler/init.server.luau, so plain dot-notation on
+	-- a missing one (which throws) would have hard-errored that entire script every single spawn,
+	-- silently skipping everything after this call for the rest of that script's run. Creating it
+	-- at runtime if missing (a server script creating a RemoteEvent under ReplicatedStorage
+	-- replicates to clients exactly like a Studio-placed one) removes the dependency on manual
+	-- Studio placement entirely, not just the crash risk.
 	if player then
-		local attractivenessChanged = game.ReplicatedStorage.Requests:FindFirstChild("AttractivenessChanged")
-		if attractivenessChanged then
-			attractivenessChanged:FireClient(player, result)
+		local requestsFolder = game.ReplicatedStorage.Requests
+		local attractivenessChanged = requestsFolder:FindFirstChild("AttractivenessChanged")
+		if not attractivenessChanged then
+			attractivenessChanged = Instance.new("RemoteEvent")
+			attractivenessChanged.Name = "AttractivenessChanged"
+			attractivenessChanged.Parent = requestsFolder
 		end
+		attractivenessChanged:FireClient(player, result)
 	end
 
 	-- "You can get/give these injuries upon being ... attractiveness mogged" - having a low

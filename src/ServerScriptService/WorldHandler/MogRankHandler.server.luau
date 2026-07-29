@@ -140,11 +140,22 @@ local function PlayerAdded(Player)
 	task.spawn(UpdatePlayer, Player)
 end
 
--- Fired from MoggingModule.transferMogPoints right after a mog changes someone's MogPoints -
--- needs adding in Studio as a BindableEvent child of this script (same asset-debt situation as
--- RankHandler/MoneyRankHandler's own script.UpdateGrips - a plain Instance under a synced Script,
--- not something a .luau file alone can create).
-script.UpdateMogPoints.Event:Connect(function(Player)
+-- Fired from MoggingModule.transferMogPoints right after a mog changes someone's MogPoints.
+-- No longer Studio-asset-debt (2026-07-29): this used to assume UpdateMogPoints was a Studio-
+-- placed BindableEvent child of this script - but this is a TOP-LEVEL statement that runs BEFORE
+-- Players.PlayerAdded/PlayerRemoving get connected below, so if it wasn't actually placed yet,
+-- indexing it via plain dot-notation (which throws) would have hard-errored this entire script
+-- before those connections ever registered - silently breaking the whole Chad-rank system (join
+-- rank lookups, the "#1 Ranked Chad has arrived" announcement, everything). Creating it here if
+-- missing removes the dependency on manual Studio placement entirely - a BindableEvent only needs
+-- to exist within this one script, so there was never a reason to require it be pre-placed.
+local UpdateMogPointsEvent = script:FindFirstChild("UpdateMogPoints")
+if not UpdateMogPointsEvent then
+	UpdateMogPointsEvent = Instance.new("BindableEvent")
+	UpdateMogPointsEvent.Name = "UpdateMogPoints"
+	UpdateMogPointsEvent.Parent = script
+end
+UpdateMogPointsEvent.Event:Connect(function(Player)
 	UpdatePlayer(Player)
 	UpdateRankData()
 end)

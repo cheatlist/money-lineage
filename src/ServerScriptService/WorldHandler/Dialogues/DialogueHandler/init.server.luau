@@ -61,9 +61,13 @@ local function npcclick(p1,v)
 	if p2:FindFirstChild("Dialogue")then
 		return
 	end
-	if p2:FindFirstChild("Squeamish") and v.Name ~= "SolanBall" then
+	if p2:FindFirstChild("Squeamish") and v.Name ~= "SolanBall" and v.Name ~= "Therapist" then
 		-- SolanBall is exempt: it's the only way to give up a life or come back to life
 		-- (dialogues.SolanBall.v1), so Squeamish can't be allowed to lock a player out of it.
+		-- Therapist is exempt too (added 2026-07-29, fixing an inconsistency found here - the
+		-- DialogueCreate entry point below already exempted Therapist, but this ClickDetector-
+		-- driven entry point never did, so clicking Therapist directly while Squeamish still
+		-- blocked it even though Therapist is the one NPC that heals Squeamish itself).
 		return
 	end
 	-- The general "NPCs ignore low-Attractiveness players" gate that used to live here was

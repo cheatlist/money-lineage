@@ -419,30 +419,33 @@ end)
 -- "some players don't have access to Roblox chat"): fired by StarterGui/AnythingEaterGui's click
 -- handler with no arguments - the server resolves the player's own currently-equipped Tool itself
 -- rather than trusting any client-supplied item name, so there's nothing here for a client to spoof.
--- Defensive FindFirstChild (2026-07-29): EatEquipped is Studio-only asset debt that may not exist
--- yet - this whole file is a top-to-bottom script with dozens of unrelated Requests.X.OnServerEvent
--- handlers registered after this point, and indexing a missing RemoteEvent via plain dot-notation
--- (which throws) at TOP LEVEL would have hard-errored the entire script right here, silently
--- preventing every handler registered below this line from ever being wired up - a serious,
--- high-blast-radius risk that had nothing to do with what actually broke.
+-- No longer Studio-asset-debt (2026-07-29, fixing the actual reason eating still didn't work):
+-- previously assumed EatEquipped was a Studio-placed RemoteEvent and just skipped registering this
+-- handler if it wasn't there yet - but nobody had actually placed it, so the whole feature was a
+-- silent no-op regardless of any server/client logic being correct. A server script creating a
+-- RemoteEvent at runtime and parenting it under ReplicatedStorage replicates to clients exactly
+-- like a Studio-placed one - there was never a need to depend on manual Studio placement here.
 local EatEquippedRequest = Requests:FindFirstChild("EatEquipped")
-if EatEquippedRequest then
-	EatEquippedRequest.OnServerEvent:Connect(function(Player)
-		local Character = Player.Character
-		if not Character then
-			return
-		end
-		local Data = ServerStorage.PlayerData:FindFirstChild(Player.Name)
-		if not Data then
-			return
-		end
-		local tool = Character:FindFirstChildWhichIsA("Tool")
-		if not tool then
-			return
-		end
-		require(ServerScriptService.Modules.FoodModule).eatAnything(Player, Character, Data, tool.Name)
-	end)
+if not EatEquippedRequest then
+	EatEquippedRequest = Instance.new("RemoteEvent")
+	EatEquippedRequest.Name = "EatEquipped"
+	EatEquippedRequest.Parent = Requests
 end
+EatEquippedRequest.OnServerEvent:Connect(function(Player)
+	local Character = Player.Character
+	if not Character then
+		return
+	end
+	local Data = ServerStorage.PlayerData:FindFirstChild(Player.Name)
+	if not Data then
+		return
+	end
+	local tool = Character:FindFirstChildWhichIsA("Tool")
+	if not tool then
+		return
+	end
+	require(ServerScriptService.Modules.FoodModule).eatAnything(Player, Character, Data, tool.Name)
+end)
 
 ServerStorage.Requests.GetStoryMarker.OnInvoke = function(Player, Marker)
 	local PlayerData = ServerStorage.PlayerData:FindFirstChild(Player.Name).Data

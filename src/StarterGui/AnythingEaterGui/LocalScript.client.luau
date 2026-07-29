@@ -17,6 +17,12 @@
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local FoodCategories = require(game.ReplicatedStorage.Info.FoodCategories)
+-- WaitForChild, not a bare dot-index (2026-07-29, fixing the actual reason eating still didn't
+-- work): RequestHandler.server.luau now creates this RemoteEvent at runtime rather than depending
+-- on manual Studio placement, but that's still a separate script racing against this one at game
+-- start - WaitForChild tolerates that ordering instead of erroring if this script happens to run
+-- first.
+local EatEquippedEvent = game.ReplicatedStorage.Requests:WaitForChild("EatEquipped", 10)
 
 local screenGui = script.Parent
 
@@ -69,8 +75,8 @@ local function refresh()
 end
 
 button.MouseButton1Click:Connect(function()
-	if currentTool then
-		game.ReplicatedStorage.Requests.EatEquipped:FireServer()
+	if currentTool and EatEquippedEvent then
+		EatEquippedEvent:FireServer()
 	end
 end)
 
