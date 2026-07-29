@@ -1892,6 +1892,152 @@ Both changes are inside the same `scaleR6(character, factor)` call, so nothing e
 touching - Black Pill's own Tool script and `CharacterHandler/init.server.luau`'s spawn-time
 re-application both already call this function and get the fix automatically.
 
+## New system: Chad rank / MogPoints (added 2026-07-29)
+
+A persistent, cross-server competitive leaderboard layered on top of the existing Mogging Tool
+(see the Mogging/Rage-Squeamish section elsewhere in this doc) - "spawning in with higher
+attractiveness starts you out with a higher base mog points but it scales linearly... whenever you
+mog a target you gain mog points, getting mogged loses you mog points... the mog ranking should
+appear in the leaderboard and replace the current grippoints system, which doesn't work."
+
+**Real bug found and fixed while wiring this in**: `MoggingModule.resolve()`'s "outclassed"
+reversal and its whole weighted-coinflip QTE branch were nested as the `elseif`/`else` of an
+*inner* `if diff >= TERMINATION_THRESHOLD` check, which itself only runs inside the *outer*
+`if diff >= ATTRACTIVENESS_THRESHOLD` block. Since `diff` can't simultaneously be `>= 8` and
+`<= -8`, that `elseif diff <= -ATTRACTIVENESS_THRESHOLD` (and the QTE `else` hanging off the same
+chain) was mathematically unreachable - **mogging had only ever done anything when the caster was
+clearly more attractive (`diff >= 8`) since this module was written; the "outclassed" reversal and
+the entire QTE coin-flip case had never actually fired once, silently.** Found because MogPoints
+needs to transfer on every resolution outcome, not just the one that happened to be reachable -
+flattened into three proper sibling branches (`diff >= ATTRACTIVENESS_THRESHOLD` /
+`diff <= -ATTRACTIVENESS_THRESHOLD` / else) with identical behavior to what each branch's own code
+already said it should do, just actually reachable now.
+
+### MogPoints - seeding and transfer (`ServerScriptService/Modules/MoggingModule.luau`)
+
+New `PlayerData.MogPoints` NumberValue (needs adding to the Studio Setup folder, default `0` - the
+"not yet seeded" sentinel, same lazy-roll convention as `AttractivenessBase`/`HeightMultiplier`).
+
+- **`module.seedMogPoints(data)`**, called once at every spawn from `CharacterHandler/init.server.luau`
+  (right after the existing `AttractivenessModule.compute()` call, so a fresh `Attractiveness`
+  value is already on hand): if `MogPoints.Value == 0`, seeds it to
+  `floor(Attractiveness * 10)`, floored at `1` (never `0`, so the sentinel can never
+  recur from natural gameplay loss - MogPoints reaching a genuine 0 by losing mogs would otherwise
+  incorrectly re-trigger a reseed on next spawn). **Deliberately seeded once ever, not re-rolled
+  per character** - unlike `AttractivenessBase` itself, which the height/attractiveness
+  carry-over rule (see that section above) can leave un-reset - MogPoints is a persistent,
+  account-level competitive stat that only ever changes via mogging duels from here on; a new
+  character must not reset a player's rank progress.
+- **`transferMogPoints(winnerPlayer, winnerData, loserPlayer, loserData)`** (local, called from
+  all three branches of the now-fixed `resolve()`): steals
+  `clamp(5 + gap * 0.1, 5, 100)` points, where `gap = abs(winnerPoints - loserPoints)` - read
+  literally per the request ("higher mog points difference losing you more points, while being
+  similarly ranked will not steal as many points"), not an ELO-style "upset size" calculation.
+  Zero-sum - the winner only ever gains what's actually removed from the loser (respecting the
+  floor of `1`), never points from nowhere. Sends the requested
+  `"You have gained/lost X mog points."` alert to both sides via `AlertModule.send`, and fires
+  `MogRankHandler`'s `UpdateMogPoints` BindableEvent for both players so their global Chad rank
+  resyncs immediately rather than waiting on a periodic resort. All four constants
+  (`MOG_POINTS_PER_ATTRACTIVENESS = 10`, steal base `5`/gap-factor `0.1`/min `5`/max `100`, floor
+  `1`) are feel-based, not spec-derived, per this repo's established practice.
+- `Mogging/Script.server.luau`'s call site now passes both `Player` instances
+  (`MoggingModule.resolve(player, character, casterData, casterAttr, targetPlayer, validTarget,
+  targetData, targetAttr)`) so `transferMogPoints` can alert them directly - `resolve()`'s
+  signature changed accordingly. `AttractivenessModule.compute()`'s own low-Attractiveness
+  self-trigger (which calls `applyMogDebuffs` directly, not `resolve()`) is untouched and does NOT
+  transfer MogPoints - there's no "opponent" in that self-trigger case, and the request only
+  described the Mogging-Tool interaction between two players.
+
+### Chad rank replaces Grip-based Prestige (`ServerScriptService/WorldHandler/MogRankHandler.server.luau`, new)
+
+Reuses the **exact same** `PlayerData.Prestige` / `leaderstats.Prestige` field the existing
+`StarterGui/LeaderboardGui/LeaderboardClient.client.luau` already renders as a `"#N"` prefix next
+to a player's name - confirmed via that client script that it's purely a generic rank-number
+display with no Grip-specific text baked in, so repurposing what feeds `Prestige` server-side was
+enough; **no client/GUI changes were needed** to satisfy "I want the mog ranking to appear in the
+leaderboard."
+
+Mirrors `MoneyRankHandler.server.luau`'s existing OrderedDataStore-rank shape (an
+already-established, presumably-working pattern in this codebase, unlike the Grip one being
+replaced) but:
+- Keyed on `PlayerData.MogPoints.Value` directly rather than a parallel `ServerStorage.RankData`
+  folder counter - MogPoints already lives on `PlayerData` (persisted independently via
+  DataStore2), so there's no separate live counter to keep in sync the way Grips/Money need one.
+- **Paginates up to 250 entries** (`GetSortedAsync` + `AdvanceToNextPageAsync` stitched together),
+  not the 100 Grip/Money rank settle for - "the mog leaderboard should go from 1 to 250," per the
+  request.
+- **No AFK-decay routine** - not requested, and one of the more complex, harder-to-verify parts of
+  the system being replaced; left out rather than risk reproducing whatever made the original
+  "not work."
+- **Explicitly zeroes `Prestige` for any online player who drops out of the top 250** entirely,
+  which the original Grip/Money handlers' own `UpdateRankData` never did (they only ever set a
+  rank for entries actually found in the current sorted page, silently leaving a stale rank number
+  forever once a player fell out of it) - a real staleness bug in the pattern being copied from,
+  fixed here rather than reproduced, since "doesn't work" was the whole reason for this rewrite.
+- **"#1 Ranked Chad ... has arrived to Gaia"**: broadcast via the new `AlertModule.broadcast(text,
+  duration)` (added alongside this - just `module.send` looped over `game.Players:GetPlayers()`,
+  no new RemoteEvent needed) from `PlayerAdded`, only when the just-joined player's freshly-looked-up
+  rank is exactly `1`.
+
+**`RankHandler.server.luau` (the old Grip-rank system) was NOT deleted or fully disabled** - only
+its two `PlayerData.Prestige.Value = ...` assignments (in `UpdateRankData` and `PlayerAdded`) were
+removed, with the rest of the file (the `RankData/<Player>/Grips` NumberValue creation, the
+`UpdateGrips` BindableEvent increment, the `GripRank` OrderedDataStore sync) left completely
+untouched. This was a deliberate, confirmed-necessary choice, not caution for its own sake:
+`GameLoaded/init.server.luau` (an Edict-legitimacy check) and the character-recreation reset flow
+both directly read/write `game.ServerStorage.RankData[Player.Name].Grips.Value` as a bare
+`FindFirstChild`-free index - fully disabling `RankHandler.server.luau` would have stopped that
+Instance from ever being created and thrown a runtime error the first time either of those other
+two files ran, breaking character creation entirely. Grips itself keeps counting and syncing to
+its own (now purely informational) OrderedDataStore; it's only the derived "your rank is N"
+write to `Prestige` that stopped.
+
+**Side effect flagged, then resolved by request**: `GameLoaded/init.server.luau`'s Edict-legitimacy
+check originally read `if data.Prestige.Value <= 5 and data.Prestige.Value > 0 and
+RankData[p.Name].Grips.Value >= 250 then ... AddTag("LegitEdict") ...` - a compound gate mixing
+the new and old systems, since `Prestige`'s meaning changed to Chad rank but the separate raw
+`Grips.Value >= 250` half (a leftover grip-kill requirement from when Prestige was Grip-rank
+itself) wasn't touched. **Follow-up (still 2026-07-29): the `Grips.Value >= 250` clause was removed
+outright**, per direct request ("remove the grip kills requirement") - this gate is now just
+`data.Prestige.Value <= 5 and data.Prestige.Value > 0` (top-5 Chad rank, full stop). Confirmed via
+a repo-wide grep that this was the only place `Prestige.Value` and `Grips.Value` were checked
+together, so no parallel copy needed the same fix.
+
+**Asset debt**: `MogRankHandler.server.luau` needs a Studio-placed `UpdateMogPoints` BindableEvent
+child (same situation as `RankHandler`/`MoneyRankHandler`'s own pre-existing `script.UpdateGrips`
+- a plain Instance under a synced Script, not something a `.luau` file alone can create). One new
+`PlayerData` field, `MogPoints` (NumberValue, default `0`), needs adding to the Studio Setup
+folder, same as every other new `PlayerData` field in this doc.
+
+### "#1 Ranked Chad has gated to ..." (`ServerStorage/Classes/Gate/Activator.luau`)
+
+Checked right after the teleport portal opens (`v66.Prestige.Value == 1`, `v66` being the caster's
+already-resolved PlayerData local): broadcasts `"#1 Ranked Chad <FirstName> <LastName> has gated
+to <location>"` via `AlertModule.broadcast`. Fires for **any** successful teleport, including a
+randomized backcast/miscast destination - from every other player's perspective the #1 Chad still
+visibly gated somewhere, backfired or not. Location label is `lower(u14.Name .. (u15 or ""))` -
+`u14` is the resolved destination `WarpPoints` folder, `u15` the sub-location identifier if the
+cast picked one - built to roughly match the request's own `"desert1"`-style example.
+
+**The 30-second cooldown is a single module-level local (`lastChadGateAnnounce`)**, not a per-player
+one - since `Activator.luau` is required once and shared by every Gate cast from every player, this
+is a genuine server-wide cooldown on the *announcement itself* ("with a 30 second cooldown," as
+worded in the request), completely independent of Gate's own existing per-player `SnapCD` cooldown
+mechanic.
+
+### Interpretive calls worth flagging
+
+The MogPoints seed/steal constants (`*10` scale, steal `5 + gap*0.1` clamped `[5,100]`, floor `1`)
+are feel-based, not spec-derived. Reading the steal formula as "absolute point gap, zero-sum
+transfer" rather than an ELO-style "beating a stronger opponent gains more" curve was a literal
+reading of the request's own wording, not an attempt at a more sophisticated rating system.
+Reusing `Prestige` instead of introducing a new `ChadRank`/`MogPrestige` field name was a
+deliberate low-risk choice - every existing consumer (the `Changed` listener that mirrors it onto
+`leaderstats`, `LeaderboardGui`, `ServerBrowseBeta`'s ranked-player count) keeps working unchanged,
+agnostic to what the number means. Not tested in Studio (no Studio access this session, same
+limitation noted throughout this doc) - the OrderedDataStore pagination and the two BindableEvent-
+dependent asset-debt items above especially need a live check once possible.
+
 ## New: race-based skin color (2026-07-28)
 
 Character skin color was previously read from the *player's own Roblox account avatar*
@@ -2986,3 +3132,175 @@ turn-in bug found this session.
 entry removed independently of this session's own edits (all the Poisonous Meat tiers + Uncooked/
 cooked-quality Meat + Vint remain excluded) - taken as-is, not reverted, since whoever made that
 change presumably has a reason plain Meat doesn't need the same exclusion its poisoned siblings do.
+
+## Gate exempted from Squeamish; low-Attractiveness NPC gate removed (added 2026-07-29)
+
+Two small, unrelated fixes done together, both by direct request.
+
+**Gate is now castable while Squeamish** (`ServerScriptService/Modules/SpellModule.luau`, both
+`module.cast` and `module.castnew`): the `character:FindFirstChild("Squeamish")` early-return in
+each function now carves out `info.name ~= "Gate"`, mirroring this same file's existing pattern of
+Gate-specific exceptions living inline as `info.name == "Gate"` checks (the pre-existing
+`WarLocation`/`NoGate`/Cameo/Abysswalker carve-outs a few lines below, and the `allcast` bypass
+table at the top of the file, which already listed `"Gate"` for a different restriction). Only the
+Squeamish block itself was touched - Gate still goes through the exact same mana-window roll
+(`mana >= info.lowerbound and mana <= info.upperbound`) and its own `Activator.luau`'s separate
+mana-cost deduction (`Mana.Value -= v1.cost`) as everyone else, satisfying the "and charge mana"
+part of the request: this isn't a free/instant cast bypass, just an exemption from Squeamish's
+outright block. Fixed in both `cast`/`castnew` rather than tracking down which one Gate's Tool
+actually calls (gated on a `Rework` child - a Studio-only Instance per this repo's Argon
+`keepUnknowns` situation, not confirmable from `src/` alone) - same defensive-duplication approach
+this file already uses for its other Gate carve-outs.
+
+**NPCs no longer ignore low-Attractiveness players at all** - the generic gate added in the
+Mogging/Attractiveness session (`WorldHandler/Dialogues/DialogueHandler/init.server.luau`, both
+the `npcclick` ClickDetector path and the `DialogueCreate` bindable path) was removed outright, by
+request. **SolanBall ("Voice of Solan," referred to in the request as "the tomeless orb" - its own
+`uglyhaslife`/`uglywiped` dialogue entries literally describe it as "this orb") keeps its unique
+"ugly" dialogue branch and 10% wipe chance unchanged** - confirmed via `dialogues.SolanBall.v1`
+(`ModuleScript.luau` ~13774) that this was never wired through the entry gate being removed: it
+calls `AttractivenessModule.compute` itself and branches on `<= 30` independently, so deleting the
+outer gate has zero effect on it.
+
+**Noticed while removing, not otherwise acted on**: the two gate copies had actually drifted from
+each other before this fix - `npcclick`'s threshold read `< 15` while `DialogueCreate`'s read
+`< 30` (both were documented elsewhere in this file as `< 30`). Moot now that both copies are
+deleted, but flagged in case the same `< 15`/`< 30` mismatch pattern exists anywhere else this
+doc's earlier Attractiveness sections describe.
+
+**Follow-up, same day: the drifted `< 15` value turned out to be the intended bar, not a stray
+copy.** Per direct confirmation ("The bar is now < 15"), `dialogues.SolanBall.v1`'s own "ugly"
+threshold (`ModuleScript.luau` ~13780 - the only Attractiveness-gated NPC check left in the game
+after the general gate above was deleted) was tightened from `attractiveness <= 30` to
+`attractiveness < 15`, so SolanBall's disgusted dialogue and 10% wipe roll now only trigger for
+genuinely very-unattractive players, not the wider "merely below-average" band the `<= 30` value
+covered. Nothing else about that branch (the 10% wipe roll, the `uglyhaslife`/`uglywiped` dialogue
+entries, the `haslife` fallback for everyone else) changed.
+
+## Height/Attractiveness carry over if the previous character never survived a day (added 2026-07-29)
+
+`CharacterCreationGui/Script.server.luau` already had a carry-over rule for `HeightMultiplier`
+(don't reroll if the new character is created within 2 minutes of the last one, `LastCharacterCreated`)
+but `AttractivenessBase` had none at all - it's deliberately never set in the `gettable` reset
+table, so every new character fell through to the Setup folder's 0-sentinel default, which
+`CharacterHandler/init.server.luau`'s lazy-roll then re-rolled fresh on next spawn, every time.
+
+**New rule, by request**: if the just-ended character's `DaysSurvived` (read off the OLD
+`PlayerData` local, captured at the top of this handler before `GotData:Set(gettable)`
+overwrites it) is `< 1` - i.e. it never survived even a full in-game day - the new character
+carries over **both** `HeightMultiplier` and `AttractivenessBase` from the old one instead of
+rerolling. Height's existing 2-minute-reuse condition is untouched and now sits alongside this one
+as an alternative trigger (`reuseWindow or survivedLessThanADay`); Attractiveness only gets the new
+DaysSurvived condition, not the 2-minute one, since only DaysSurvived was asked for there - an
+Attractiveness carry-over via "recreated quickly" wasn't part of this request, so it wasn't added.
+
+**Interpretive calls worth flagging**: `< 1` was read literally ("before reaching dayssurvived is
+atleast 1"), effectively `DaysSurvived == 0` for what's presumably an integer day-counter. Both
+carry-over checks are defensive the same way the pre-existing HeightMultiplier logic is - a
+missing `DaysSurvived`/`AttractivenessBase` Instance (Setup-folder-pending account) just skips that
+branch rather than erroring, falling back to the normal fresh-roll behavior.
+
+## Attractiveness: workout bonus (added 2026-07-29)
+
+`ServerScriptService/Modules/AttractivenessModule.luau`'s `compute()` gained a flat bonus: +1
+Attractiveness per 10 total points invested across all 5 `WorkoutModule` categories
+(`WorkoutChestPoints`/`WorkoutLegsPoints`/`WorkoutCorePoints`/`WorkoutShouldersPoints`/
+`WorkoutBackPoints`, see the Workout/Hypertrophy system elsewhere in this doc), summed and
+`math.floor`ed then capped at 15. Added AFTER the existing `base * classMult * raceMult *
+heightFactor` multiplication, not folded into `base` itself - "give 1 attractiveness" reads as a
+flat point per the request, not something meant to be re-scaled by class/race/height on top. The
+15 cap matches the request's own stated ceiling exactly - mathematically already the max given 5
+categories * WorkoutModule's existing 30-point-per-category cap / 10 = 15 - but an explicit
+`math.min` clamp is kept anyway rather than relying on that arithmetic coincidence never changing
+(same defensive-clamp habit as this file's height factor and `TagHumanoid`'s
+`MeleeDamageMultiplier` elsewhere in this doc). Missing workout stat fields (Setup-folder-pending,
+same situation as every other new `PlayerData` field in this doc) are skipped rather than erroring,
+same as every other defensive `FindFirstChild` guard in this function - a brand-new character with
+no workout stats yet just gets a 0 bonus, not a broken compute() call.
+
+## Attractiveness: Black Pill / Vampire flat bonuses (added 2026-07-29)
+
+Two more flat additive bonuses in `AttractivenessModule.compute()`, same shape as the workout
+bonus just above (added after the `base * classMult * raceMult * heightFactor` multiplication, not
+folded into it) - `+5` for holding the Black Pill artifact (`data.Artifact.Value == "Black Pill"`,
+the same check every other Black Pill interaction in this codebase already uses) and `+5`
+independently for having Vampirism (`data.Vampire.Value == true`). Both stack with each other and
+with the workout bonus - a Black Pill vampire who's also worked out gets all three bonuses at once.
+
+**Vampire deliberately checks `PlayerData.Vampire.Value`, not the `"Vampirism"` CollectionService
+tag** that most other Vampirism-related code in this codebase reads
+(`CollectionService:HasTag(Character, "Vampirism")` - used all over `TagHumanoid`, `Health.server.luau`,
+the various Meat/food scripts, etc.). Traced this via `CharacterHandler/Modules/Vampirism.luau`:
+the tag is just a replicated-to-the-client marker that gets added/removed in response to
+`PlayerData.Vampire.Value` changing - `PlayerData.Vampire` is the actual server-truth field
+everything else derives from. Reading the tag here would repeat the exact spoofable-Character-marker
+mistake this session's earlier security-fix pass (see that section elsewhere in this doc) already
+went through and fixed for a dozen other passives - so this was written against `PlayerData`
+directly from the start rather than needing a second fix later.
+
+## Attractiveness recomputes in real time on Black Pill use and Race change (added 2026-07-29)
+
+Before this, `AttractivenessModule.compute()` only ran at spawn (plus a handful of other call
+sites - Mogging, the NPC gates, SolanBall) - picking up Black Pill mid-life or changing race
+mid-life wouldn't reflect in Attractiveness (or the HUD label) until the next respawn.
+
+**Black Pill** (`ServerStorage/Storage/Black Pill/Script.server.luau`): added a `compute()` call
+immediately after `data.Artifact.Value = "Black Pill"` is set in the Tool's `Activated` handler -
+its own `+5` Attractiveness bonus (see the Black Pill/Vampire bonuses section above) now shows up
+the instant the artifact is used, not on next spawn. Scoped to exactly what was asked ("when black
+pill is used") - the separate Isaiah "Reset Artifact" dialogue flow, which sets `Artifact.Value`
+back to `"None"`, was NOT touched, so losing the bonus via a reset still waits for next spawn;
+flagged here rather than silently expanded to cover it too.
+
+**Race changes** (`ServerScriptService/Modules/AttractivenessModule.luau`, new
+`module.watchForRaceChanges(player, data)`): `PlayerData.Race.Value` is reassigned from roughly two
+dozen scattered call sites across this codebase (race-change items - Seraph Essence, Phoenix
+Feather, Azael Horn, Scroom Key, Amulet of the White King - dialogue race-change branches,
+`RaceReroll`, `ProductHandler`'s Robux race reroll, admin commands, etc.) - confirmed via a
+repo-wide grep for `Race.Value =` assignments. Rather than add a `compute()` call at each of those
+sites individually (invasive, and easy to miss one), a single `data.Race.Changed:Connect(...)`
+listener recomputes Attractiveness whenever Race changes from any source, present or future. Wired
+up once per spawn in `CharacterHandler/init.server.luau`, right next to the existing spawn-time
+`compute()` call. **Guarded against stacking**: since this runs once per character spawn but
+`PlayerData` (unlike `Character`) persists across respawns, connecting unconditionally every spawn
+would pile up one listener per life lived, each redundantly recomputing and re-firing the HUD
+update on every future race change - guarded with a one-time `AttractivenessRaceWatcher` Folder
+marker parented to `PlayerData` itself, checked before connecting.
+
+## Attractiveness: widened base roll, added a height factor (added 2026-07-29)
+
+Two changes to `ServerScriptService/Modules/AttractivenessModule.luau` and the base-roll site in
+`StarterCharacterScripts/CharacterHandler/init.server.luau` (~line 432), both per direct request.
+
+**`AttractivenessBase`'s roll widened from a flat `math.random(10,20)` to a weighted 10-30 band**:
+a `math.random(1,100)` roll picks the band (`<=20` → `math.random(10,15)`, `<=95` →
+`math.random(16,24)`, else → `math.random(25,30)`), giving the requested 20%/75%/5% odds exactly
+(20 numbers / 75 numbers / 5 numbers out of 100). `compute()`'s own missing-field fallback (used
+only when `AttractivenessBase` doesn't exist in the Studio Setup folder yet) moved from `15` to
+`20` to track the new range's dominant-band midpoint, same reasoning as the original fallback's
+choice of `15` as the old range's midpoint.
+
+**New height factor, multiplied into `compute()`'s result alongside class/race**: reads
+`PlayerData.HeightMultiplier` (the existing 0.8x-1.1x per-character roll, see the height-roll
+section elsewhere in this doc) directly as a multiplier - literally per the request's "height
+multiplier (negative or positive) = attractiveness multiplier," so a HeightMultiplier below 1x
+proportionally lowers Attractiveness and above 1x proportionally raises it, with no extra step for
+the plain in-between case. Two additional bands stack a further multiplier on top of that raw
+value: below `0.95x` gets an extra `0.925x` penalty (short characters lose out by more than
+proportional height alone would suggest); above `1.05x` gets an extra `1.02x` bonus. Between
+`0.95x` and `1.05x` inclusive, the raw HeightMultiplier applies with no further adjustment - this
+also covers the request's explicit "doesn't apply to 1x+ height" carve-out for the penalty band,
+since anything at or above 1x is already outside the below-0.95x penalty range. Guarded the same
+defensive way as `AttractivenessBase`'s own missing-field case: a missing or `<=0` (stale
+not-yet-rolled sentinel) `HeightMultiplier` falls back to a neutral `1` (no effect) rather than
+erroring or crushing the whole result to 0.
+
+**Interpretive calls worth flagging**: the height factor reads `PlayerData.HeightMultiplier`
+directly, not the Black-Pill-inclusive "total scale factor" `CharacterHandler/init.server.luau`
+computes for the actual visual body scale - Black Pill's own `1.2x` wasn't mentioned as an
+Attractiveness input in the request, so it's excluded here; revisit if Black Pill holders are also
+meant to get an Attractiveness bump from it. The exact `0.925x`/`1.02x` extra-band multipliers and
+the `0.95x`/`1.05x` band edges are exactly what was given in the request, not independently chosen.
+Not yet tested in Studio (no Studio access this session, same limitation noted throughout this
+doc) - worth confirming the weighted roll's actual distribution and the height-factor math against
+a few live characters once possible.

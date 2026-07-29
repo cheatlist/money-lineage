@@ -6,7 +6,6 @@ local RankDataFolder = game:GetService("ServerStorage").RankData
 local currentSorted:Pages = RankDataStore:GetSortedAsync(false,100)
 local lastSort = tick()
 
-local PlayerData = game.ServerStorage.PlayerData
 local Players = game:GetService("Players")
 local Requests = game.ServerStorage:WaitForChild("Requests")
 local embedOverrides = {
@@ -103,11 +102,15 @@ local function UpdateRankData()
 					if not RankFolder then
 						return
 					end
-					if RankFolder.Grips.Value<50 then
-						PlayerData[Player.Name].Prestige.Value = 0
-						return
-					end
-					PlayerData[Player.Name].Prestige.Value = Rank
+					-- PlayerData.Prestige.Value is no longer written here (2026-07-29) - "Chad rank"
+					-- (MogRankHandler.server.luau, keyed on MogPoints) now owns Prestige, replacing
+					-- this Grip-based rank system per direct request ("replace the current
+					-- grippoints system, which doesn't work"). The Grips NumberValue/RankData
+					-- folder itself is left completely alone below and above (PlayerAdded, Grips
+					-- increment, GripRank OrderedDataStore sync) - other files (GameLoaded's Edict
+					-- legitimacy check, the character-recreation reset) still read/write
+					-- RankData.<Player>.Grips directly and would error if that Instance stopped
+					-- being created.
 				end)
 				if not success then
 					warn(fail)
@@ -165,7 +168,6 @@ local function PlayerAdded(Player)
 	--AfkCheck()
 	local Grips = RankDataStore:GetAsync(Player.UserId)
 	currentSorted = getSorted()
-	local Top100 = currentSorted:GetCurrentPage()
 
 	local PlayerFolder = Instance.new("Accessory")
 	PlayerFolder.Name = Player.Name
@@ -181,13 +183,9 @@ local function PlayerAdded(Player)
 	GripVal.Value = Grips
 	GripVal.Parent = PlayerFolder
 
-	for rank,data in pairs(Top100)do
-		local PlayerKey = tonumber(data.key)
-		if PlayerKey == Player.UserId and GripVal.Value > 50 then
-			game.ServerStorage.PlayerData:WaitForChild(Player.Name,500).Prestige.Value = rank
-			break
-		end
-	end
+	-- Prestige.Value is no longer set here (2026-07-29) - see the matching note in
+	-- UpdateRankData above. Grips itself is still tallied and pushed to the GripRank
+	-- OrderedDataStore below, just no longer used to derive a displayed rank.
 	task.spawn(function()
 		task.wait(500)
 		if Player and Player.Parent then

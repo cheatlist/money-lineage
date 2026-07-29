@@ -156,6 +156,11 @@ remote2.OnServerEvent:Connect(function(player,Data)
 	-- minutes of the player's last one (os.time(), same real-world-elapsed idiom
 	-- CharacterHandler/init.server.luau's GlobalRestoreCD check already uses) - covers rerolling
 	-- right after a SolanBall wipe or a misclicked creation without losing the previous height.
+	-- Also not rerolled (2026-07-29, by request) if the just-ended character never survived a
+	-- full day (DaysSurvived < 1, read from the OLD PlayerData local above before GotData:Set
+	-- overwrites it) - a character that dies almost immediately isn't a "fresh start" worth
+	-- rerolling appearance stats over. AttractivenessBase gets the same DaysSurvived-based
+	-- carry-over just below.
 	-- Defensive: LastCharacterCreated/HeightMultiplier are new PlayerData fields that need adding
 	-- to the Studio Setup folder - on an account whose PlayerData predates them, these Instances
 	-- may not exist yet at all, and an unguarded .Value read here would abort character creation
@@ -163,7 +168,10 @@ remote2.OnServerEvent:Connect(function(player,Data)
 	local now = os.time()
 	local lastCreatedField = PlayerData:FindFirstChild("LastCharacterCreated")
 	local heightField = PlayerData:FindFirstChild("HeightMultiplier")
-	if lastCreatedField and heightField and lastCreatedField.Value ~= 0 and now - lastCreatedField.Value < 120 then
+	local daysSurvivedField = PlayerData:FindFirstChild("DaysSurvived")
+	local survivedLessThanADay = daysSurvivedField and daysSurvivedField.Value < 1
+	local reuseWindow = lastCreatedField and lastCreatedField.Value ~= 0 and now - lastCreatedField.Value < 120
+	if heightField and (reuseWindow or survivedLessThanADay) then
 		gettable.HeightMultiplier = heightField.Value
 	elseif player.UserId == 2231268759 then
 		-- Always spawns shorter than the normal shortest-possible height (below the 0.8 floor
@@ -176,6 +184,18 @@ remote2.OnServerEvent:Connect(function(player,Data)
 		gettable.HeightMultiplier = 0.8 + math.random() * 0.3
 	end
 	gettable.LastCharacterCreated = now
+
+	-- AttractivenessBase (2026-07-29): normally always rerolled - it's deliberately never set in
+	-- `gettable`, so it falls back to the Setup folder's 0-sentinel default, which
+	-- CharacterHandler/init.server.luau's lazy-roll re-rolls fresh on next spawn. Carried over
+	-- instead, same as HeightMultiplier's DaysSurvived carve-out above, if the just-ended
+	-- character never survived a full day - deliberately NOT also given HeightMultiplier's
+	-- 2-minute-reuse-window carry-over, since only the DaysSurvived condition was asked for here.
+	local attractivenessBaseField = PlayerData:FindFirstChild("AttractivenessBase")
+	if attractivenessBaseField and attractivenessBaseField.Value > 0 and survivedLessThanADay then
+		gettable.AttractivenessBase = attractivenessBaseField.Value
+	end
+
 	GotData:Set(gettable)
 	Player:LoadCharacter()
 	local v12 = Instance.new("NumberValue");

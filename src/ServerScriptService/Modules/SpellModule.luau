@@ -40,7 +40,10 @@ function module.cast(character,info,data, pathing)
 	if character:FindFirstChild("SpellBlocking")or character:FindFirstChild("CurseBlocking")then
 		return nil
 	end
-	if character:FindFirstChild("Squeamish")then
+	-- Gate is exempt from the Squeamish spellcasting lock (by request) - everything else about
+	-- the cast is untouched, so Gate still goes through the normal mana-window check/charge below
+	-- and Activator.luau's own mana-cost deduction, just isn't blocked outright by Squeamish.
+	if character:FindFirstChild("Squeamish") and info.name ~= "Gate" then
 		return nil
 	end
 	if cdcheck(character,info.name)then
@@ -188,7 +191,9 @@ function module.castnew(character, info, data, pathing)
 	if character:FindFirstChild("SpellBlocking")or character:FindFirstChild("CurseBlocking")then
 		return nil
 	end
-	if character:FindFirstChild("Squeamish")then
+	-- Gate is exempt from the Squeamish spellcasting lock (by request) - see the matching note in
+	-- module.cast above.
+	if character:FindFirstChild("Squeamish") and info.name ~= "Gate" then
 		return nil
 	end
 	if info.name == "Gate" and game.Lighting.WarLocation.Value ~= "" then

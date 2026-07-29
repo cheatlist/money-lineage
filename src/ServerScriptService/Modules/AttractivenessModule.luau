@@ -1,11 +1,42 @@
 --[[
-	Attractiveness = PlayerData.AttractivenessBase (a random 10-20, rolled once ever - see the
-	lazy "0 sentinel means not yet rolled" check in CharacterHandler/init.server.luau, same
-	convention already used there for FacialMark) multiplied by a class multiplier and a race
-	multiplier. Recomputed at every spawn into PlayerData.Attractiveness (a cached/display value,
-	not the source of truth - call module.compute again any time a fresh read is needed, e.g.
-	after a class change mid-life, since nothing currently hooks Attractiveness recomputation into
-	every possible class/race-changing event).
+	Attractiveness = PlayerData.AttractivenessBase (a weighted 10-30 roll, rolled once ever - see
+	the lazy "0 sentinel means not yet rolled" check in CharacterHandler/init.server.luau, same
+	convention already used there for FacialMark) multiplied by a class multiplier, a race
+	multiplier, and a height factor (see below), then flat bonuses (workout, Black Pill, Vampire -
+	see below) are added on top. Recomputed at every spawn into PlayerData.Attractiveness (a
+	cached/display value, not the source of truth - call module.compute again any time a fresh
+	read is needed, e.g. after a class change mid-life, since nothing currently hooks
+	Attractiveness recomputation into every possible class/race-changing event).
+
+	Workout bonus (added 2026-07-29): +1 flat Attractiveness point per 10 total points invested
+	across all 5 WorkoutModule categories (Chest/Legs/Core/Shoulders/Back), capped at 15 (the
+	natural max given 5 categories * 30-point cap each / 10). Added after all the multipliers,
+	not before, per the request's literal "give 1 attractiveness" - a flat point, not something
+	meant to be re-scaled by class/race/height too.
+
+	Black Pill / Vampire bonuses (added 2026-07-29): +5 flat Attractiveness each, independently
+	stacking with each other and with the workout bonus - same "flat, added after the multipliers"
+	shape, per the request's literal "flat 5 attractiveness". Black Pill checks
+	PlayerData.Artifact.Value, same as every other Black Pill check in this codebase. Vampire
+	checks PlayerData.Vampire.Value directly (the real, non-replicated source of truth behind the
+	"Vampirism" CollectionService Character tag - see CharacterHandler/Modules/Vampirism.luau) -
+	not the tag itself, matching this codebase's established "check PlayerData, not a replicated
+	Character/Backpack marker" convention from the spoofable-passives security fix elsewhere in
+	this doc.
+
+	Height factor (added 2026-07-29): PlayerData.HeightMultiplier (the 0.8x-1.1x roll from
+	character creation, see CharacterCreationGui/Script.server.luau) is used directly as a
+	multiplier here, per the request's literal "height multiplier = attractiveness multiplier" -
+	below 1x reads as a negative contribution (shrinks the result), above 1x as positive (grows
+	it). Two extra bands stack a further multiplier on top of the raw HeightMultiplier: below
+	0.95x gets an additional 0.925x penalty (short characters lose out by more than their height
+	multiplier alone would suggest); above 1.05x gets an additional 1.02x bonus. Between 0.95x and
+	1.05x inclusive (and at/above 1x per the request's "doesn't apply to 1x+" carve-out for the
+	penalty band), the raw HeightMultiplier applies with no further adjustment. Deliberately reads
+	PlayerData.HeightMultiplier directly, not the Black-Pill-inclusive "total scale factor"
+	CharacterHandler/init.server.luau computes for the actual body-scale visual - Black Pill's own
+	1.2x wasn't mentioned as an Attractiveness input, so it's excluded here; flag if that should
+	also count.
 
 	Every multiplier below is exactly what was requested; unlisted classes/races fall back to a
 	neutral 1x rather than erroring. "Druid"/"Bard"/"Blacksmith" in the request were flavor names
@@ -118,14 +149,51 @@ function module.compute(player, data)
 	-- Defensive: AttractivenessBase/Attractiveness are new PlayerData fields that need adding to
 	-- the Studio Setup folder - compute() is called from many places (spawn, Mogging, both NPC
 	-- gates, SolanBall), so an unguarded .Value read here could break any of them the moment the
-	-- Instance doesn't exist yet, not just the spawn path. Falls back to a neutral base (15, the
-	-- midpoint of the normal 10-20 roll) rather than erroring; doesn't try to persist anything
-	-- back if the field doesn't exist, since there'd be nowhere to write it.
+	-- Instance doesn't exist yet, not just the spawn path. Falls back to a neutral base (20, the
+	-- midpoint of the 10-30 roll's dominant 75%-weighted 16-24 band) rather than erroring; doesn't
+	-- try to persist anything back if the field doesn't exist, since there'd be nowhere to write it.
 	local baseField = data:FindFirstChild("AttractivenessBase")
-	local base = baseField and baseField.Value or 15
+	local base = baseField and baseField.Value or 20
 	if baseField and base == 0 then
-		base = 15
+		base = 20
 	end
+
+	-- Height factor (see header comment for the full band breakdown).
+	local heightField = data:FindFirstChild("HeightMultiplier")
+	local heightMultiplier = (heightField and heightField.Value > 0) and heightField.Value or 1
+	local heightFactor = heightMultiplier
+	if heightMultiplier < 0.95 then
+		heightFactor = heightMultiplier * 0.925
+	elseif heightMultiplier > 1.05 then
+		heightFactor = heightMultiplier * 1.02
+	end
+
+	-- Workout bonus (added 2026-07-29): +1 Attractiveness per 10 total points invested across all
+	-- 5 WorkoutModule categories (Chest/Legs/Core/Shoulders/Back), added as a flat point AFTER the
+	-- base*class*race*height multiplication rather than folded into `base` - "give 1 attractiveness"
+	-- reads as a flat point, not something meant to be re-scaled by the other multipliers too.
+	-- Capped at 15 to match the request's own stated ceiling - already the natural max given 5
+	-- categories * WorkoutModule's 30-point-per-category cap / 10 = 15, but an explicit clamp is
+	-- kept anyway rather than relying on that arithmetic never changing elsewhere.
+	local workoutStatNames = {"WorkoutChestPoints","WorkoutLegsPoints","WorkoutCorePoints","WorkoutShouldersPoints","WorkoutBackPoints"}
+	local totalWorkoutPoints = 0
+	for _, statName in ipairs(workoutStatNames) do
+		local stat = data:FindFirstChild(statName)
+		if stat then
+			totalWorkoutPoints += stat.Value
+		end
+	end
+	local workoutBonus = math.min(math.floor(totalWorkoutPoints / 10), 15)
+
+	-- Black Pill / Vampire flat bonuses (added 2026-07-29): +5 Attractiveness each, stacking with
+	-- each other and with the workout bonus above - same "flat, added after the multipliers"
+	-- shape, per the request's literal "flat 5 attractiveness". Vampire is checked via
+	-- PlayerData.Vampire.Value - the real server-truth backing the replicated "Vampirism"
+	-- CollectionService Character tag (see CharacterHandler/Modules/Vampirism.luau), not the tag
+	-- itself, matching this session's own "check PlayerData, not a replicated Character/Backpack
+	-- marker" convention from the earlier spoofable-passives security fix.
+	local blackPillBonus = data.Artifact.Value == "Black Pill" and 5 or 0
+	local vampireBonus = data.Vampire.Value == true and 5 or 0
 
 	local raceMult
 	if data.Race.Value == "Madrasian" then
@@ -134,7 +202,7 @@ function module.compute(player, data)
 		raceMult = module.getRaceMultiplier(data)
 	end
 	local classMult = module.getClassMultiplier(data)
-	local result = base * classMult * raceMult
+	local result = base * classMult * raceMult * heightFactor + workoutBonus + blackPillBonus + vampireBonus
 	local resultField = data:FindFirstChild("Attractiveness")
 	if resultField then
 		resultField.Value = result
@@ -169,6 +237,29 @@ function module.compute(player, data)
 	end
 
 	return result
+end
+
+-- Real-time recompute on Race change (added 2026-07-29, by request): PlayerData.Race.Value is
+-- reassigned from roughly two dozen call sites across this codebase (race-change items like
+-- Seraph Essence/Phoenix Feather/Azael Horn/Scroom Key, dialogue race-change branches, RaceReroll,
+-- ProductHandler's Robux race reroll, admin commands, etc.) - adding a compute() call at every one
+-- of those sites individually would be both invasive and easy to miss one of. A single
+-- Race.Changed listener here covers every current and future race-change site for free.
+-- Guarded with a marker parented to PlayerData itself (which persists across respawns, unlike
+-- Character) so calling this once per spawn - same as every other spawn-time hook in
+-- CharacterHandler/init.server.luau - doesn't stack a second (third, fourth, ...) listener on top
+-- of ones from earlier lives; each stacked listener would otherwise recompute and re-fire the
+-- client HUD update redundantly for every race change from then on.
+function module.watchForRaceChanges(player, data)
+	if data:FindFirstChild("AttractivenessRaceWatcher") then
+		return
+	end
+	local marker = Instance.new("Folder")
+	marker.Name = "AttractivenessRaceWatcher"
+	marker.Parent = data
+	data.Race.Changed:Connect(function()
+		module.compute(player, data)
+	end)
 end
 
 return module

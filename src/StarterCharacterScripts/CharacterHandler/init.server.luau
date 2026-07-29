@@ -423,17 +423,34 @@ require(game.ServerScriptService.Modules.WorkoutModule).applyHypertrophyBoosts(C
 if not Player.Backpack:FindFirstChild("Termination") and not Character:FindFirstChild("Termination") then
 	game.ServerStorage.Classes.Termination:Clone().Parent = Player.Backpack
 end
--- Attractiveness: base is a random 10-20 rolled once ever (0 sentinel = "not yet rolled", same
--- lazy-roll-if-empty convention as FacialMark further down this file), then multiplied by
--- class/race every spawn via AttractivenessModule (see that module for the full multiplier
--- tables and the special-cased classes/races).
+-- Attractiveness: base is now a weighted 10-30 roll (0 sentinel = "not yet rolled", same
+-- lazy-roll-if-empty convention as FacialMark further down this file), widened 2026-07-29 from
+-- the original flat 10-20 - <=15 lands 20% of the time, 16-24 lands 75% of the time, >=25 lands
+-- 5% of the time - then multiplied by class/race/height every spawn via AttractivenessModule
+-- (see that module for the full multiplier tables and the special-cased classes/races).
 -- Defensive: AttractivenessBase also needs adding to the Studio Setup folder - guard the same
 -- way as HeightMultiplier above so a not-yet-existing field can't abort this script.
 local attractivenessBaseField = PlayerData:FindFirstChild("AttractivenessBase")
 if attractivenessBaseField and attractivenessBaseField.Value == 0 then
-	attractivenessBaseField.Value = math.random(10, 20)
+	local attractivenessRoll = math.random(1, 100)
+	if attractivenessRoll <= 20 then
+		attractivenessBaseField.Value = math.random(10, 15)
+	elseif attractivenessRoll <= 95 then
+		attractivenessBaseField.Value = math.random(16, 24)
+	else
+		attractivenessBaseField.Value = math.random(25, 30)
+	end
 end
-require(game.ServerScriptService.Modules.AttractivenessModule).compute(Player, PlayerData)
+local AttractivenessModule = require(game.ServerScriptService.Modules.AttractivenessModule)
+AttractivenessModule.compute(Player, PlayerData)
+-- Recomputes Attractiveness in real time whenever Race changes, not just at next spawn (2026-07-29,
+-- by request) - see AttractivenessModule.watchForRaceChanges for why this is one listener rather
+-- than a compute() call at every race-change site.
+AttractivenessModule.watchForRaceChanges(Player, PlayerData)
+-- MogPoints / Chad rank (added 2026-07-29): seeds PlayerData.MogPoints once ever, off the
+-- Attractiveness value just computed above - see MoggingModule.seedMogPoints for why this is a
+-- one-time seed rather than a per-spawn reroll.
+require(game.ServerScriptService.Modules.MoggingModule).seedMogPoints(PlayerData)
 -- Mogging: every player spawns with this move by default (see ServerScriptService/Modules/
 -- MoggingModule.luau), same guarded-clone pattern as Termination/the workout Tools above.
 if not Player.Backpack:FindFirstChild("Mogging") and not Character:FindFirstChild("Mogging") then

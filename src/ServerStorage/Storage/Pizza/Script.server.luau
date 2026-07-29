@@ -11,6 +11,9 @@ script.Parent.Activated:Connect(function(plr, char)
 	end
 	wait(0.175)
 	script.Parent.Handle.Sound:Play()
+	task.delay(1.218, function()
+		script.Parent.Handle.Sound:Stop()
+	end)
 
 	char.Stomach.Value += 50
 	u3.RemoveFromInventory(game.Players:GetPlayerFromCharacter(char),"Pizza",0.65)

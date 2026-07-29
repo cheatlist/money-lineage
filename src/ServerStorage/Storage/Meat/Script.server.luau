@@ -49,13 +49,17 @@ script.Parent.Activated:Connect(function()
 		p1.Humanoid:LoadAnimation(script.Parent.Animation):Play()
 		wait(0.175)
 		script.Parent.Handle.Sound:Play()
-		game.Debris:AddItem(script.Parent,0.65)
+		task.delay(1.218, function()
+			script.Parent.Handle.Sound:Stop()
+		end)
+		canuse = true
 	else
 		canuse = false
 		u3.RemoveFromInventory(game.Players:GetPlayerFromCharacter(p1),"Meat")
 		p1.Humanoid:LoadAnimation(script.Parent.Animation):Play()
 		wait(0.175)
 		script.Parent.Handle.Sound:Play()
+		canuse = true
 
 		local poisonseverity = script.Parent.PoisonAmount.Value
 		local symptomps = {}
@@ -77,6 +81,5 @@ script.Parent.Activated:Connect(function()
 			symp.Parent = p1
 			game.Debris:AddItem(symp, 180)
 		end
-		game.Debris:AddItem(script.Parent,0.65)
 	end
 end)

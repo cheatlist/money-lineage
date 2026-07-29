@@ -53,6 +53,10 @@ script.Parent.Activated:Connect(function()
 		return
 	end
 	data.Artifact.Value = "Black Pill"
+	-- Recompute Attractiveness immediately (2026-07-29, by request) rather than waiting for the
+	-- next spawn - Black Pill's own +5 Attractiveness bonus (AttractivenessModule.compute) would
+	-- otherwise only show up after a respawn.
+	require(game.ServerScriptService.Modules.AttractivenessModule).compute(p2, data)
 	local v1 = Instance.new("Accessory")
 	v1.Name = "Black Pill"
 	v1.Parent = p1.Artifacts

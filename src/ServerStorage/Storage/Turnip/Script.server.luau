@@ -37,4 +37,8 @@ Tool.Activated:Connect(function()
 	p1.Humanoid:LoadAnimation(Tool.Animation):Play()
 	wait(0.175)
 	Tool.Handle.Sound:Play()
+	task.delay(1.218, function()
+		Tool.Handle.Sound:Stop()
+	end)
+	canuse = true
 end)

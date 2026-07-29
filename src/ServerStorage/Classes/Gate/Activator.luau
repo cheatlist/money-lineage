@@ -25,6 +25,10 @@ local u6 = {
 	["Ice Dragon"] = true
 };
 local u7 = require(game.ReplicatedStorage.Modules.VectorMaths);
+-- Module-level (not per-player) so this is a true server-wide 30s cooldown shared across every
+-- Gate cast by every player, matching "a 30 second cooldown" on the announcement itself, not a
+-- new per-player Gate cooldown (2026-07-29, "#1 Ranked Chad has gated to..." announcement).
+local lastChadGateAnnounce = 0
 
 function v1.Activate(p1, p2, p3, p4)
 end;
@@ -215,6 +219,22 @@ function v3.Activate(p7, p8, p9, p10, p11)
 			Scale = Vector3.new(1, 0.01, 1)
 		}):Play()
 		v99:Play()
+		-- "#1 Ranked Chad has gated to <location>" server-wide announcement (added 2026-07-29,
+		-- by request). v66.Prestige.Value is the Chad/Mog rank (see MogRankHandler.server.luau -
+		-- Prestige used to be Grip-rank, now replaced). Fires for any successful teleport,
+		-- including a randomized backcast destination - from an observer's perspective the #1
+		-- Chad still visibly gated somewhere. Location label built from u14 (the destination
+		-- WarpPoints folder) and u15 (the sub-location, if any) to roughly match the
+		-- "desert1"-style example given in the request.
+		if v66.Prestige.Value == 1 and os.time() - lastChadGateAnnounce >= 30 then
+			lastChadGateAnnounce = os.time()
+			local locationLabel = string.lower(u14.Name .. (u15 and tostring(u15) or ""))
+			local chadFirstName = v66.FirstName.Value
+			local chadLastName = v66.LastName.Value
+			task.spawn(function()
+				require(game.ServerScriptService.Modules.AlertModule).broadcast("#1 Ranked Chad "..chadFirstName.." "..chadLastName.." has gated to "..locationLabel)
+			end)
+		end
 		local v100 = Instance.new("Folder", p8)
 		v100.Name = "NoFall"
 		game.Debris:AddItem(v100, 5)

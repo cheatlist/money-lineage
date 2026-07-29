@@ -73,6 +73,6 @@ script.Parent.Activated:Connect(function()
 	local casterAttr = AttractivenessModule.compute(player, casterData)
 	local targetAttr = AttractivenessModule.compute(targetPlayer, targetData)
 
-	MoggingModule.resolve(character, casterData, casterAttr, validTarget, targetData, targetAttr)
+	MoggingModule.resolve(player, character, casterData, casterAttr, targetPlayer, validTarget, targetData, targetAttr)
 	canuse = true
 end)

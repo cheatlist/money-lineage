@@ -1396,44 +1396,17 @@ local dialogues = {
 		},
 		startedp2 = {
 			speaker = "As'endo",
-			msg = "{Ah, the fire of determination burns brightly within you. As a Madrasian, no face you wear is truly your own - yet none of them are lies either. Your journey begins with Vessimer. They hold the key to your first trial.}",
-			choices = {"Where can he be found?"},
+			msg = "{Ah, the fire of determination burns brightly within you. As a Madrasian, no face you wear is truly your own - yet none of them are lies either. Let us see if you truly understand that.}",
+			choices = {"I'm ready."},
 			endchoice = "...",
 		},
 		startedp3 = {
 			speaker = "As'endo",
-			msg = "{Oh, don't get ahead of yourself, there is a reason that it's called a Trial. Remember, as a Madrasian, you carry the strength of our kind. Go now, and let the masks guide your way.}",
-			choices = {"I will not fail"},
-			endchoice = "...",
+			msg = "{Wrong answer, and the right one, both at once - that's the trick of it. A Madrasian who ascends doesn't stop wearing masks, they just stop losing themselves under them. Prove you understand: hold every face you've worn, and still answer to your own name.}",
+			choices = {"I accept."},
+			endchoice = "Not yet.",
 		},
-		notyetvessimer = {
-			speaker = "As'endo",
-			msg = "{Vessimer has not yet seen your true face beneath the mask. Go now - there is nothing more I can offer until they have.}",
-			endchoice = "...",
-		},
-		cameback = {
-			speaker = "As'endo",
-			msg = "{You're back. What have you learned?}",
-			choices = {"You tricked me"},
-			endchoice = "...",
-		},
-		cameback2 = {
-			speaker = "As'endo",
-			msg = "{Did I? It seems to me that you got exactly what you wanted.}",
-			choices = {"What!?"},
-			endchoice = "...",
-		},
-		cameback3 = {
-			speaker = "As'endo",
-			msg = "{The Obelisk Network is a piece of technology that us shapeshifters can take advantage of to gain Immense power. You coming here, got exactly what you wanted.}",
-			choices = {"..."},
-		},
-		cameback4 = {
-			speaker = "As'endo",
-			msg = "{Say, don't you want to ascend?}",
-			choices = {"I don't have any other choice"},
-		},
-		cameback5 = {
+		insightoffer = {
 			speaker = "As'endo",
 			msg = "{Very well then! I will need some of your knowledge though. (20 insight)}",
 			choices = {"Let's do it"},
@@ -1496,44 +1469,17 @@ local dialogues = {
 		},
 		startedp2 = {
 			speaker = "As'endo",
-			msg = "{Ah, the fire of determination burns brightly within you. As a Dzin, you already feel the world breathing around you - but feeling it and truly waking to it are different things. Your journey begins with Ilventhe. They hold the key to your first trial.}",
-			choices = {"Where can he be found?"},
+			msg = "{Ah, the fire of determination burns brightly within you. As a Dzin, you already feel the world breathing around you - but feeling it and truly waking to it are different things. Let us see if you truly understand that.}",
+			choices = {"I'm ready."},
 			endchoice = "...",
 		},
 		startedp3 = {
 			speaker = "As'endo",
-			msg = "{Oh, don't get ahead of yourself, there is a reason that it's called a Trial. Remember, as a Dzin, you carry the strength of our kind. Go now, and let the pulse guide your way.}",
-			choices = {"I will not fail"},
-			endchoice = "...",
+			msg = "{Wrong answer, and the right one, both at once - that's the trick of it. The world doesn't stop pulsing just because you've noticed it beating. Prove you understand: hold every heartbeat around you, and still know which one is yours.}",
+			choices = {"I accept."},
+			endchoice = "Not yet.",
 		},
-		notyetilventhe = {
-			speaker = "As'endo",
-			msg = "{Ilventhe has not yet felt you wake. Go now - there is nothing more I can offer until they have.}",
-			endchoice = "...",
-		},
-		cameback = {
-			speaker = "As'endo",
-			msg = "{You're back. What have you learned?}",
-			choices = {"You tricked me"},
-			endchoice = "...",
-		},
-		cameback2 = {
-			speaker = "As'endo",
-			msg = "{Did I? It seems to me that you got exactly what you wanted.}",
-			choices = {"What!?"},
-			endchoice = "...",
-		},
-		cameback3 = {
-			speaker = "As'endo",
-			msg = "{The Obelisk Network is a piece of technology that us Dzin can take advantage of to gain Immense power. You coming here, got exactly what you wanted.}",
-			choices = {"..."},
-		},
-		cameback4 = {
-			speaker = "As'endo",
-			msg = "{Say, don't you want to ascend?}",
-			choices = {"I don't have any other choice"},
-		},
-		cameback5 = {
+		insightoffer = {
 			speaker = "As'endo",
 			msg = "{Very well then! I will need some of your knowledge though. (20 insight)}",
 			choices = {"Let's do it"},
@@ -1746,44 +1692,17 @@ local dialogues = {
 		},
 		startedp2 = {
 			speaker = "As'endo",
-			msg = "{Ah, the fire of determination burns brightly within you. As a Morvid, you already scatter and reform at will - ascension just means the flock never truly leaves you. Your journey begins with Corvax. They hold the key to your first trial.}",
-			choices = {"Where can he be found?"},
+			msg = "{Ah, the fire of determination burns brightly within you. As a Morvid, you already scatter and reform at will - ascension just means the flock never truly leaves you. Let us see if you truly understand that.}",
+			choices = {"I'm ready."},
 			endchoice = "...",
 		},
 		startedp3 = {
 			speaker = "As'endo",
-			msg = "{Oh, don't get ahead of yourself, there is a reason that it's called a Trial. Remember, as a Morvid, you carry the strength of our kind. Go now, and let the wings guide your way.}",
-			choices = {"I will not fail"},
-			endchoice = "...",
+			msg = "{Wrong answer, and the right one, both at once - that's the trick of it. A Morvid who ascends doesn't stop scattering, they just stop losing themselves in the flock. Prove you understand: fly apart in a hundred directions, and still land as one bird.}",
+			choices = {"I accept."},
+			endchoice = "Not yet.",
 		},
-		notyetcorvax = {
-			speaker = "As'endo",
-			msg = "{Corvax has not yet seen you scatter. Go now - there is nothing more I can offer until they have.}",
-			endchoice = "...",
-		},
-		cameback = {
-			speaker = "As'endo",
-			msg = "{You're back. What have you learned?}",
-			choices = {"You tricked me"},
-			endchoice = "...",
-		},
-		cameback2 = {
-			speaker = "As'endo",
-			msg = "{Did I? It seems to me that you got exactly what you wanted.}",
-			choices = {"What!?"},
-			endchoice = "...",
-		},
-		cameback3 = {
-			speaker = "As'endo",
-			msg = "{The Obelisk Network is a piece of technology that us Morvid can take advantage of to gain Immense power. You coming here, got exactly what you wanted.}",
-			choices = {"..."},
-		},
-		cameback4 = {
-			speaker = "As'endo",
-			msg = "{Say, don't you want to ascend?}",
-			choices = {"I don't have any other choice"},
-		},
-		cameback5 = {
+		insightoffer = {
 			speaker = "As'endo",
 			msg = "{Very well then! I will need some of your knowledge though. (20 insight)}",
 			choices = {"Let's do it"},
@@ -1870,44 +1789,17 @@ local dialogues = {
 		},
 		startedp2 = {
 			speaker = "As'endo",
-			msg = "{Ah, the fire of determination burns brightly within you. As an Ashiin, your fists already move faster than most eyes can follow - ascension just teaches the rest of you to lie as well as your hands do. Your journey begins with Doyen. They hold the key to your first trial.}",
-			choices = {"Where can he be found?"},
+			msg = "{Ah, the fire of determination burns brightly within you. As an Ashiin, your fists already move faster than most eyes can follow - ascension just teaches the rest of you to lie as well as your hands do. Let us see if you truly understand that.}",
+			choices = {"I'm ready."},
 			endchoice = "...",
 		},
 		startedp3 = {
 			speaker = "As'endo",
-			msg = "{Oh, don't get ahead of yourself, there is a reason that it's called a Trial. Remember, as an Ashiin, you carry the strength of our kind. Go now, and let your fists guide your way.}",
-			choices = {"I will not fail"},
-			endchoice = "...",
+			msg = "{Wrong answer, and the right one, both at once - that's the trick of it. An Ashiin who ascends doesn't just hit faster, they make their opponent flinch at nothing at all. Prove you understand: make me believe you, even when you're lying.}",
+			choices = {"I accept."},
+			endchoice = "Not yet.",
 		},
-		notyetdoyen = {
-			speaker = "As'endo",
-			msg = "{Doyen has not yet seen your hands move. Go now - there is nothing more I can offer until they have.}",
-			endchoice = "...",
-		},
-		cameback = {
-			speaker = "As'endo",
-			msg = "{You're back. What have you learned?}",
-			choices = {"You tricked me"},
-			endchoice = "...",
-		},
-		cameback2 = {
-			speaker = "As'endo",
-			msg = "{Did I? It seems to me that you got exactly what you wanted.}",
-			choices = {"What!?"},
-			endchoice = "...",
-		},
-		cameback3 = {
-			speaker = "As'endo",
-			msg = "{The Obelisk Network is a piece of technology that us Ashiin can take advantage of to gain Immense power. You coming here, got exactly what you wanted.}",
-			choices = {"..."},
-		},
-		cameback4 = {
-			speaker = "As'endo",
-			msg = "{Say, don't you want to ascend?}",
-			choices = {"I don't have any other choice"},
-		},
-		cameback5 = {
+		insightoffer = {
 			speaker = "As'endo",
 			msg = "{Very well then! I will need some of your knowledge though. (20 insight)}",
 			choices = {"Let's do it"},
@@ -12325,51 +12217,21 @@ local AscensionQuests = {
 			end
 			if not StoryMarker["Ascension"] or (#StoryMarker["Ascension"] == 0 and not StoryMarker["Ascension"]["Madrasian"]) then
 				return dialogues["As'endoMadrasian"].startedp1
-			elseif StoryMarker["Ascension"]["Madrasian"] == "Started" then
-				return dialogues["As'endoMadrasian"].notyetvessimer
-			elseif StoryMarker["Ascension"]["Madrasian"] == "VessimerDone" then
-				return dialogues["As'endoMadrasian"].cameback
 			elseif StoryMarker["Ascension"]["Madrasian"] == "Finished" then
 				return dialogues["As'endoMadrasian"].camebackinsight
+			else
+				return dialogues["As'endoMadrasian"].insightoffer
 			end
 		elseif v.choice == "I'm seeking the Ascencion Trial" then
 			return dialogues["As'endoMadrasian"].startedp2
-		elseif v.choice == "Where can he be found?" then
+		elseif v.choice == "I'm ready." then
 			return dialogues["As'endoMadrasian"].startedp3
-		elseif v.choice == "I will not fail" then
+		elseif v.choice == "I accept." then
 			StoryMarker["Ascension"] = {}
 			StoryMarker["Ascension"]["Madrasian"] = "Started"
-			StoryMarker["Ascension"]["NoAs'endo"] = true
+			StoryMarker["Ascension"]["NoAs'endo"] = false
 			data.StoryMarker.Value = HS:JSONEncode(StoryMarker)
-			local spawns = game.ServerStorage.SpawnPoints[data.SpawnPoint.Value]:GetChildren()
-			local tpcf = spawns[math.random(1,#spawns)].CFrame
-			local a = Instance.new("Folder", p.Character)
-			a.Name = "TPSafe"
-			p.Character.HumanoidRootPart.CFrame = tpcf
-			task.delay(0.1,function()
-				create("Knocked",2,p.Character)
-			end)
-			task.delay(2, function()
-				a:Destroy()
-			end)
-			return dialogues["As'endo"].started
-		elseif v.choice == "You tricked me" then
-			return dialogues["As'endoMadrasian"].cameback2
-		elseif v.choice == "What!?" then
-			return dialogues["As'endoMadrasian"].cameback3
-		elseif v.choice == "..." then
-			return dialogues["As'endoMadrasian"].cameback4
-		elseif v.choice == "I don't have any other choice" then
-			if GlobalQuests["Ascensions"] and GlobalQuests["Ascensions"]["Madrasian"] == true then
-				StoryMarker["Ascension"] = {}
-				StoryMarker["Ascension"]["NoAs'endo"] = true
-				data.Ascended.Value = true
-				commands.RacialAbilities(p)
-				data.StoryMarker.Value = HS:JSONEncode(StoryMarker)
-				commands.Learn(p)
-				return dialogues["As'endoMadrasian"].ascended
-			end
-			return dialogues["As'endoMadrasian"].cameback5
+			return dialogues["As'endoMadrasian"].insightoffer
 		elseif v.choice == "Let's do it" then
 			if commands.ChangeInsight(p,data, -20) then
 				StoryMarker["Ascension"] = {}
@@ -12411,51 +12273,21 @@ local AscensionQuests = {
 			end
 			if not StoryMarker["Ascension"] or (#StoryMarker["Ascension"] == 0 and not StoryMarker["Ascension"]["Dzin"]) then
 				return dialogues["As'endoDzin"].startedp1
-			elseif StoryMarker["Ascension"]["Dzin"] == "Started" then
-				return dialogues["As'endoDzin"].notyetilventhe
-			elseif StoryMarker["Ascension"]["Dzin"] == "IlventheDone" then
-				return dialogues["As'endoDzin"].cameback
 			elseif StoryMarker["Ascension"]["Dzin"] == "Finished" then
 				return dialogues["As'endoDzin"].camebackinsight
+			else
+				return dialogues["As'endoDzin"].insightoffer
 			end
 		elseif v.choice == "I'm seeking the Ascencion Trial" then
 			return dialogues["As'endoDzin"].startedp2
-		elseif v.choice == "Where can he be found?" then
+		elseif v.choice == "I'm ready." then
 			return dialogues["As'endoDzin"].startedp3
-		elseif v.choice == "I will not fail" then
+		elseif v.choice == "I accept." then
 			StoryMarker["Ascension"] = {}
 			StoryMarker["Ascension"]["Dzin"] = "Started"
-			StoryMarker["Ascension"]["NoAs'endo"] = true
+			StoryMarker["Ascension"]["NoAs'endo"] = false
 			data.StoryMarker.Value = HS:JSONEncode(StoryMarker)
-			local spawns = game.ServerStorage.SpawnPoints[data.SpawnPoint.Value]:GetChildren()
-			local tpcf = spawns[math.random(1,#spawns)].CFrame
-			local a = Instance.new("Folder", p.Character)
-			a.Name = "TPSafe"
-			p.Character.HumanoidRootPart.CFrame = tpcf
-			task.delay(0.1,function()
-				create("Knocked",2,p.Character)
-			end)
-			task.delay(2, function()
-				a:Destroy()
-			end)
-			return dialogues["As'endo"].started
-		elseif v.choice == "You tricked me" then
-			return dialogues["As'endoDzin"].cameback2
-		elseif v.choice == "What!?" then
-			return dialogues["As'endoDzin"].cameback3
-		elseif v.choice == "..." then
-			return dialogues["As'endoDzin"].cameback4
-		elseif v.choice == "I don't have any other choice" then
-			if GlobalQuests["Ascensions"] and GlobalQuests["Ascensions"]["Dzin"] == true then
-				StoryMarker["Ascension"] = {}
-				StoryMarker["Ascension"]["NoAs'endo"] = true
-				data.Ascended.Value = true
-				commands.RacialAbilities(p)
-				data.StoryMarker.Value = HS:JSONEncode(StoryMarker)
-				commands.Learn(p)
-				return dialogues["As'endoDzin"].ascended
-			end
-			return dialogues["As'endoDzin"].cameback5
+			return dialogues["As'endoDzin"].insightoffer
 		elseif v.choice == "Let's do it" then
 			if commands.ChangeInsight(p,data, -20) then
 				StoryMarker["Ascension"] = {}
@@ -12669,51 +12501,21 @@ local AscensionQuests = {
 			end
 			if not StoryMarker["Ascension"] or (#StoryMarker["Ascension"] == 0 and not StoryMarker["Ascension"]["Morvid"]) then
 				return dialogues["As'endoMorvid"].startedp1
-			elseif StoryMarker["Ascension"]["Morvid"] == "Started" then
-				return dialogues["As'endoMorvid"].notyetcorvax
-			elseif StoryMarker["Ascension"]["Morvid"] == "CorvaxDone" then
-				return dialogues["As'endoMorvid"].cameback
 			elseif StoryMarker["Ascension"]["Morvid"] == "Finished" then
 				return dialogues["As'endoMorvid"].camebackinsight
+			else
+				return dialogues["As'endoMorvid"].insightoffer
 			end
 		elseif v.choice == "I'm seeking the Ascencion Trial" then
 			return dialogues["As'endoMorvid"].startedp2
-		elseif v.choice == "Where can he be found?" then
+		elseif v.choice == "I'm ready." then
 			return dialogues["As'endoMorvid"].startedp3
-		elseif v.choice == "I will not fail" then
+		elseif v.choice == "I accept." then
 			StoryMarker["Ascension"] = {}
 			StoryMarker["Ascension"]["Morvid"] = "Started"
-			StoryMarker["Ascension"]["NoAs'endo"] = true
+			StoryMarker["Ascension"]["NoAs'endo"] = false
 			data.StoryMarker.Value = HS:JSONEncode(StoryMarker)
-			local spawns = game.ServerStorage.SpawnPoints[data.SpawnPoint.Value]:GetChildren()
-			local tpcf = spawns[math.random(1,#spawns)].CFrame
-			local a = Instance.new("Folder", p.Character)
-			a.Name = "TPSafe"
-			p.Character.HumanoidRootPart.CFrame = tpcf
-			task.delay(0.1,function()
-				create("Knocked",2,p.Character)
-			end)
-			task.delay(2, function()
-				a:Destroy()
-			end)
-			return dialogues["As'endo"].started
-		elseif v.choice == "You tricked me" then
-			return dialogues["As'endoMorvid"].cameback2
-		elseif v.choice == "What!?" then
-			return dialogues["As'endoMorvid"].cameback3
-		elseif v.choice == "..." then
-			return dialogues["As'endoMorvid"].cameback4
-		elseif v.choice == "I don't have any other choice" then
-			if GlobalQuests["Ascensions"] and GlobalQuests["Ascensions"]["Morvid"] == true then
-				StoryMarker["Ascension"] = {}
-				StoryMarker["Ascension"]["NoAs'endo"] = true
-				data.Ascended.Value = true
-				commands.RacialAbilities(p)
-				data.StoryMarker.Value = HS:JSONEncode(StoryMarker)
-				commands.Learn(p)
-				return dialogues["As'endoMorvid"].ascended
-			end
-			return dialogues["As'endoMorvid"].cameback5
+			return dialogues["As'endoMorvid"].insightoffer
 		elseif v.choice == "Let's do it" then
 			if commands.ChangeInsight(p,data, -20) then
 				StoryMarker["Ascension"] = {}
@@ -12755,51 +12557,21 @@ local AscensionQuests = {
 			end
 			if not StoryMarker["Ascension"] or (#StoryMarker["Ascension"] == 0 and not StoryMarker["Ascension"]["Ashiin"]) then
 				return dialogues["As'endoAshiin"].startedp1
-			elseif StoryMarker["Ascension"]["Ashiin"] == "Started" then
-				return dialogues["As'endoAshiin"].notyetdoyen
-			elseif StoryMarker["Ascension"]["Ashiin"] == "DoyenDone" then
-				return dialogues["As'endoAshiin"].cameback
 			elseif StoryMarker["Ascension"]["Ashiin"] == "Finished" then
 				return dialogues["As'endoAshiin"].camebackinsight
+			else
+				return dialogues["As'endoAshiin"].insightoffer
 			end
 		elseif v.choice == "I'm seeking the Ascencion Trial" then
 			return dialogues["As'endoAshiin"].startedp2
-		elseif v.choice == "Where can he be found?" then
+		elseif v.choice == "I'm ready." then
 			return dialogues["As'endoAshiin"].startedp3
-		elseif v.choice == "I will not fail" then
+		elseif v.choice == "I accept." then
 			StoryMarker["Ascension"] = {}
 			StoryMarker["Ascension"]["Ashiin"] = "Started"
-			StoryMarker["Ascension"]["NoAs'endo"] = true
+			StoryMarker["Ascension"]["NoAs'endo"] = false
 			data.StoryMarker.Value = HS:JSONEncode(StoryMarker)
-			local spawns = game.ServerStorage.SpawnPoints[data.SpawnPoint.Value]:GetChildren()
-			local tpcf = spawns[math.random(1,#spawns)].CFrame
-			local a = Instance.new("Folder", p.Character)
-			a.Name = "TPSafe"
-			p.Character.HumanoidRootPart.CFrame = tpcf
-			task.delay(0.1,function()
-				create("Knocked",2,p.Character)
-			end)
-			task.delay(2, function()
-				a:Destroy()
-			end)
-			return dialogues["As'endo"].started
-		elseif v.choice == "You tricked me" then
-			return dialogues["As'endoAshiin"].cameback2
-		elseif v.choice == "What!?" then
-			return dialogues["As'endoAshiin"].cameback3
-		elseif v.choice == "..." then
-			return dialogues["As'endoAshiin"].cameback4
-		elseif v.choice == "I don't have any other choice" then
-			if GlobalQuests["Ascensions"] and GlobalQuests["Ascensions"]["Ashiin"] == true then
-				StoryMarker["Ascension"] = {}
-				StoryMarker["Ascension"]["NoAs'endo"] = true
-				data.Ascended.Value = true
-				commands.RacialAbilities(p)
-				data.StoryMarker.Value = HS:JSONEncode(StoryMarker)
-				commands.Learn(p)
-				return dialogues["As'endoAshiin"].ascended
-			end
-			return dialogues["As'endoAshiin"].cameback5
+			return dialogues["As'endoAshiin"].insightoffer
 		elseif v.choice == "Let's do it" then
 			if commands.ChangeInsight(p,data, -20) then
 				StoryMarker["Ascension"] = {}
@@ -14000,12 +13772,13 @@ function dialogues.SolanBall.v1(p,v)
 		end
 	else
 		if v.page == 1 then
-			-- "Ugly" (Attractiveness <= 30) branches: normally just a re-flavored disgusted line
-			-- with the same choices, but a 10% roll instead wipes the character outright - same
-			-- data.Wiped/CheckEdictObtainment/task.spawn(destroy+recreate) sequence used by every
-			-- other "give up"/"lost the war"/"forgive me" branch in this same function.
+			-- "Ugly" (Attractiveness < 15, tightened 2026-07-29 from the original <= 30) branches:
+			-- normally just a re-flavored disgusted line with the same choices, but a 10% roll
+			-- instead wipes the character outright - same data.Wiped/CheckEdictObtainment/
+			-- task.spawn(destroy+recreate) sequence used by every other "give up"/"lost the war"/
+			-- "forgive me" branch in this same function.
 			local attractiveness = require(game.ServerScriptService.Modules.AttractivenessModule).compute(p, data)
-			if attractiveness <= 30 then
+			if attractiveness < 15 then
 				if math.random() < 0.1 then
 					data.Wiped.Value = true
 					CheckEdictObtainment(p)

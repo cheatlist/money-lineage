@@ -66,21 +66,11 @@ local function npcclick(p1,v)
 		-- (dialogues.SolanBall.v1), so Squeamish can't be allowed to lock a player out of it.
 		return
 	end
-	do
-		-- NPCs ignore low-Attractiveness players entirely (threshold picked from the requested
-		-- 25-35 range) - gated at both dialogue-start entry points (ClickDetector-driven
-		-- `npcclick` and the bindable-driven `DialogueCreate` path below), not per-NPC, so it
-		-- applies universally with no other file needing to change. Only kicks in once
-		-- data.IsUltra.Value == true (the player has achieved some ultra class) - an ugly player
-		-- who hasn't gotten there yet is unaffected.
-		-- SolanBall is exempt: its whole new "ugly" dialogue branch is specifically FOR
-		-- low-Attractiveness players, so this gate would otherwise make that content
-		-- unreachable for its own target audience.
-		local data = game.ServerStorage.PlayerData:FindFirstChild(p1.Name)
-		if v.Name ~= "SolanBall" and data and data.IsUltra.Value == true and require(game.ServerScriptService.Modules.AttractivenessModule).compute(p1, data) < 15 then
-			return
-		end
-	end
+	-- The general "NPCs ignore low-Attractiveness players" gate that used to live here was
+	-- removed (2026-07-29, by request) - NPCs now always talk to you regardless of
+	-- Attractiveness. SolanBall's own "ugly" dialogue branch and 10% wipe-chance roll
+	-- (dialogues.SolanBall.v1, ModuleScript.luau) are untouched - that logic reads Attractiveness
+	-- itself, independent of this entry gate, so it still triggers exactly as before.
 
 	local magmax: number = 16
 
@@ -187,19 +177,9 @@ game.ServerStorage.Requests.DialogueCreate.Event:Connect(function(p1,v)
 		-- (dialogues.SolanBall.v1), so Squeamish can't be allowed to lock a player out of it.
 		return
 	end
-	do
-		-- NPCs ignore low-Attractiveness players entirely (threshold picked from the requested
-		-- 25-35 range) - gated at both dialogue-start entry points (ClickDetector-driven
-		-- `npcclick` and the bindable-driven `DialogueCreate` path below), not per-NPC, so it
-		-- applies universally with no other file needing to change. Only kicks in once
-		-- data.IsUltra.Value == true (the player has achieved some ultra class) - see the same
-		-- note in npcclick above.
-		-- SolanBall is exempt: see the same note in npcclick above.
-		local data = game.ServerStorage.PlayerData:FindFirstChild(p1.Name)
-		if v ~= "SolanBall" and data and data.IsUltra.Value == true and require(game.ServerScriptService.Modules.AttractivenessModule).compute(p1, data) < 30 then
-			return
-		end
-	end
+	-- The general "NPCs ignore low-Attractiveness players" gate that used to live here was
+	-- removed (2026-07-29, by request) - see the same note in npcclick above. SolanBall's own
+	-- "ugly" dialogue branch and 10% wipe-chance roll are untouched.
 
 	local magmax: number = 16
 	

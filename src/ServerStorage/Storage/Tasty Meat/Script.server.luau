@@ -42,7 +42,9 @@ script.Parent.Activated:Connect(function()
 	p1.Humanoid:LoadAnimation(script.Parent.Animation):Play()
 	wait(0.175)
 	script.Parent.Handle.Sound:Play()
-	game.Debris:AddItem(script.Parent,0.65)
+	task.delay(1.218, function()
+		script.Parent.Handle.Sound:Stop()
+	end)
 	
 	--//local stomach = math.clamp(p1.Stomach.Value+50,0,p1.Humanoid.MaxHealth)
 	p1.Stomach.Value += 50 --//= stomach

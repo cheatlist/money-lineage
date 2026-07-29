@@ -1918,7 +1918,12 @@ game.ServerStorage.Requests.Wipe.Event:Connect(function(p,data,reroll,norerollna
 	gettable.EdictWipes = data.EdictWipes.Value
 	gettable.EdictProgression = data.EdictProgression.Value
 	gettable.GlobalRestoreCD = data.GlobalRestoreCD.Value
-	if data.Prestige.Value <= 5 and data.Prestige.Value > 0 and game.ServerStorage.RankData[p.Name].Grips.Value >= 250 then
+	-- Grips.Value >= 250 requirement removed (2026-07-29, by request) - this gate now checks Chad
+	-- rank alone. It used to also require 250 raw grip-kills, a leftover from when Prestige was
+	-- Grip-rank-derived (see the Chad-rank/MogRankHandler section elsewhere in this doc for why
+	-- Prestige changed meaning) - flagged as a mixed-system side effect when Chad rank was added,
+	-- now resolved by dropping that half rather than reworking it into something Mog-based.
+	if data.Prestige.Value <= 5 and data.Prestige.Value > 0 then
 		if data.EdictType.Value == "Blademaster" then
 			game.CollectionService:AddTag(p.Character, "LegitEdict")
 			gotedict = true
