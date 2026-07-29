@@ -3426,6 +3426,37 @@ would pile up one listener per life lived, each redundantly recomputing and re-f
 update on every future race change - guarded with a one-time `AttractivenessRaceWatcher` Folder
 marker parented to `PlayerData` itself, checked before connecting.
 
+## Fixed: player data silently stopped saving on leave (2026-07-29)
+
+**Root cause: the `AttractivenessRaceWatcher` guard above.** It was an `Instance.new("Folder")`
+parented directly to `PlayerData` - but `PlayerData` doubles as the literal save source elsewhere
+in this codebase (`GameLoaded/init.server.luau`'s save path builds `settable[v.Name] = v.Value` by
+iterating **every** child of `PlayerData` with no type check). A `Folder` has no `.Value` property,
+so the very first save attempt after this marker existed threw and aborted the entire save -
+silently, since nothing downstream of that error ran. Loading was completely unaffected (it only
+ever reads specific known fields by name), so the exact reported symptom was "joining loads fine,
+but leaving never saves, so you only ever get back what you had before this update" - the save
+simply stopped completing for anyone who'd had this marker created on them, from the moment it was
+introduced onward.
+
+**Fix**: moved the "already watching" guard entirely out of the `PlayerData` Instance tree, into an
+in-memory table in `AttractivenessModule.luau` keyed by `Player` (cleared on `PlayerRemoving`).
+Nothing under `PlayerData` should ever be a non-value-holding Instance - a repo-wide grep confirmed
+this was the only place this session introduced one; every other new marker created this session
+(injury Accessories, cooldown markers, etc.) was correctly parented to `Character`, not
+`PlayerData`, so this was an isolated mistake rather than a pattern repeated elsewhere.
+
+**Also hardened while investigating** (real but separate crash risks, not the actual cause of this
+report - both are newly-Studio-dependent RemoteEvents this session added without a
+`FindFirstChild` guard, and Roblox throws on dot-indexing a missing Instance child): 
+`AttractivenessModule.compute()`'s `Requests.AttractivenessChanged:FireClient(...)` (runs
+unconditionally on every spawn), `AlertModule.send()`'s `Requests.Alert:FireClient(...)` (runs on
+every mog/artifact-conflict/etc. alert), and `RequestHandler.server.luau`'s new
+`Requests.EatEquipped.OnServerEvent` registration (a top-level connection in a shared hub file with
+many unrelated handlers registered after it - if that RemoteEvent didn't exist yet in Studio, every
+handler registered below it in the file would have silently never wired up). All three now check
+`FindFirstChild` first and no-op if the RemoteEvent isn't there yet, rather than erroring.
+
 ## Attractiveness: widened base roll, added a height factor (added 2026-07-29)
 
 Two changes to `ServerScriptService/Modules/AttractivenessModule.luau` and the base-roll site in

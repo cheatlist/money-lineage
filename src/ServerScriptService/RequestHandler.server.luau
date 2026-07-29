@@ -419,21 +419,30 @@ end)
 -- "some players don't have access to Roblox chat"): fired by StarterGui/AnythingEaterGui's click
 -- handler with no arguments - the server resolves the player's own currently-equipped Tool itself
 -- rather than trusting any client-supplied item name, so there's nothing here for a client to spoof.
-Requests.EatEquipped.OnServerEvent:Connect(function(Player)
-	local Character = Player.Character
-	if not Character then
-		return
-	end
-	local Data = ServerStorage.PlayerData:FindFirstChild(Player.Name)
-	if not Data then
-		return
-	end
-	local tool = Character:FindFirstChildWhichIsA("Tool")
-	if not tool then
-		return
-	end
-	require(ServerScriptService.Modules.FoodModule).eatAnything(Player, Character, Data, tool.Name)
-end)
+-- Defensive FindFirstChild (2026-07-29): EatEquipped is Studio-only asset debt that may not exist
+-- yet - this whole file is a top-to-bottom script with dozens of unrelated Requests.X.OnServerEvent
+-- handlers registered after this point, and indexing a missing RemoteEvent via plain dot-notation
+-- (which throws) at TOP LEVEL would have hard-errored the entire script right here, silently
+-- preventing every handler registered below this line from ever being wired up - a serious,
+-- high-blast-radius risk that had nothing to do with what actually broke.
+local EatEquippedRequest = Requests:FindFirstChild("EatEquipped")
+if EatEquippedRequest then
+	EatEquippedRequest.OnServerEvent:Connect(function(Player)
+		local Character = Player.Character
+		if not Character then
+			return
+		end
+		local Data = ServerStorage.PlayerData:FindFirstChild(Player.Name)
+		if not Data then
+			return
+		end
+		local tool = Character:FindFirstChildWhichIsA("Tool")
+		if not tool then
+			return
+		end
+		require(ServerScriptService.Modules.FoodModule).eatAnything(Player, Character, Data, tool.Name)
+	end)
+end
 
 ServerStorage.Requests.GetStoryMarker.OnInvoke = function(Player, Marker)
 	local PlayerData = ServerStorage.PlayerData:FindFirstChild(Player.Name).Data

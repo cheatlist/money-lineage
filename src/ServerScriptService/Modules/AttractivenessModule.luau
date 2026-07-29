@@ -212,8 +212,17 @@ function module.compute(player, data)
 	-- CurrencyClient.client.luau) every time it's recomputed - spawn, Mogging, low-Attractiveness
 	-- self-trigger, the NPC gates, SolanBall, etc. all call compute(), so centralizing the push
 	-- here means every one of those already keeps the display live for free.
+	-- Defensive FindFirstChild (2026-07-29): AttractivenessChanged is Studio-only asset debt (see
+	-- that section of CLAUDE.md) that may not exist yet - compute() runs unconditionally on EVERY
+	-- spawn from deep inside CharacterHandler/init.server.luau, so indexing a missing RemoteEvent
+	-- via plain dot-notation here (which throws) would have hard-errored that entire script every
+	-- single spawn, silently skipping everything after this call for the rest of that script's
+	-- run - a serious, high-blast-radius risk for something that's just a cosmetic HUD push.
 	if player then
-		game.ReplicatedStorage.Requests.AttractivenessChanged:FireClient(player, result)
+		local attractivenessChanged = game.ReplicatedStorage.Requests:FindFirstChild("AttractivenessChanged")
+		if attractivenessChanged then
+			attractivenessChanged:FireClient(player, result)
+		end
 	end
 
 	-- "You can get/give these injuries upon being ... attractiveness mogged" - having a low
@@ -245,18 +254,27 @@ end
 -- ProductHandler's Robux race reroll, admin commands, etc.) - adding a compute() call at every one
 -- of those sites individually would be both invasive and easy to miss one of. A single
 -- Race.Changed listener here covers every current and future race-change site for free.
--- Guarded with a marker parented to PlayerData itself (which persists across respawns, unlike
--- Character) so calling this once per spawn - same as every other spawn-time hook in
--- CharacterHandler/init.server.luau - doesn't stack a second (third, fourth, ...) listener on top
--- of ones from earlier lives; each stacked listener would otherwise recompute and re-fire the
--- client HUD update redundantly for every race change from then on.
+--
+-- Fixed 2026-07-29 - REAL BUG, caused player data to stop saving entirely: the "already watching"
+-- guard used to be an Instance.new("Folder") parented directly to `data` (PlayerData). PlayerData
+-- doubles as the literal save source elsewhere in this codebase - the generic save loop reads
+-- `settable[v.Name] = v.Value` for every child of PlayerData with no type check - and a Folder has
+-- no .Value property, so hitting it there threw and aborted the ENTIRE save, every time, for every
+-- player who'd ever had this marker created. "Join loads fine, leaving never saves" was the exact
+-- symptom: loading only reads known NumberValue/StringValue fields, so the stray Folder never
+-- broke that half, but saving iterated every child indiscriminately and errored out on it.
+-- Fixed by moving the guard entirely out of the PlayerData Instance tree, into an in-memory table
+-- keyed by Player - nothing under PlayerData should ever be a non-value-holding Instance.
+local watchingRaceChanges = {}
+game.Players.PlayerRemoving:Connect(function(player)
+	watchingRaceChanges[player] = nil
+end)
+
 function module.watchForRaceChanges(player, data)
-	if data:FindFirstChild("AttractivenessRaceWatcher") then
+	if watchingRaceChanges[player] then
 		return
 	end
-	local marker = Instance.new("Folder")
-	marker.Name = "AttractivenessRaceWatcher"
-	marker.Parent = data
+	watchingRaceChanges[player] = true
 	data.Race.Changed:Connect(function()
 		module.compute(player, data)
 	end)
