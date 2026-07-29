@@ -113,7 +113,7 @@ function module.Active2(p5,p6,p7,p8)
 	local p2 = game.Players:GetPlayerFromCharacter(p1)
 	local data = game.ServerStorage.PlayerData:FindFirstChild(p2.Name)
 	local ascended = data and data.Ascended.Value == true and data.Race.Value == "Castellan"
-	local cooldown = 300
+	local cooldown = 200
 	
 	local CD = Instance.new("NumberValue")
 	CD.Name = "ChantDomain"
@@ -136,7 +136,7 @@ function module.Active2(p5,p6,p7,p8)
 	
 	task.spawn(function()
 		local asset = game.ReplicatedStorage.Assets.Domain:Clone()
-		game.Debris:AddItem(asset,130)
+		game.Debris:AddItem(asset,65)
 		asset.Size = Vector3.new(1,1,1)
 		asset.Parent = workspace.Effects
 		asset.CFrame = p1.HumanoidRootPart.CFrame
@@ -149,19 +149,19 @@ function module.Active2(p5,p6,p7,p8)
 				local hi = Instance.new("Highlight",enemy)
 				hi.Adornee = enemy
 				hi.FillTransparency = 1
-				game.Debris:AddItem(hi,120)
+				game.Debris:AddItem(hi,62)
 				local v14 = Instance.new("Accessory")
 				v14.Name = "Action"
 				v14.Parent = enemy
 				game.Debris:AddItem(v14,2.5)
 				local nogate = Instance.new("Folder",enemy)
 				nogate.Name = "NOGATE"
-				game.Debris:AddItem(nogate,120)
+				game.Debris:AddItem(nogate,60)
 			end
 		end
 		task.wait(2.5)
 		asset.CanCollide = true
-		task.delay(120,function()
+		task.delay(60,function()
 			asset.CanCollide = false
 			TweenService:Create(asset,TweenInfo.new(2.5),{
 				Size = Vector3.new(0.1,0.1,0.1)

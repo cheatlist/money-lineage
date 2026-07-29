@@ -266,12 +266,12 @@ commands["UpdateAppearance"] = function(Player, playlearnsound)
 			end
 		end
 	elseif Race == "Castellan" and Data.Ascended.Value == true then
-		task.delay(2,function()
 			local cosmetic = game.ReplicatedStorage.Assets.HeianArms:Clone()
 			cosmetic.Parent = Character
 			local motor = Instance.new("Motor6D",cosmetic.HeianRoot)
 			motor.Part0 = cosmetic.HeianRoot
-			motor.Part1 = Character.Torso
+		motor.Part1 = Character.Torso
+		task.delay(2,function()
 			cosmetic.Shirt.ShirtTemplate = Character:WaitForChild("Shirt").ShirtTemplate
 			cosmetic.Shirt.Color3 = Character:WaitForChild("Shirt").Color3
 			cosmetic["Left Arm"].Color = Character["Left Arm"].Color

@@ -951,7 +951,7 @@ function taghumanoid(character,enemy,info)
 		end
 	end
 	if not enemy:FindFirstChild("MonsterInfo") and enemydata and enemydata.Injuries.Value:find("chestgash") and info.damage and info.physical then
-		info.damage *= 1.1
+		info.damage *= 1.05
 	end
 	if playerdata and playerdata.Injuries.Value:find("Rage") and info.damage and info.physical then
 		-- Rage (Mogging/low-Attractiveness injury, see MoggingModule.luau): "makes you do less
@@ -1677,7 +1677,36 @@ function taghumanoid(character,enemy,info)
 					root.Counter:Play()
 					root.counterparticle:Emit(50)
 					countered = true
-					game.ReplicatedStorage.Requests.ScreenFlip:FireClient(Player)
+					if character:FindFirstChild("MonsterInfo") and character:FindFirstChild("BossStatus") then
+						local bosscounter = character:FindFirstChild("PunishCounter")
+						if not bosscounter then
+							local status = Instance.new("NumberValue",character)
+							status.Name = "PunishCounter"
+							status.Value = 1
+						else
+							if not character:FindFirstChild("PunishCD") then
+								bosscounter.Value += 1
+								local status = Instance.new("Folder",character)
+								status.Name = "PunishCounter"
+								game.Debris:AddItem(status,3)
+								if bosscounter.Value >= 3 then
+									local anim = character.Humanoid.Animator:LoadAnimation(character.Animations.Punished)
+									local punish = Instance.new("Folder")
+									punish.Name = "Punished"
+									punish.Parent = character
+									game.Debris:AddItem(punish,7)
+									anim:Play(0.1,1,1)
+									bosscounter:Destroy()
+									task.delay(7,function()
+										anim:Stop()
+									end)
+								end
+						    end
+						end
+					end
+					if not character:FindFirstChild("MonsterInfo") then
+						game.ReplicatedStorage.Requests.ScreenFlip:FireClient(Player)
+						end
 					task.wait(0.125)
 					for _,v in pairs(humanoid:GetPlayingAnimationTracks())do
 						v:AdjustSpeed(0)
@@ -1703,8 +1732,10 @@ function taghumanoid(character,enemy,info)
 						game.Debris:AddItem(v23,0.75)
 						knockback = true
 						blocking:Destroy()
+						if not enemy:FindFirstChild("BossStatus") then
 						for _,v in pairs(ehumanoid:GetPlayingAnimationTracks())do
 							v:Stop()
+							end
 						end
 						soundplay(eroot,"Break")
 					end
@@ -1924,7 +1955,9 @@ function taghumanoid(character,enemy,info)
 					game.Debris:AddItem(v4,1.15)
 					root.Counter:Play()
 					root.counterparticle:Emit(50)
-					game.ReplicatedStorage.Requests.ScreenFlip:FireClient(Player)
+					if not character:FindFirstChild("MonsterInfo") then
+						game.ReplicatedStorage.Requests.ScreenFlip:FireClient(Player)
+						end
 					return
 				end
 			end
@@ -2102,8 +2135,10 @@ function taghumanoid(character,enemy,info)
 								manashieldtween:Play()
 								orb.Attachment.ParticleEmitter.Enabled = false
 							end
+							if not enemy:FindFirstChild("BossStatus") then
 							for _,v in pairs(ehumanoid:GetPlayingAnimationTracks())do
 								v:Stop()
+								end
 							end
 						end
 					end
@@ -2363,7 +2398,7 @@ function taghumanoid(character,enemy,info)
 
 				if not blocked and not info.nododge and not FindFirstChild(enemy,"Planted") and not info.nohitanim and not info.nostun then
 					for _,v in pairs(ehumanoid:GetPlayingAnimationTracks())do
-						if not v.Looped and not info.noanimationcancel then
+						if not v.Looped and not info.noanimationcancel and not enemy:FindFirstChild("BossStatus") then
 							v:Stop()
 						end
 					end
