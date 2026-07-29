@@ -1,4 +1,5 @@
 local u3 = require(game.ServerScriptService.Modules.Commands)
+local FoodModule = require(game.ServerScriptService.Modules.FoodModule)
 script.Parent.Activated:Connect(function(plr, char)
 	char = script.Parent.Parent
 	plr = game.Players:GetPlayerFromCharacter(char)
@@ -9,12 +10,19 @@ script.Parent.Activated:Connect(function(plr, char)
 		script.Parent.Handle.Cough:Play()
 		return
 	end
+	-- Routed through FoodModule.eat (2026-07-29) - Pizza previously did its own inline
+	-- Stomach.Value math with no AnythingEater check at all, so an AnythingEater player could
+	-- still eat Pizza normally even though "you cannot eat food" is supposed to be absolute.
+	if not FoodModule.eat(char, data, "Pizza", 50) then
+		wait(0.175)
+		script.Parent.Handle.Cough:Play()
+		return
+	end
 	wait(0.175)
 	script.Parent.Handle.Sound:Play()
 	task.delay(1.218, function()
 		script.Parent.Handle.Sound:Stop()
 	end)
 
-	char.Stomach.Value += 50
 	u3.RemoveFromInventory(game.Players:GetPlayerFromCharacter(char),"Pizza",0.65)
 end)

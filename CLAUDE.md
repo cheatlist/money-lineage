@@ -2362,6 +2362,63 @@ injuries being permanent), and Rage's cooldown effect being partial (M1 only) ra
 were the three biggest interpretive completions - all flagged inline above where they're
 implemented, not silently assumed.
 
+**Follow-up (2026-07-29): the 5 mog-related injuries now play the standard injure sound/particle.**
+`MoggingModule.luau`'s shared `grantTimedInjury(character, data, name, duration)` helper (used by
+all 5 - `VomitForcer`/`LackEater`/`AnythingEater`/`Rage`/`Squeamish`) previously only edited
+`Injuries.Value` and dropped the Character marker - no feedback at all, unlike a normal injury.
+Now plays `HumanoidRootPart.Injury` and clones/emits `ReplicatedStorage.Assets.Injure`, the same
+two effects `RequestHandler.server.luau`'s real `Injure()` function plays, so getting one of these
+via a mog reads identically to any other injury. **Also mirrors `Injure()`'s own dedup guard**
+(`if Data.Injuries.Value:match(Injury) then return end`) via a new `isNew` check - the sound/
+particle (and the `Injuries.Value` CSV append) only fire the first time an injury is actually
+granted, not on every refresh/re-trigger while already owned (e.g. getting mogged into Squeamish
+again while already Squeamish just extends the duration silently, same as a normal injury would).
+
+**Follow-up (2026-07-29): "AnythingEater injury doesn't work" - two real bugs fixed in
+`FoodModule.eatAnything`, plus scope widened per direct request.**
+
+1. **Case-sensitive item lookup was the main reported failure** ("you can't eat various trinkets
+   such as goblets and amulets"): `player.Backpack:FindFirstChild(itemName)` required an exact-case
+   match against the Tool's real name - a player typing the natural lowercase `"eat goblet"`/
+   `"eat amulet"` (real `ServerStorage/Storage` items, confirmed via `TrinketsHandler.server.luau`'s
+   own loot tables) against Tools actually named `"Goblet"`/`"Amulet"` would silently fail to match
+   at all. Fixed by scanning `Character`/`Backpack` children directly and matching
+   `child.Name:lower() == itemName:lower()`, then using the resolved item's own real `.Name`
+   (correct casing) for every subsequent check and for `RemoveFromInventory`.
+2. **"You cannot eat food" wasn't actually true for everything called food.** `eatAnything` only
+   ever excluded `"Turnip"`/`"Meat"` by exact name - `Pizza`/`Pork Bun` (which never went through
+   `FoodModule.eat` at all - see below) and the whole Meat-quality-tier family/4 crafted
+   Cooked-mushroom foods weren't blocked. Replaced with a full `FOOD_ITEMS` table (Turnip, Meat and
+   every quality/poison tier of it, Vint, Pizza, Pork Bun, the 4 Cooked-mushroom foods) checked
+   against the resolved item's real name.
+
+**Scope widened, per "all non food/non potion items should be eatable which includes artifacts"**:
+added a `POTION_ITEMS` table (the 13 real potions/brews under `ServerStorage/Alchemy/Tools`,
+confirmed by listing that directory - `Bone Grow`, `Creatine`, `Feather Feet`, `Fire Protection`,
+`Health Potion`, `Ice Protection`, `Kingsbane`, `Liquid Wisdom`, `Lordsbane`, `Preworkout`,
+`Silver Sun`, `Switch Witch`, `Tespian Elixir`) excluded the same way as food - everything else
+(ores, gems, cures, poisons, candy, scrolls, misc items, trinkets, and now artifacts) is eatable.
+
+**Artifacts get a special rule** ("You only eat them if you already have an artifact and have the
+injury, otherwise it will give the player the artifact alert"): a new `ARTIFACT_ITEMS` table (the
+same 13 artifacts enumerated in the Alert-popups section above) is checked before consuming - if
+the player does NOT already hold an artifact (`data.Artifact.Value` is `"None"`/`""`), the item is
+too valuable to trivially convert into +10 hunger, so the eat is blocked and
+`AlertModule.send(player, "This is a real artifact - use it properly instead of eating it.")` fires
+instead (no consumption, item stays in inventory). If the player already holds a different
+artifact - meaning a second one is genuinely dead weight, since only one can ever be active - it's
+eaten normally like any other item. **Interpretive call flagged**: the exact alert wording (reusing
+the artifact-alert *mechanism*, not literally the pre-existing "You already have an artifact..."
+text, which wouldn't make sense for a player who has none) was written fresh for this context since
+no exact string was specified - flag if different wording was intended.
+
+**Also fixed while here**: `Pizza`/`Pork Bun` (`ServerStorage/Storage/Pizza|Pork Bun/Script.server.luau`)
+previously did their own inline `Stomach.Value += 50` with no `FoodModule.eat` call at all - unlike
+Turnip/Meat, an AnythingEater player could still eat them normally. Both now route through
+`FoodModule.eat` the same way Turnip already does (check first, play `Handle.Cough` and return on
+block), so "you cannot eat food" is now actually enforced for every real food item, not just two
+of them.
+
 ## New NPC: Therapist (added 2026-07-28)
 
 Heals all 5 injuries added alongside Mogging (`VomitForcer`/`LackEater`/`AnythingEater`/`Rage`/

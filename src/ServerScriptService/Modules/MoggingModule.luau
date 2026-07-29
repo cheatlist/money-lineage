@@ -52,7 +52,12 @@ local function removeInjury(data, name)
 end
 
 local function grantTimedInjury(character, data, name, duration)
-	if not data.Injuries.Value:find(name) then
+	-- "isNew" mirrors RequestHandler.server.luau's own Injure() dedup guard
+	-- (`if Data.Injuries.Value:match(Injury) then return end`) - a normal injury only plays its
+	-- sound/particle and adds a fresh Injuries.Value entry the first time, not on every
+	-- re-trigger/refresh, so this matches that instead of replaying the effect every mog.
+	local isNew = not data.Injuries.Value:find(name)
+	if isNew then
 		data.Injuries.Value ..= "," .. name
 	end
 	local marker = character:FindFirstChild(name)
@@ -65,6 +70,25 @@ local function grantTimedInjury(character, data, name, duration)
 	task.delay(duration, function()
 		removeInjury(data, name)
 	end)
+
+	-- Plays the same injure sound/particle a normal Injure() call does (added 2026-07-29, by
+	-- request) - RequestHandler.server.luau's Injure() plays HumanoidRootPart.Injury and clones/
+	-- emits ReplicatedStorage.Assets.Injure, so Rage/Squeamish/the 3 eating injuries read as a
+	-- real injury being inflicted rather than a silent flag flip.
+	if isNew then
+		local root = character:FindFirstChild("HumanoidRootPart")
+		if root then
+			local injurySound = root:FindFirstChild("Injury")
+			if injurySound then
+				injurySound:Play()
+			end
+			local injureEffect = game.ReplicatedStorage.Assets.Injure:Clone()
+			injureEffect.Name = "InjureEffect"
+			injureEffect.Parent = root
+			injureEffect:Emit(1)
+			game.Debris:AddItem(injureEffect, 1.5)
+		end
+	end
 end
 
 -- The 3 independent rolls described in the request (10% eating injury / 30% Squeamish / 40%
