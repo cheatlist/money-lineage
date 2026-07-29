@@ -94,5 +94,4 @@ script.Parent.Activated:Connect(function()
 		noenchant = true,
 	},false,true)
 	require(game.ServerScriptService.Modules.Commands).RemoveFromInventory(player, script.Parent.Name)
-	script.Parent:Destroy()
 end)

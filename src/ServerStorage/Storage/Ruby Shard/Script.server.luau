@@ -142,5 +142,4 @@ wait(0.25)
 		wait(.5)
 	end
 	commands.RemoveFromInventory(player, script.Parent.Name)
-	script.Parent:Destroy()
 	end)

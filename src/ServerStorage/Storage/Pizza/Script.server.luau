@@ -11,8 +11,7 @@ script.Parent.Activated:Connect(function(plr, char)
 	end
 	wait(0.175)
 	script.Parent.Handle.Sound:Play()
-	game.Debris:AddItem(script.Parent,0.65)
-	
-	char.Stomach.Value += 50 
-	u3.RemoveFromInventory(game.Players:GetPlayerFromCharacter(char),"Pizza")
+
+	char.Stomach.Value += 50
+	u3.RemoveFromInventory(game.Players:GetPlayerFromCharacter(char),"Pizza",0.65)
 end)

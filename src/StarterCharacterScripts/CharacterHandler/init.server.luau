@@ -7,6 +7,7 @@ local hitcheck = require(game.ServerScriptService.Modules.HitDetection)
 local DataStore2 = require(game.ServerScriptService.Modules.DataStore2)
 local Commands = require(game.ServerScriptService.Modules.Commands)
 local TemperatureHandler = require(game.ServerScriptService.Modules.TemperatureHandler)
+local NonStackableItems = require(game.ServerScriptService.Modules.NonStackableItems)
 local Player = game.Players:GetPlayerFromCharacter(Character)
 local CollectionService = game:GetService("CollectionService")
 local GetChildren,GetDescendants = game.GetChildren,game.GetDescendants
@@ -169,46 +170,81 @@ if PlayerData.Lives.Value>0 then
 
 	local ingredientProps = list_ingredients.ingredients
 	if #inventory > 0 then
+		local counts = {}
 		for i = 1,#inventory do
-			local ic = FindFirstChild(game.ServerStorage.Storage,inventory[i])
+			counts[inventory[i]] = (counts[inventory[i]] or 0) + 1
+		end
+		local cloned = 0
+		for name,count in pairs(counts) do
+			local ic = FindFirstChild(game.ServerStorage.Storage,name)
 			if ic and not ic:FindFirstChild("isIngredient") then
-				if not inventoryamounts[ic.Name]then
-					inventoryamounts[ic.Name]= 0
-				end
-				if inventoryamounts[ic.Name]<50 then
-					inventoryamounts[ic.Name]+=1
-					ic:Clone().Parent = Player.Backpack
+				if not NonStackableItems[name] then
+					local tool = ic:Clone()
+					local qty = tool:FindFirstChild("Quantity")
+					if not qty then
+						qty = Instance.new("IntValue")
+						qty.Name = "Quantity"
+						qty.Parent = tool
+					end
+					qty.Value = count
+					tool.Parent = Player.Backpack
+					cloned += 1
 				else
-					Commands.RemoveFromInventory(Player,ic.Name)
-					task.wait(1/30)
+					if not inventoryamounts[name]then
+						inventoryamounts[name]= 0
+					end
+					for n = 1,count do
+						if inventoryamounts[name]<50 then
+							inventoryamounts[name]+=1
+							ic:Clone().Parent = Player.Backpack
+						else
+							Commands.RemoveFromInventory(Player,name)
+							task.wait(1/30)
+						end
+						cloned += 1
+						if cloned%60 == 0 then
+							task.wait(1/30)
+						end
+					end
 				end
 			else
-				if not game.ServerStorage.Alchemy.Models:FindFirstChild(inventory[i]) then continue end
+				if not game.ServerStorage.Alchemy.Models:FindFirstChild(name) then continue end
 
 				local ingTool = game.ServerStorage.Alchemy.Tools.Ingredient:Clone()
 				Instance.new("Folder", ingTool).Name = Player.Name
-				ingTool.Name = inventory[i]
-				local ingHand = game.ServerStorage.Alchemy.Models[inventory[i]]:Clone()
+				ingTool.Name = name
+				local ingHand = game.ServerStorage.Alchemy.Models[name]:Clone()
 				ingHand.Anchored = false
 				ingHand.CanCollide = false
 				ingHand.Name = "Handle"
 				ingHand.Parent = ingTool
 
-				local silver = ingredientProps[inventory[i]].silver
+				local silver = ingredientProps[name].silver
 				if silver and silver > 0 then
 					local silverVal = Instance.new("IntValue")
 					silverVal.Name = "SilverValue"
 					silverVal.Value = silver
 					silverVal.Parent = ingTool
-				end 
+				end
 
-				local tooltip = ingredientProps[inventory[i]].tooltip
+				local tooltip = ingredientProps[name].tooltip
 				if tooltip then
 					ingTool.ToolTip = tooltip
 				end
+				local qty = ingTool:FindFirstChild("Quantity")
+				if not qty then
+					qty = Instance.new("IntValue")
+					qty.Name = "Quantity"
+					qty.Parent = ingTool
+				end
+				qty.Value = count
 				ingTool.Parent = Player.Backpack
+				cloned += 1
+				if cloned%60 == 0 then
+					task.wait(1/30)
+				end
 			end
-			if i > 60 then
+			if cloned%60 == 0 then
 				task.wait(1/30)
 			end
 		end

@@ -29,7 +29,6 @@ script.Parent.Activated:Connect(function()
 	if game.ServerStorage.PlayerData[p1.Name].Race.Value == "Scroom" then
 		game.ServerStorage.PlayerData[p1.Name].Race.Value = "Metascroom"
 		require(game.ServerScriptService.Modules.Commands)["RemoveFromInventory"](game.Players[p1.Name], script.Parent.Name)
-		script.Parent:Destroy()
 		game.Players[p1.Name]:LoadCharacter()
 		local v12 = Instance.new("NumberValue");
 		v12.Name = "Transparency";

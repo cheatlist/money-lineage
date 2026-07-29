@@ -49,11 +49,9 @@ script.Parent.Activated:Connect(function()
 	if p2:FindFirstChild("Danger") then
 		return
 	end
-	canuse = false
 	if data.Race.Value == "Gaian" then
 		data.Armor.Value = "Rags"
 	end
 	data.Race.Value = "Seraph"
 	require(game.ServerScriptService.Modules.Commands).RemoveFromInventory(p2,script.Parent.Name)
-	script.Parent:Destroy()
 end)

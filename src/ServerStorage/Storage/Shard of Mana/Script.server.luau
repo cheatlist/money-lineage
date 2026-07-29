@@ -45,12 +45,10 @@ script.Parent.Activated:Connect(function()
 	if not StoryMarker["Ascension"] or not StoryMarker["Ascension"]["Castellan"] or StoryMarker["Ascension"]["Castellan"] ~= "Started" then
 		return
     end
-	canuse = false
 	
 	StoryMarker["Ascension"]["Castellan"] = "SlayedMage"
 	StoryMarker["Ascension"]["NoAs'endo"] = false
 	data.StoryMarker.Value = game:GetService("HttpService"):JSONEncode(StoryMarker)
 	require(game.ServerScriptService.Modules.Commands).RemoveFromInventory(p2, script.Parent.Name)
-	script.Parent:Destroy()
 end)
 

@@ -22,6 +22,5 @@ function v1.Active(v2)
 	end
 	--playerdata[v2.Name].Skills.Value = playerdata[v2.Name].Skills.Value..",Armis"
 	require(game.ServerScriptService.Modules.Commands).RemoveFromInventory(v2,script.Parent.Name)
-	script.Parent:Destroy()
 end
 return v1

@@ -100,5 +100,4 @@ script.Parent.Activated:Connect(function()
 	end
 	
 	commands.RemoveFromInventory(p,script.Parent.Name)
-	script.Parent:Destroy()
 end)

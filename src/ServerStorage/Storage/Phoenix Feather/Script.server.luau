@@ -40,6 +40,7 @@ script.Parent.Activated:Connect(function()
 		return
 	end
 	if (data.Artifact.Value~="None" and data.Artifact.Value~="") and data.Artifact.Value ~= "Spider Cloak"then
+		require(game.ServerScriptService.Modules.AlertModule).send(p2, "You already have an artifact - "..data.Artifact.Value..". Reset your current artifact by talking to Isaiah at desert 3.")
 		return
 	end
 	if data.PrimaryWeapon.Value=="Fairfrozen"then
@@ -54,7 +55,6 @@ script.Parent.Activated:Connect(function()
 	if data.Vampire.Value == true then
 		return
 	end
-	canuse = false
 	local random = math.random(1,2)
 	if data.Race.Value == "Morvid" and random == 1 and not string.find(game.ServerStorage.PlayerData[p1.Name.."Global"].UnlockedRaces.Value, "Phoenix") then
 		data.Race.Value = "Phoenix"
@@ -63,5 +63,4 @@ script.Parent.Activated:Connect(function()
 	end
 	require(game.ServerScriptService.Modules.Commands).Learn(p1)
 	require(game.ServerScriptService.Modules.Commands).RemoveFromInventory(p2,script.Parent.Name)
-	script.Parent:Destroy()
 end)

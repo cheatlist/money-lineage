@@ -21,6 +21,7 @@ function v1.Active(v2,v3)
 	local data = game.ServerStorage.PlayerData[v2.Name]
 	if not data then return end
 	if (data.Artifact.Value~="None" and data.Artifact.Value~="") and data.Artifact.Value ~= "Spider Cloak"then
+		require(game.ServerScriptService.Modules.AlertModule).send(game.Players:GetPlayerFromCharacter(v2), "You already have an artifact - "..data.Artifact.Value..". Reset your current artifact by talking to Isaiah at desert 3.")
 		return
 	end
 	if data.PrimaryWeapon.Value=="Fairfrozen"then
@@ -33,6 +34,5 @@ function v1.Active(v2,v3)
 	commands.Learn(v2)
 	data.Artifact.Value = "Unwavering Focus"
 	require(game.ServerScriptService.Modules.Commands).RemoveFromInventory(v2,script.Parent.Name)
-	script.Parent:Destroy()
 end
 return v1

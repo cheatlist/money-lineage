@@ -40,6 +40,7 @@ script.Parent.Activated:Connect(function()
 		return
 	end
 	if (data.Artifact.Value~="None" and data.Artifact.Value~="")then
+		require(game.ServerScriptService.Modules.AlertModule).send(p2, "You already have an artifact - "..data.Artifact.Value..". Reset your current artifact by talking to Isaiah at desert 3.")
 		return
 	end
 	if data.PrimaryWeapon.Value=="Fairfrozen"then
@@ -48,10 +49,7 @@ script.Parent.Activated:Connect(function()
 	if data.Armor.Value == "Spider Cloak"then
 		return
 	end
-	
-	canuse = false
 	data.Artifact.Value = "Fairfrozen"
 	data.PrimaryWeapon.Value = "Fairfrozen"
 	require(game.ServerScriptService.Modules.Commands).RemoveFromInventory(p2,script.Parent.Name)
-	script.Parent:Destroy()
 end)

@@ -46,7 +46,4 @@ script.Parent.Activated:Connect(function()
 	data.Candy.Value += 1
 	requests.MoneyChanged:FireClient(p2,money)
 	require(game.ServerScriptService.Modules.Commands).RemoveFromInventory(p2,"Green Candy")
-	pcall(function()
-		script.Parent:Destroy();
-	end)
 end)

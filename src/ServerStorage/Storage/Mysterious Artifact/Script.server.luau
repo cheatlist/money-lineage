@@ -42,11 +42,9 @@ script.Parent.Activated:Connect(function()
 				game:GetService("DataStoreService"):GetDataStore("ArdaBans"):SetAsync(Player.Name, true)
 				Player:Kick("You have been banned from the game.")
 			end
-			AlreadyUsed = true
 			RemoveGui(Player)
 			Commands.AddToInventory(Player,Item)
 			Commands.RemoveFromInventory(Player,tostring(script.Parent))
-			script.Parent:Destroy()
 		elseif Action == "Cancel" then
 			RemoveGui(Player)
 		end

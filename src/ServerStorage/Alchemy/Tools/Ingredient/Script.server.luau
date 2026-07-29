@@ -5,8 +5,6 @@ local toolHandler = require(game:GetService("ServerScriptService").ToolHandler)
 local range = 10
 local en = true
 
-local quantityVal = tool:FindFirstChild("Quantity")
-
 function ActionCheck()
 	local char = tool.Parent
 	if not char:FindFirstChild("Humanoid") then
@@ -94,11 +92,7 @@ tool.RemoteEvent.OnServerEvent:Connect(function(plr,hit,target)
 			v_contents.Value = hs:JSONEncode(contents)
 			station.Water.Splash:Play()
 			
-			if quantityVal and quantityVal.Value > 1 then
-				quantityVal.Value = quantityVal.Value-1
-			else
-				toolHandler.RemoveTool(plr, tool)
-			end	
+			toolHandler.RemoveTool(plr, tool)
 		end
 	elseif game.ServerStorage.PlayerData[player.Name].Skills.Value:find("Herbivore") and not noEat then
 		if not isVamp or tool.Name == "Blood Thorn" then
@@ -117,12 +111,7 @@ tool.RemoteEvent.OnServerEvent:Connect(function(plr,hit,target)
 				game.ServerStorage.PlayerData[player.Name].Feeds.Value += 1
 			end
 			
-			if quantityVal and quantityVal.Value > 1 then
-				quantityVal.Value = quantityVal.Value-1
-			else
-				tool:Destroy()
-				toolHandler.RemoveTool(plr, tool)
-			end
+			toolHandler.RemoveTool(plr, tool)
 		end
 	end
 		

@@ -5,7 +5,6 @@ script.Parent.Activated:Connect(function(Player,Character)
 		if v.Name == "SmithingStation" and (v.Hammer.Position - Character.HumanoidRootPart.Position).Magnitude <= 8 then
 			require(game.ServerScriptService.Modules.Commands).RemoveFromInventory(Player, script.Parent.Name)
 			v.Contents.Value ..= ","..script.Parent.Name
-			script.Parent:Destroy()
 		end
 	end
 end)

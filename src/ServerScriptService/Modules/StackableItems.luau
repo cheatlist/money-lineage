@@ -1,0 +1,60 @@
+return {
+	-- Potions
+	["Health Potion"] = true,
+	["Creatine"] = true,
+	["Preworkout"] = true,
+	["Fire Protection"] = true,
+	["Ice Protection"] = true,
+	["Feather Feet"] = true,
+	["Bone Grow"] = true,
+	["Liquid Wisdom"] = true,
+	["Switch Witch"] = true,
+	["Silver Sun"] = true,
+	["Tespian Elixir"] = true,
+	["Kingsbane"] = true,
+	["Lordsbane"] = true,
+	-- Cures
+	["Weak Cure"] = true,
+	["Mediocre Cure"] = true,
+	["Strong Cure"] = true,
+	["Fatal Cure"] = true,
+	["Absolute Cure"] = true,
+	-- Poisons
+	["Weak Poison"] = true,
+	["Mediocre Poison"] = true,
+	["Strong Poison"] = true,
+	["Fatal Poison"] = true,
+	["Hallucination Poison"] = true,
+	["Five Demises"] = true,
+	-- Ores
+	["Copper"] = true,
+	["Tin"] = true,
+	["Iron"] = true,
+	["Mythril"] = true,
+	-- Ore Bars
+	["Copper Bar"] = true,
+	["Tin Bar"] = true,
+	["Iron Bar"] = true,
+	["Mythril Bar"] = true,
+	-- Gems
+	["Ruby"] = true,
+	["Emerald"] = true,
+	["Sapphire"] = true,
+	["Opal"] = true,
+	["Diamond"] = true,
+	-- Gem Shards
+	["Ruby Shard"] = true,
+	["Emerald Shard"] = true,
+	["Sapphire Shard"] = true,
+	["Opal Shard"] = true,
+	["Diamond Shard"] = true,
+	-- Candy
+	["Blue Candy"] = true,
+	["Green Candy"] = true,
+	["Orange Candy"] = true,
+	-- Misc
+	["Turnip"] = true,
+	["Pizza"] = true,
+	["Pork Bun"] = true,
+	["Race Reroll Essence"] = true,
+}

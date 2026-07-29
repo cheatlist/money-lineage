@@ -6341,13 +6341,7 @@ function dialogues.Nero.v1(p,v)
 		return dialogues.Nero.accepted
 	elseif v.choice == "Here you go" then
 		if p.Character:FindFirstChild("Desert Mist") or p.Backpack:FindFirstChild("Desert Mist") then
-			if p.Character:FindFirstChild("Desert Mist") then
-				p.Character:FindFirstChild("Desert Mist"):Destroy()
-				commands.RemoveFromInventory(p,"Desert Mist")
-			else
-				p.Backpack:FindFirstChild("Desert Mist"):Destroy()
-				commands.RemoveFromInventory(p,"Desert Mist")
-			end
+			commands.RemoveFromInventory(p,"Desert Mist")
 			StoryMarker["StartedHealer"]["Nero"] = true
 			data.StoryMarker.Value = game:GetService("HttpService"):JSONEncode(StoryMarker)
 			commands.Learn(p)
@@ -6929,13 +6923,7 @@ function dialogues.Alana.v1(p,v)
 		data.StoryMarker.Value = game:GetService("HttpService"):JSONEncode(StoryMarker)
 		return dialogues.Alana.ty
 	elseif v.choice == "Would this potion be of any use?" then
-		if p.Character:FindFirstChild("Health Potion") then
-			p.Character:FindFirstChild("Health Potion"):Destroy()
-			commands.RemoveFromInventory(p,"Health Potion")
-		else
-			p.Backpack:FindFirstChild("Health Potion"):Destroy()
-			commands.RemoveFromInventory(p,"Health Potion")
-		end
+		commands.RemoveFromInventory(p,"Health Potion")
 		StoryMarker["StartedHealer"]["Alana"] = true
 		data.StoryMarker.Value = game:GetService("HttpService"):JSONEncode(StoryMarker)
 		commands.Learn(p)
@@ -6975,13 +6963,7 @@ function dialogues.Reynauld.v1(p,v)
 		end
 		return dialogues.Reynauld.no
 	elseif v.choice == "Give a Health Potion" then
-		if p.Character:FindFirstChild("Health Potion") then
-			p.Character:FindFirstChild("Health Potion"):Destroy()
-			commands.RemoveFromInventory(p,"Health Potion")
-		else
-			p.Backpack:FindFirstChild("Health Potion"):Destroy()
-			commands.RemoveFromInventory(p,"Health Potion")
-		end
+		commands.RemoveFromInventory(p,"Health Potion")
 		StoryMarker["ReynauldQuest"] = "Started"
 		data.StoryMarker.Value = game:GetService("HttpService"):JSONEncode(StoryMarker)
 		return dialogues.Reynauld.p2
@@ -7375,13 +7357,7 @@ dialogues.Adralik.v1 = function(p,v)
 		return dialogues.Adralik.p8
 	elseif v.choice == "Here you go" then
 		if p.Character:FindFirstChild("Rift Gem") or p.Backpack:FindFirstChild("Rift Gem") then
-			if p.Character:FindFirstChild("Rift Gem") then
-				p.Character:FindFirstChild("Rift Gem"):Destroy()
-				commands.RemoveFromInventory(p,"Rift Gem")
-			else
-				p.Backpack:FindFirstChild("Rift Gem"):Destroy()
-				commands.RemoveFromInventory(p,"Rift Gem")
-			end
+			commands.RemoveFromInventory(p,"Rift Gem")
 			StoryMarker["Ascension"]["Azael"] = "As'endo"
 			StoryMarker["Ascension"]["NoAs'endo"] = false
 			data.StoryMarker.Value = game:GetService("HttpService"):JSONEncode(StoryMarker)
@@ -10300,7 +10276,6 @@ function dialogues.Blacksmith.v1(p,v)
 					data.Enchant.Value ..= ","..tool.Name
 				end
 				data.EnchantTimer.Value = -1
-				tool:Destroy()
 				commands.RemoveFromInventory(p, tool.Name)
 				return dialogues.Blacksmith.p3second
 			else
@@ -10311,7 +10286,6 @@ function dialogues.Blacksmith.v1(p,v)
 		if tool and tool:FindFirstChild("Gem") then
 			if commands.ChangeMoney(p,data,-100)then
 				setFirstEnchant(data, tool.Name)
-				tool:Destroy()
 				commands.RemoveFromInventory(p, tool.Name)
 				return dialogues.Blacksmith.p3
 			else
@@ -13274,11 +13248,14 @@ dialogues["Witch Malady"].v1 = function(player,v)
 	elseif v.page == 2 then
 		if v.choice == "I have some Candy." then
 			local candy = 0
-			for i,v in pairs(player.Backpack:GetChildren()) do
-				if v:FindFirstChild("Candy") then
-					candy += 1
-					v:Destroy()
-					commands.RemoveFromInventory(player,v.Name)
+			for i,item in pairs(player.Backpack:GetChildren()) do
+				if item:FindFirstChild("Candy") then
+					local qty = item:FindFirstChild("Quantity")
+					local amount = qty and qty.Value or 1
+					candy += amount
+					for n = 1,amount do
+						commands.RemoveFromInventory(player,item.Name)
+					end
 				end
 			end
 			if typeof(candy) ~= "string" then
@@ -13544,8 +13521,7 @@ local function merchant(p,v)
 				local total = tool.MoneyValue.Value
 				total = math.round(total)
 				v.total = math.round(total * 1000 / 3)
-				v.tosell = {}
-				table.insert(v.tosell,tool)
+				v.tosell = {{tool = tool, amount = 1}}
 				return{
 					speaker = "Merchant",
 					msg = "Hmm. I'd pay "..total.." Money.",
@@ -13563,9 +13539,10 @@ local function merchant(p,v)
 							b.MoneyValue.Value *= 1.33
 						end
 					end
-					total += b.MoneyValue.Value
+					local qty = b:FindFirstChild("Quantity") and b.Quantity.Value or 1
+					total += b.MoneyValue.Value * qty
 					total = math.round(total) * 1000
-					table.insert(tosell,b)
+					table.insert(tosell,{tool = b, amount = qty})
 				end
 			end
 			if total<=0 then
@@ -13585,9 +13562,10 @@ local function merchant(p,v)
 	elseif v.page == 3 then
 		if v.choice == "It's a deal."then
 			if v.total and v.tosell then
-				for _,v in pairs(v.tosell)do
-					commands.RemoveFromInventory(p,v.Name)
-					v:Destroy()
+				for _,entry in pairs(v.tosell)do
+					for n = 1,entry.amount do
+						commands.RemoveFromInventory(p,entry.tool.Name)
+					end
 				end
 				commands.ChangeMoney(p,playerdata[p.Name],v.total)
 				return dialogues.Merchant.p4
@@ -13622,8 +13600,7 @@ local function fungchant(p,v)
 				local total = tool.MoneyValue.Value
 				total = math.round(total)
 				v.total = total
-				v.tosell = {}
-				table.insert(v.tosell,tool)
+				v.tosell = {{tool = tool, amount = 1}}
 				return{
 					speaker = "Fungchant",
 					msg = "Hmm. I'd pay "..total.." Money.",
@@ -13641,9 +13618,10 @@ local function fungchant(p,v)
 							b.MoneyValue.Value *= 1.33
 						end
 					end
-					total += b.MoneyValue.Value
+					local qty = b:FindFirstChild("Quantity") and b.Quantity.Value or 1
+					total += b.MoneyValue.Value * qty
 					total = math.round(total)
-					table.insert(tosell,b)
+					table.insert(tosell,{tool = b, amount = qty})
 				end
 			end
 			if total<=0 then
@@ -13662,9 +13640,10 @@ local function fungchant(p,v)
 	elseif v.page == 3 then
 		if v.choice == "It's a deal."then
 			if v.total and v.tosell then
-				for _,v in pairs(v.tosell)do
-					commands.RemoveFromInventory(p,v.Name)
-					v:Destroy()
+				for _,entry in pairs(v.tosell)do
+					for n = 1,entry.amount do
+						commands.RemoveFromInventory(p,entry.tool.Name)
+					end
 				end
 				commands.ChangeMoney(p,playerdata[p.Name],v.total)
 				return dialogues.Fungchant.p4
@@ -14279,13 +14258,11 @@ function dialogues.Grimtooth.v1(p,v)
 				StoryMarker["HowlerQuest"]["TurnedinLannis"] = true
 				data.StoryMarker.Value = game:GetService("HttpService"):JSONEncode(StoryMarker)
 				require(game.ServerScriptService.Modules.Commands).RemoveFromInventory(p,"Lannis Amulet")
-				p.Character:FindFirstChild("Lannis Amulet"):Destroy()
 				return dialogues.Grimtooth.turnedinlannis
 			elseif p.Character and p.Character:FindFirstChild("Howler Friend") then
 				StoryMarker["HowlerQuest"]["TurnedinHF"] = true
 				data.StoryMarker.Value = game:GetService("HttpService"):JSONEncode(StoryMarker)
 				require(game.ServerScriptService.Modules.Commands).RemoveFromInventory(p,"Howler Friend")
-				p.Character:FindFirstChild("Howler Friend"):Destroy()
 				return dialogues.Grimtooth.turnedinhowler
 			else
 				return dialogues.Grimtooth.noitem
@@ -14295,7 +14272,6 @@ function dialogues.Grimtooth.v1(p,v)
 				StoryMarker["HowlerQuest"]["TurnedinHF"] = true
 				data.StoryMarker.Value = game:GetService("HttpService"):JSONEncode(StoryMarker)
 				require(game.ServerScriptService.Modules.Commands).RemoveFromInventory(p,"Howler Friend")
-				p.Character:FindFirstChild("Howler Friend"):Destroy()
 				return dialogues.Grimtooth.finishedpart1
 			else
 				return dialogues.Grimtooth.noitem
@@ -14305,7 +14281,6 @@ function dialogues.Grimtooth.v1(p,v)
 				StoryMarker["HowlerQuest"]["TurnedinLannis"] = true
 				data.StoryMarker.Value = game:GetService("HttpService"):JSONEncode(StoryMarker)
 				require(game.ServerScriptService.Modules.Commands).RemoveFromInventory(p,"Lannis Amulet")
-				p.Character:FindFirstChild("Lannis Amulet"):Destroy()
 				return dialogues.Grimtooth.finishedpart1
 			else
 				return dialogues.Grimtooth.noitem

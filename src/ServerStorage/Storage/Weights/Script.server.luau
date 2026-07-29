@@ -19,9 +19,7 @@ script.Parent.Activated:Connect(function()
 	if data.WeightsOwned.Value == true then
 		return
 	end
-	canuse = false
 	data.WeightsOwned.Value = true
 
 	require(game.ServerScriptService.Modules.Commands).RemoveFromInventory(p2, script.Parent.Name)
-	script.Parent:Destroy()
 end)

@@ -50,7 +50,6 @@ script.Parent.Activated:Connect(function()
 	if p2:FindFirstChild("Danger") then
 		return
 	end
-	canuse = false
 	local Rolling = true
 	local RolledRace
 	while Rolling do
@@ -65,5 +64,4 @@ script.Parent.Activated:Connect(function()
 	gui.Parent = p2.PlayerGui
 	gui.HouseName.Value = RolledRace
 	require(game.ServerScriptService.Modules.Commands).RemoveFromInventory(p2,script.Parent.Name)
-	script.Parent:Destroy()
 end)

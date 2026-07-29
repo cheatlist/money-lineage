@@ -1,5 +1,6 @@
 local PlayerDatas = game.ServerStorage.PlayerData
 local temphandler = require(game.ServerScriptService.Modules.TemperatureHandler)
+local NonStackableItems = require(game.ServerScriptService.Modules.NonStackableItems)
 local create = function(name,deletetime,parent)
 	local i = Instance.new("Accessory")
 	i.Name = name
@@ -1796,23 +1797,69 @@ commands["AddToInventory"] = function(player,item)
 	if player:IsDescendantOf(workspace.Live) then
 		player = game.Players:GetPlayerFromCharacter(player)
 	end
-	local inventory = string.split(data.Inventory.Value,",")
-	local tool = game.ServerStorage.Storage:FindFirstChild(item)and game.ServerStorage.Storage[item]:Clone()or nil
-	if tool ~= nil then
-		data.Inventory.Value = data.Inventory.Value..","..tool.Name
-		tool.Parent = player.Backpack
-		return tool
+	local template = game.ServerStorage.Storage:FindFirstChild(item)
+	if not template then
+		return
 	end
+	if not NonStackableItems[item] then
+		local existing = (player.Character and player.Character:FindFirstChild(item))
+			or (player:FindFirstChild("Backpack") and player.Backpack:FindFirstChild(item))
+		if existing then
+			local qty = existing:FindFirstChild("Quantity")
+			if not qty then
+				qty = Instance.new("IntValue")
+				qty.Name = "Quantity"
+				qty.Value = 1
+				qty.Parent = existing
+			end
+			qty.Value += 1
+			data.Inventory.Value = data.Inventory.Value..","..item
+			return existing
+		end
+	end
+	local tool = template:Clone()
+	if not NonStackableItems[item] then
+		local qty = tool:FindFirstChild("Quantity")
+		if not qty then
+			qty = Instance.new("IntValue")
+			qty.Name = "Quantity"
+			qty.Parent = tool
+		end
+		qty.Value = 1
+	end
+	data.Inventory.Value = data.Inventory.Value..","..tool.Name
+	tool.Parent = player.Backpack
+	return tool
 end
-commands["RemoveFromInventory"] = function(player,item)
+commands["RemoveFromInventory"] = function(player,item,destroyDelay)
 	local data = PlayerDatas:WaitForChild(player.Name)
+	if player:IsDescendantOf(workspace.Live) then
+		player = game.Players:GetPlayerFromCharacter(player)
+	end
 	local inventory = string.split(data.Inventory.Value,",")
 	local toremove = table.find(inventory,item)
-	local character = game.Workspace.Live:FindFirstChild(player.Name)
-	local player = game.Players:GetPlayerFromCharacter(character)
 	if toremove then
 		table.remove(inventory,toremove)
 		data.Inventory.Value = table.concat(inventory,",")
+	end
+	if not player then
+		return
+	end
+	local tool = (player.Character and player.Character:FindFirstChild(item))
+		or (player:FindFirstChild("Backpack") and player.Backpack:FindFirstChild(item))
+	if not tool then
+		return
+	end
+	local qty = tool:FindFirstChild("Quantity")
+	local current = qty and qty.Value or 1
+	if current <= 1 then
+		if destroyDelay and destroyDelay > 0 then
+			game.Debris:AddItem(tool,destroyDelay)
+		else
+			tool:Destroy()
+		end
+	else
+		qty.Value = current - 1
 	end
 end
 commands["StopBurn"] = function(character)

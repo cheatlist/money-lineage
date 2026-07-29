@@ -250,7 +250,7 @@ local Commands = {
 			if not Name then return 'No name' end
 			for i,v in pairs(game.ServerStorage.Storage:GetChildren()) do
 				if string.find(string.lower(v.Name), string.lower(Name)) then
-					game.ServerStorage.Storage[v.Name]:Clone().Parent = Speaker.Backpack
+					CommandsModule.AddToInventory(Speaker, v.Name)
 					PlayerData[Speaker.Name].ArtifactAmount.Value += 1
 					break
 				end

@@ -18,6 +18,6 @@ function v1.Active(v2)
 			}):Play()
 		end
 	end
-	script.Parent:Destroy()
+	require(game.ServerScriptService.Modules.Commands).RemoveFromInventory(v2,script.Parent.Name)
 end
 return v1

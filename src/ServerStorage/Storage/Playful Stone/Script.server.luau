@@ -36,13 +36,12 @@ script.Parent.Activated:Connect(function()
 		return
 	end
 	if (data.Artifact.Value~="None" and data.Artifact.Value~="") and data.Artifact.Value ~= "Spider Cloak"then
+		require(game.ServerScriptService.Modules.AlertModule).send(p2, "You already have an artifact - "..data.Artifact.Value..". Reset your current artifact by talking to Isaiah at desert 3.")
 		return
 	end
-	canuse = false
 	data.Artifact.Value = "Playful Stone"
 	local v1 = Instance.new("Accessory")
 	v1.Name = "Playful Stone"
 	v1.Parent = p1.Artifacts
 	require(game.ServerScriptService.Modules.Commands).RemoveFromInventory(p2,script.Parent.Name)
-	script.Parent:Destroy()
 end)

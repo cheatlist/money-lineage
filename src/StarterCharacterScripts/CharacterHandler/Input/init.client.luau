@@ -2081,6 +2081,7 @@ RenderStepLoop = RunService.RenderStepped:Connect(function()
 		BaseWalkSpeed = 11
 	end
 	local _tick = tick()
+	--[[
 	if not game.Workspace:FindFirstChild("IsPriv") then
 		if _tick - 0 > 10 then
 			local l__next__279 = next
@@ -2102,6 +2103,7 @@ RenderStepLoop = RunService.RenderStepped:Connect(function()
 			end
 		end
 	end
+	]]
 	if not (not HasTag(CollectionService, Character, "BeingExecuted")) or not (not HasTag(CollectionService, Character, "FreezeRoot")) or FindFirstChild(Character, "FreezeRoot") then
 		HumanoidRootPart.Anchored = true
 	else

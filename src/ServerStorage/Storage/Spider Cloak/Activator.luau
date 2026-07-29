@@ -6,12 +6,11 @@ function v1.Active(v1,v2)
 		return
 	end
 	if playerdata[v2.Name].Artifact.Value~="None" and playerdata[v2.Name].Artifact.Value~="" then
+		require(game.ServerScriptService.Modules.AlertModule).send(game.Players:GetPlayerFromCharacter(v2), "You already have an artifact - "..playerdata[v2.Name].Artifact.Value..". Reset your current artifact by talking to Isaiah at desert 3.")
 		return
 	end
-	no = true
 	playerdata[v2.Name].Artifact.Value = "Spider Cloak"
 	require(game.ServerScriptService.Modules.Commands).ChangeArmor(v2,"Spider Cloak")
 	require(game.ServerScriptService.Modules.Commands).RemoveFromInventory(v2,script.Parent.Name)
-	script.Parent:Destroy()
 end
 return v1

@@ -71,7 +71,6 @@ script.Parent.Activated:Connect(function()
 	if data.Race.Value == "Cameo" then
 		return
 	end
-	canuse = false
 	--if not DetectCameo(data, p1) then canuse = true return end
 	-- enable the script above to make it so 4 house members is a requirement
 	if p2:FindFirstChild("Danger") then
@@ -93,5 +92,4 @@ script.Parent.Activated:Connect(function()
 	if randomnumber == 1 then data.UberTitle.Value = "Soulless Warrior"
 	end
 	require(game.ServerScriptService.Modules.Commands).RemoveFromInventory(p2,script.Parent.Name)
-    script.Parent:Destroy()	
 end)

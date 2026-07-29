@@ -2507,3 +2507,482 @@ was considered but not implemented - `ClassData.luau` has real edge cases that w
 handling first (a self-referential `requiredclass` on `Templar`, an `EnibrasTeaching` entry whose
 outer key doesn't match its own `.class` field, `Warrior` having no `.class` field at all) - the
 direct fix above resolves every concretely-reported case without that added complexity/risk.
+
+## New system: Alert popups (added 2026-07-29)
+
+A generic top-of-screen toast/alert system for silently-failing player actions - the motivating
+example was every artifact `Storage` Tool's own-artifact-conflict guard (`if data.Artifact.Value
+~= "None" and ... then return end`), which previously just did nothing with no feedback at all
+when a player tried to use a second artifact while already holding one.
+
+**`ServerScriptService/Modules/AlertModule.luau`** (new) - the entire server-side surface is one
+function, `module.send(player, text, duration)`, which fires a new `ReplicatedStorage.Requests.Alert`
+RemoteEvent at that player. `duration` is optional (client falls back to a default); this mirrors
+the existing `Requests.ClientMessage`/`Notify(messg, tim)` remote's own optional-duration shape
+(`StarterGui/GlobalMessage/LocalScript.client.luau`) rather than inventing a new convention, though
+Alert is a deliberately separate remote/GUI from that older bottom-right "Message" system - Alert is
+top-center, stacks downward, and is styled distinctly (dark card, amber outline) to read as a
+"heads up, that didn't work" notice rather than a combat/kill-feed style message.
+
+**`StarterGui/AlertGui/`** (new ScreenGui + LocalScript, `DisplayOrder = 50`) - unlike most GUI in
+this repo, this needed **no Studio-side placement at all**: every visual element (the container,
+each alert card, its `UICorner`/`UIStroke`/`UIPadding`, the `TextLabel`) is created with
+`Instance.new` at runtime, the same "fully code-built, zero asset debt" approach `GlobalMessage`'s
+own `Notify()` function already uses for its half of that system. A `UIListLayout` inside the
+container handles stacking automatically (`SortOrder = LayoutOrder`, each new alert gets the next
+`LayoutOrder`) - new alerts append below existing ones and the stack reflows itself when one
+expires, no manual position-math needed (a cleaner approach than `GlobalMessage`'s own hand-rolled
+`movenum`/`TweenPosition` stacking, which this system intentionally didn't copy). Each alert fades
+in, waits `duration` (default 6s), then collapses its own height to 0 while fading out (`AutomaticSize`
+is switched off just for the collapse tween, since Roblox ignores any `Size.Y` you set while
+`AutomaticSize` is still `Y`) before being destroyed - a smoother reflow than an abrupt disappearance.
+
+**Asset debt**: `ReplicatedStorage.Requests.Alert` (a RemoteEvent) needs creating in Studio, in the
+same `Requests` folder as every other remote referenced in this doc - confirmed via this session's
+own research that `ReplicatedStorage/Requests` is a Studio-only instance tree with no corresponding
+files anywhere in `src/`, same situation as `AttractivenessChanged`/`MoneyChanged`/etc. documented
+elsewhere in this file. Nothing else needed - the GUI itself needs no Studio assets per above.
+
+**Wired into every real "already have an artifact" conflict guard** (the concrete example given for
+this system) - `ServerStorage/Storage/{Black Pill, Charming Stone, Exoskeleton, Playful Stone,
+Lannis Amulet, Phoenix Feather, Fairfrozen, Nightstone, Philosophers Stone, Pocket Watch, Unwavering
+Focus, Spider Cloak, Howler Friend}` - 13 Tools total, every script anywhere in `src/` whose guard
+actually reads as "you already hold an artifact," found via a repo-wide grep for `Artifact.Value`
+comparisons and cross-checked one by one (the 5 `Scroll of <Godspell>` Activators that also compare
+`Artifact.Value` were deliberately excluded - theirs is a *requires*-Philo check, not a conflict
+guard, an unrelated use of the same field). Each now calls
+`AlertModule.send(player, "You already have an artifact - "..data.Artifact.Value..". Reset your
+current artifact by talking to Isaiah at desert 3.")` right before its existing `return` - the
+message names the NPC who can actually reset an artifact (`dialogues.Isaiah` in
+`DialogueHandler/ModuleScript.luau`, confirmed via its own `"Reset Artifact"` choice branch).
+**`Howler Friend`'s guard was split, not just extended**: it originally combined two unrelated block
+reasons in one `or` condition (`Artifact.Value already set` **or** `Race.Value == "Howler"`) - only
+the first reason is a real artifact conflict, so it's now two sequential `if` blocks, alerting only
+on the first and leaving the Howler-race block silent as before (inventing a message for a reason
+that wasn't asked about would've been a guess). Three of the thirteen files (`Pocket Watch`,
+`Unwavering Focus`, `Spider Cloak`) only had the Character in scope at the guard, not the Player, so
+each resolves `game.Players:GetPlayerFromCharacter(...)` inline at the call site rather than
+threading a new parameter through - matches how these same three files already inline-`require()`
+`Commands` on every call rather than caching a local, so this follows their own existing style
+instead of introducing a new one.
+
+**Interpretive calls worth flagging**: the exact 6s default duration and the amber/dark-card visual
+style are feel-based, not spec-derived - flag for tuning if a different look/timing was wanted. The
+message names the real reset NPC (`Isaiah`, confirmed via his `"Reset Artifact"` dialogue branch)
+rather than a placeholder - "desert 3" is the user-specified location text and was kept as given,
+even though no area with that exact name was found in `AreaData.luau` during this session's research
+(the closest name there is `"Deserted Keep"`); if `Isaiah` isn't actually near an area called
+"Desert 3" in-game, that's a wording fix for whoever has Studio/world access, not a code change.
+This system has not been tested in Studio (no Studio access from this session, same limitation noted
+throughout this doc for UI work) - worth a visual pass once the `Requests.Alert` RemoteEvent is placed.
+
+## Backpack stacking rework: one Tool per item type + Quantity (added 2026-07-29)
+
+Every owned inventory item used to be its own separate cloned `Tool` instance - owning 20 Copper
+meant 20 separate clones sitting in `Backpack`, confirmed as the cause of load lag: the
+per-character-spawn restore loop (`StarterCharacterScripts/CharacterHandler/init.server.luau`,
+runs on every join **and** every respawn) split `PlayerData.Inventory.Value` (a comma-separated
+string, one entry per owned unit) and cloned one `Tool` per entry - the pre-existing 50-per-name
+cap and `task.wait(1/30)` throttling already baked into that loop were the original author's own
+evidence this could get slow. Reworked to **one Tool instance per item type**, carrying a
+`Quantity` IntValue that increments/decrements, destroyed only when `Quantity` hits 0.
+
+**Scope, confirmed with the user**: only 49 genuinely-stackable consumable item types - potions
+(13), cures (5), poisons (6, including `Five Demises`), ores (4), ore bars (4), gems (5), gem
+shards (5), candy (3), and 4 misc items (Turnip, Pizza, Pork Bun, Race Reroll Essence). The full
+list lives in the new `ServerScriptService/Modules/StackableItems.luau`. Singleton items (unique
+artifacts, equip-only tools like Pickaxe/Torch, unique weapon-flag items, scrolls) got zero
+changes - never owned >1, not part of the lag problem, touching them only adds risk. The entire
+Meat/Poisonous-Meat/cooked-meat family is excluded too - user confirmed poisonous meats are
+legacy items that no longer do anything, and independently `Frying Pan/Script.server.luau` (the
+cooking station) counts `Uncooked Meat` by physically iterating `Backpack:GetChildren()` rather
+than by name, which would silently break under stacking (cooking would always see "1" regardless
+of owned quantity). `Dye Packet` is excluded (stores real per-instance `DyeColor` state a shared
+stack can't represent); `Shard of Mana` is excluded (a one-time story-trigger item, not a real
+consumable - a second copy already gets permanently CSV-stuck today); the 4 `Cooked
+Glowshroom`/`Periashroom`/`Scroom`/`Zombie Scroom` items are excluded since they have a
+pre-existing bug (destroy with no matching `RemoveFromInventory` call at all) that this rework
+didn't want to bundle a fix for.
+
+**Design constraint**: `PlayerData.Inventory.Value`'s comma-separated, one-entry-per-unit string
+format did **not** change - keeps save data compatible, and means nothing outside the central
+functions below needs to know anything changed; only what happens to the physical `Tool` did.
+
+**Central architecture** - both `Commands.AddToInventory`/`RemoveFromInventory`
+(`ServerScriptService/Modules/Commands/init.luau`) already took an item *name*, not an instance,
+which is what made this centralizable instead of needing to touch every one of ~239 call sites'
+signatures:
+- `AddToInventory`: CSV append unchanged. For a `StackableItems`-listed item, now checks
+  `player.Character` first (a Tool being actively held/used lives there, not `Backpack`) then
+  `player.Backpack` for an existing same-named Tool - if found, get-or-creates its `Quantity`
+  IntValue and increments it instead of cloning; otherwise clones as before and adds `Quantity = 1`.
+- `RemoveFromInventory`: CSV splice unchanged, but now also gained a **new optional 3rd parameter,
+  `destroyDelay`** (replaces the `game.Debris:AddItem(script.Parent, N)` idiom several food items
+  used to delay destruction until an eat animation/sound finished - see Turnip/Pizza/Pork Bun
+  below). It locates the Tool (Character then Backpack), reads `Quantity` (missing = 1, matching
+  the client's own `or 1` convention), and either decrements it or destroys the Tool at 0 (after
+  `destroyDelay` if given). **This function now owns all Tool destruction** - previously it only
+  ever edited the CSV string and every caller destroyed its own `script.Parent` separately.
+  Non-stackable items never get a `Quantity` child (only the stackable path creates one), so for
+  every singleton item this behaves exactly as it always did - `Quantity` nil → treated as 1 →
+  destroyed immediately - which is why **no changes were needed in any out-of-scope item's
+  script.** Also fixed a piece of dead code while here: the old version recomputed a `character`/
+  `player` local at the end that nothing subsequently read - replaced with the same
+  `player:IsDescendantOf(workspace.Live)` normalization `AddToInventory` already used, which is
+  what makes the new Character/Backpack Tool lookup actually work regardless of whether a caller
+  passed a Player or a Character.
+- `ToolHandler.RemoveTool` (`ServerScriptService/ToolHandler.luau`): deleted its own `Tool:Destroy()`
+  call - it already called `Commands.RemoveFromInventory(Player, Tool.Name)` first, which now owns
+  that decision. Confirmed every call site passes `script.Parent` (or a local `tool` variable
+  that's itself always assigned `script.Parent`), so this one deletion covers all 13 Storage +
+  13 Alchemy/Tools potions with no per-file edits.
+- `ToolHandler.GiveAlchemy`'s non-Ingredient branch (crafted-potion output) got the same
+  get-existing-or-clone-and-initialize-`Quantity` treatment as `AddToInventory`. The raw-ingredient
+  branch is untouched - ingredients aren't in the whitelist, and reading `Alchemy/init.server.luau`'s
+  `concoct` directly confirmed finished potions are only ever a crafting *output*, never counted as
+  an input off the player's Backpack, so there's no equivalent instance-counting risk there.
+- Restore-on-spawn loop (`CharacterHandler/init.server.luau`) - the actual lag fix: now tallies
+  occurrences per name from the split CSV first. For each `StackableItems`-listed name, clones
+  **exactly one** Tool with `Quantity` set to the tallied count (the 50-cap is dropped for these,
+  since an IntValue's cost doesn't scale with its value the way N-instances did). Non-stackable
+  names keep the *exact* original per-entry clone loop, 50-cap, and throttling. The throttle's
+  trigger moved from "every 60 raw CSV entries" to "every 60 actual `:Clone()` calls performed," so
+  a player with thousands of stacked units doesn't get throttled for a clone count that no longer
+  scales with quantity.
+
+**No client changes needed** - `StarterGui/BackpackGui/BackpackClient.client.luau` already grouped
+Tools by name (one icon per unique name) and already summed a `Quantity` child IntValue per Tool
+(defaulting to 1 if absent) for its "xN" badge - confirmed by reading its rendering loop directly.
+A single Tool with `Quantity.Value = 5` already rendered identically to 5 separate un-quantified
+clones before this change; the pre-existing `"Vocare"` item (tied to `PlayerData.BoundAmount`) was
+already using this exact convention as a one-off precedent.
+
+**Bespoke fix required and applied - Witch Malady's Candy redemption**
+(`WorldHandler/Dialogues/DialogueHandler/ModuleScript.luau`, `dialogues["Witch Malady"].v1`, the "I
+have some Candy." branch): this was the one place that read Backpack contents by raw *instance*
+count rather than by name - it looped `player.Backpack:GetChildren()`, credited 1 Candy Point and
+destroyed each item with a child named `"Candy"` it found. Investigation turned up something
+unexpected: `Blue Candy`/`Green Candy`/`Orange Candy`'s own scripts already redeem themselves
+directly on use (`data.Candy.Value += 1` then self-destroy) - a completely separate path from this
+NPC - and no script anywhere in `src/` creates a child instance literally named `"Candy"` inside
+any Tool, meaning this branch may be checking for a Studio-only marker on some other item
+entirely, or may already be effectively vestigial. Rather than guess which, the loop was rewritten
+to be correct either way: sum each matched item's `Quantity` (missing = 1) instead of counting
+instances, and remove that many via `RemoveFromInventory` (which now correctly decrements/destroys
+instead of the loop's own blind `v:Destroy()`). This is a strict improvement in every case - for a
+non-whitelisted item it behaves identically to before (no `Quantity` ever set → each match still
+counts as 1), and for a whitelisted stack it now credits the true owned amount instead of just 1
+point per physical Tool while silently destroying the rest of the stack.
+
+**Per-item mechanical edits applied** across the 49 whitelisted items' scripts (both
+`ServerStorage/Storage/<Name>` and, for the 13 potions, their `ServerStorage/Alchemy/Tools/<Name>`
+duplicates):
+- **Ores** (Copper/Tin/Iron/Mythril, byte-identical templates), **ore bars** (Copper/Tin/Iron/
+  Mythril Bar, byte-identical), **gems** (Ruby/Emerald/Sapphire/Opal/Diamond, byte-identical),
+  **cures** (5, byte-identical), **poisons** (6, byte-identical), **candy** (3, byte-identical
+  apart from the item name string) - each had a trailing `script.Parent:Destroy()` (Candy's
+  wrapped in a `pcall`) immediately after its own `RemoveFromInventory` call, now deleted since
+  destruction is centralized. Applied via exact whitespace-matched `perl` substitution per file
+  rather than the Edit tool, after the Edit tool's literal-string matching kept failing on this
+  codebase's tab-indented decompiled style until whitespace was confirmed byte-for-byte via
+  `cat -A` first.
+- **Gem shards**: `Ruby Shard` and `Sapphire Shard` had the same trailing-destroy pattern, fixed
+  the same way. `Emerald Shard`/`Opal Shard`/`Diamond Shard`'s scripts are **empty files** (no
+  logic at all yet) - nothing to fix, flagged here rather than silently assumed equivalent to Ruby
+  Shard.
+- **Turnip, Pizza, Pork Bun**: previously delayed their destroy via `task.delay(.65, Tool.Destroy,
+  Tool)` / `game.Debris:AddItem(script.Parent, 0.65)` so an eat animation/sound could finish before
+  the Tool vanished from hand. Now pass `0.65` as `RemoveFromInventory`'s new `destroyDelay`
+  parameter instead, with the separate scheduling line deleted.
+- **Race Reroll Essence**: same trailing-destroy pattern as the ores/gems/cures family, fixed the
+  same way.
+- **All 13 potions** (both the `Storage` shop-purchase copy and the `Alchemy/Tools` crafted copy -
+  26 files total): already routed through `ToolHandler.RemoveTool`, so needed **zero per-file
+  edits** - fully covered by the one-line fix to `ToolHandler.RemoveTool` itself. Verified by
+  grepping every file's local `tool`/`script.Parent` usage to confirm none of them pass a
+  different instance than the Tool actually being consumed.
+- `ServerScriptService/Modules/FoodModule.luau`'s `eatAnything` (the generic "eat &lt;item&gt;"
+  chat-command path, which can target any Backpack item by name including whitelisted ones) had
+  its own redundant `item:Destroy()` after calling `RemoveFromInventory` - deleted for the same
+  reason as every per-item script above.
+
+**Verification**: this repo has no test runner - manual Studio verification is still needed
+(stack/unstack counts, respawn survival, the Candy redemption math, delayed-destroy timing on
+Turnip/Pizza/Pork Bun, and confirming Meat/Poisonous Meat behave completely unchanged). Not yet
+performed this session - no Studio access.
+
+## Backpack stacking rework, follow-up audit (2026-07-29)
+
+After the initial rework above, did a dedicated second pass (two parallel research agents - one
+covering `WorldHandler/Dialogues/DialogueHandler/ModuleScript.luau` in depth, one covering the
+rest of `src/`) specifically hunting for the *same bug class* as the Witch Malady fix: code that
+manipulates one of the 49 whitelisted items by directly destroying/counting physical Tool
+instances instead of going through the now-centralized `Commands.AddToInventory`/
+`RemoveFromInventory`. Found and fixed six more real instances, all in the same file
+(`ModuleScript.luau`) plus one each in `GetInvoke.server.luau` and `Admin/init.server.luau`:
+
+- **Alana's and Reynauld's Health Potion quest turn-ins** (`dialogues.Alana`/`dialogues.Reynauld`,
+  the "Would this potion be of any use?" / "Give a Health Potion" choices) - both used to look up
+  the Health Potion Tool in `Character` or `Backpack` and call `:Destroy()` on it directly,
+  *before* also calling `RemoveFromInventory` (which was then a no-op on an already-gone Tool).
+  Under stacking this would have deleted the player's entire Health Potion stack for a 1-potion
+  quest turn-in. Fixed by deleting the manual lookup-and-destroy entirely and calling
+  `commands.RemoveFromInventory(p,"Health Potion")` alone - it already searches Character then
+  Backpack internally, so the old two-branch `if/else` was redundant on top of being wrong.
+- **Blacksmith's gem enchant** (`dialogues.Blacksmith`, both the 100-Money first-enchant and the
+  1000-Money second-enchant branches) - same `tool:Destroy(); commands.RemoveFromInventory(...)`
+  double-destroy shape, for the equipped Gem (Ruby/Emerald/Sapphire/Opal/Diamond). Fixed by
+  deleting the `tool:Destroy()` line in both branches.
+- **Merchant and Fungchant's item-selling** (`local function merchant`/`local function fungchant`,
+  both NPCs share an identical two-path design: appraise-and-sell-one, or "sell in bulk") - the
+  deeper of the two bugs found this session, with two parts:
+  1. The bulk-sell path summed `total += b.MoneyValue.Value` **once per Tool instance** found in
+     Backpack, then sold everything found via `v:Destroy()`. Under the old one-Tool-per-unit
+     system this was correct (owning 10 Copper meant 10 Tool instances, each contributing once).
+     Under stacking there's only 1 Tool per item type regardless of stack size, so a bulk sell of
+     10 Copper would have paid for 1 and then destroyed the Tool - now silently deleting the other
+     9 for nothing. Fixed by multiplying each match's contribution by its `Quantity` (missing = 1)
+     before summing.
+  2. Both the single-appraise and bulk-sell paths shared one confirmation handler that looped
+     `v.tosell` and did `commands.RemoveFromInventory(p,v.Name); v:Destroy()` per entry - same
+     double-destroy shape as Alana/Reynauld/Blacksmith. Fixed by changing what `tosell` holds:
+     instead of raw Tool references, each entry is now `{tool = Tool, amount = N}` (`amount` is
+     `1` for a single appraisal, the full counted `Quantity` for a bulk-sold stack), and the
+     confirmation loop calls `RemoveFromInventory` `amount` times per entry instead of destroying
+     directly. This preserves the intended difference between the two flows - appraising and
+     selling one held potion still only spends 1 unit even if you're carrying a stack of 5, while
+     "sell in bulk" still correctly liquidates an entire stack (that's its actual purpose), it's
+     just now priced and removed correctly either way.
+  3. Left one **pre-existing, unrelated bug alone**, flagged rather than fixed per this doc's own
+     convention: Merchant's bulk-sell total does `total = math.round(total) * 1000` *inside* the
+     per-item loop (`ModuleScript.luau`, the `merchant` function) rather than once after it, so
+     multi-item bulk sells were already computing an absurdly inflated (or in edge cases
+     nonsensical) price before this session touched anything. Fungchant's equivalent loop doesn't
+     have this bug. Not fixed since it's a pre-existing pricing-math issue orthogonal to the
+     stacking rework, not something introduced by or in scope for this pass.
+- **World item drop** (`Requests.Drop`, handled in `WorldHandler/GetInvoke.server.luau`) - pressing
+  Backspace to drop the equipped/held item called `Commands.RemoveFromInventory` (correct) *and
+  then* `Path:Destroy()` on the same Tool unconditionally. Since `Path` is now the whole stack for
+  any whitelisted item, dropping "1" would have destroyed the entire held stack while only
+  spawning a single-unit world bag (`DropBag`'s pickup side already only ever grants 1 unit per
+  pickup, confirmed unchanged) - a straight item-loss bug. Fixed by deleting the redundant
+  `Path:Destroy()`, matching every other fix in this pass: `RemoveFromInventory` alone now
+  correctly decrements by 1 (or destroys only if that was the last one), restoring the intended
+  "drop 1, pick up 1" symmetry.
+- **`/artifact` admin command** (`WorldHandler/Admin/init.server.luau`) - despite its name, this
+  command does a case-insensitive substring match across **every** child of `ServerStorage.Storage`,
+  not just artifacts, so an admin typing e.g. `/e artifact copper` would match. It cloned the item
+  directly (`game.ServerStorage.Storage[v.Name]:Clone().Parent = Speaker.Backpack`), bypassing
+  `AddToInventory` entirely - no `Quantity` handling (would create a second, un-stacked duplicate
+  Tool alongside an existing stack) and, independently of this rework, it never wrote
+  `PlayerData.Inventory.Value` at all, so anything granted this way was already silently lost on
+  the next respawn even before stacking existed. Fixed by routing through
+  `CommandsModule.AddToInventory(Speaker, v.Name)` (the module's already `require`d at the top of
+  this file, used by the neighboring `giveitem` command) - one change fixes both bugs at once, and
+  behaves identically to the old raw clone for every non-whitelisted item.
+
+**Investigated, found orphaned, deliberately left alone**: `ServerStorage/SpellEffects/Squire/SquireModule.luau`'s
+`u8.gem`/`u8.bar`/`u8.shard`/`consumeShard` functions have the same double-destroy/no-bookkeeping
+shape (`u8.bar` calls `p34:Destroy()` with **no** `RemoveFromInventory` call at all; `u8.gem`/
+`consumeShard` reparent the Gem/Shard's `Handle` out of the Tool *before* calling
+`ToolHandler.RemoveTool`, which would leave a surviving multi-unit stack visually handle-less).
+Confirmed via a repo-wide grep that none of `u8.gem`/`u8.bar`/`u8.shard` have any call site
+anywhere in tracked `src/` (only `u8.summon`/`u8.enchant`/`u8.grind`/`u8.replaceWeapon` are ever
+invoked, from `Classes/Grindstone` and `Classes/Remote Smithing`) - `u8.shard` in particular looks
+like a fully superseded duplicate of the gem-shard-casting behavior that already lives in (and was
+already fixed in, earlier this session) `Ruby Shard`/`Sapphire Shard`'s own `Script.server.luau`.
+This file is marked "Decompiled with the Synapse X Luau decompiler" in its own header, consistent
+with being legacy code from before the current per-item Tool scripts existed. Not fixed, since
+editing confirmed-unreachable code adds no verified value and risks introducing an untested change
+to something that might matter if it turns out a Studio-only ClickDetector still invokes it -
+flagged here instead, per this doc's established practice for exactly this situation (see the
+`ModStop` stray-backtick note earlier in this file). If anyone with Studio access confirms these
+functions are actually wired to something, they need the same fixes as everywhere else in this
+pass before being trusted.
+
+**Confirmed safe, no changes needed**: Ezlo's gem-teleport dialogue trick (already just called
+`RemoveFromInventory`, no direct destroy); every Trinket/loot-bag/GetInvoke pickup path (always
+grants exactly 1 unit via `AddToInventory`/`GiveAlchemy`, confirmed unchanged); `BackpackGui`'s
+client (no combine/split-stack UI exists to worry about - the only stack-affecting player action
+is the drop mechanic just fixed above); the commented-out dead `PlaceTool`/`PlaceMoney` block in
+`RequestHandler.server.luau` (confirmed genuinely unreachable - wrapped in a Luau block comment -
+so left untouched even though it contains the same bug pattern, since editing dead code inside a
+comment has no effect either way).
+
+## Backpack stacking: whitelist → blacklist, scope expanded to nearly all Storage items (2026-07-29)
+
+**Root cause of a live bug report**: a player used `/e giveitem` to grant themselves an item and
+still got a separate duplicate Tool per grant instead of a single stacking Tool. Traced this back to
+the original design: `StackableItems.luau` was an explicit **allow-list** of the 49 items chosen in
+the first pass - any item not manually added to it (which, as it turned out, was most of
+`ServerStorage/Storage`) silently fell back to the old one-Tool-per-unit behavior with zero warning.
+The user's fix direction: **"all items in Storage are stackable"** - flip the model so stacking is
+the default and only a short, explicit, well-justified list of items opts out.
+
+**`ServerScriptService/Modules/StackableItems.luau` was deleted and replaced by
+`ServerScriptService/Modules/NonStackableItems.luau`** - a blacklist, now just 15 entries: the same
+Meat-family + `Dye Packet` + `EmptyName` exclusions from the original pass, plus one newly-found
+addition, **`Torch`** (each physical Torch tracks its own `Lit`/`PercentLit`/`ColdResist`-boost
+warm-up state - merging two Torches in different lit states into one shared stack would silently
+corrupt that state, the same class of problem as `Dye Packet`'s `DyeColor`). All three call sites
+(`Commands.AddToInventory`/`RemoveFromInventory`, `ToolHandler.GiveAlchemy`, the respawn restore
+loop in `CharacterHandler/init.server.luau`) now check `not NonStackableItems[item]` instead of
+`StackableItems[item]` - inverted condition, same underlying increment/clone and decrement/destroy
+logic as before, unchanged.
+
+**Consequence: everything under `ServerStorage/Storage` except those 15 items is now stacking-aware**,
+which meant re-running the same audit-and-fix pass from the original rework across the other 52
+item types that were previously out of scope (unique artifacts, scrolls, and a handful of misc
+items) - same two categories of work as before:
+
+**1. Per-item redundant-destroy fixes (41 of the 52 needed it)**: every one of these item scripts had
+the same shape already fixed in the original 49 - `RemoveFromInventory(...)` immediately followed by
+`script.Parent:Destroy()` (now redundant/harmful, since `RemoveFromInventory` already owns
+decrement/destroy) - fixed the same mechanical way, `:Destroy()` deleted:
+- 12 artifacts: Black Pill, Charming Stone, Exoskeleton, Playful Stone, Lannis Amulet, Phoenix
+  Feather, Fairfrozen, Nightstone, Philosophers Stone, Pocket Watch, Spider Cloak, Howler Friend.
+  (`Unwavering Focus`, the 13th artifact, turned out to already have no redundant destroy - already
+  correct, confirmed rather than assumed.)
+- 18 of the 19 Scrolls (`Scroll of Mori` is the exception - see below). Five of them (Contrarium,
+  Fimbulvetr, Hoppa, Manus Dei, Percutiens) are byte-identical Godspell-swap templates with **two**
+  destroy sites each (an `if`/`else` branch), both fixed with one regex covering both branches.
+- 9 misc items: Amulet of the White King, Azael Horn, Ice Essence, Inquisitive Essence, Mysterious
+  Artifact (this one calls `RemoveFromInventory(Player, tostring(script.Parent))` instead of
+  `.Name` - `tostring()` on an Instance already returns its `.Name` in Luau, so this is equivalent,
+  left as-is rather than "corrected" to a different-looking but behaviorally identical call), Phoenix
+  Down, Rift Gem (its destroy was wrapped in a `pcall(function() ... end)` - removed the whole
+  wrapper, same as the earlier Candy fix), Scroom Key, Seraph Essence, Shard of Mana, Weights.
+
+**2. Confirmed persistent/reusable, correctly need zero changes (9 items)**: Dark Cowl, Light Cowl,
+Tan Cowl (equip/unequip toggles), Helmet (equip toggle - its one `:Destroy()` call removes an
+unrelated `Boosts` buff instance tagged `"Sigil Helmet"`, not the Helmet Tool itself), Frying Pan
+(cooks the already-excluded `Uncooked Meat`; never destroys itself), Pickaxe (mines ore via
+`AddToInventory`; never destroys itself), Pebble (every `:Destroy()` in its script targets the
+*thrown projectile clone*, never the Tool - it's a reusable ranged weapon), Phoenix Clown (a
+reusable cosmetic sound toy, no inventory interaction at all), Torch (excluded above, but also
+genuinely never destroys itself even before that - a belt-and-suspenders situation, not a
+contradiction).
+
+**3. Left deliberately unfixed - `Scroll of Mori`, then reconsidered and fixed anyway**: this scroll
+kills its own caster (`_G.Death(script.Parent.Parent)`) and, uniquely among all ~101 stackable
+items now covered, **never called `RemoveFromInventory` at all** - just a bare `script.Parent:Destroy()`
+with zero CSV bookkeeping, a pre-existing gap that predates this rework entirely. Initially flagged
+as "pre-existing, unrelated, don't fix" per this doc's usual convention - but since this session's
+whole ask was specifically "check dialogues and other possible item deletion instances to work with
+the new system," a raw unconditional Tool-destroy is exactly that, so it was fixed after all: added
+the same `require(...).RemoveFromInventory(v2,script.Parent.Name)` call every other scroll already
+has, removed the bare `Destroy()`. Correct CSV bookkeeping is a side benefit; the main effect is that
+a stacked Mori scroll now loses only 1 unit instead of the whole stack on use.
+
+**4. Dialogue/other-systems audit, round 2 (ran the same two-agent research pass again, scoped to
+the 52 new items)** - found and fixed 2 more real double-destroy bugs, same shape as the earlier
+Alana/Reynauld/Blacksmith/Merchant/Fungchant fixes:
+- **Adralik's Rift Gem turn-in** (`dialogues.Adralik.v1`, "Here you go" choice) - found the Tool via
+  `Character`/`Backpack`, destroyed it directly, then separately called `RemoveFromInventory`.
+  Simplified to a single `commands.RemoveFromInventory(p,"Rift Gem")` call (which already checks
+  both locations internally, so the manual `Character`-then-`Backpack` branching was redundant on
+  top of being wrong).
+- **Grimtooth's Howler quest turn-ins** (`dialogues.Grimtooth.v1`, "Here" choice) - the same
+  double-destroy shape appears **four times** in this one quest (Lannis Amulet turn-in ×2, Howler
+  Friend turn-in ×2, across the quest's three possible turn-in orderings) - all four fixed the same
+  way, dropping the manual `:Destroy()` and keeping only the `RemoveFromInventory` call.
+
+**Confirmed safe / correctly out of scope during round 2**: Isaiah's "Reset Artifact" dialogue (only
+ever touches `PlayerData.Artifact.Value`, never a physical Tool - by the time this runs, the Tool
+was already consumed at the moment the artifact was originally activated); a second, Robux-product-
+driven "Reset Artifact" flow in `ProductHandler.server.luau` (same reasoning, a parallel
+implementation of the same reset semantics worth knowing about but not a stacking bug); Ezlo, Miner
+John, and the Castellan ascension quest (all already name-based, no raw destroy); `Dorgan`'s Frying
+Pan checks (reads the CSV string via `:find`, not a physical count, unaffected by `Quantity`
+either way); `TrinketsHandler.server.luau`'s loot-weight tables (probability data only, actual
+grants already go through `AddToInventory`); the `RequestHandler.server.luau` `PlaceTool`/`GiveTool`
+pathway (re-confirmed still fully inside the same dead block-comment identified in round 1 - a
+`sameArti` Backpack-instance-counting duplicate-artifact cap living in there would have been a real
+bug on a live path, but it isn't one since nothing in this file executes).
+
+**Interpretive call flagged, not acted on**: while sweeping the dialogue file a second time, found
+that "Desert Mist" and "Love Letter" (two other `:Destroy()`-by-name targets in nearby quest code)
+aren't the name of any folder under `ServerStorage/Storage` at all - "Desert Mist" turned out to be
+a real alchemy ingredient (see the next section - its double-destroy bug was fixed once ingredients
+became stackable); "Love Letter" still isn't any known item name in either `Storage` or
+`list_alchemy.luau`'s ingredients, so it remains genuinely out of scope, left alone rather than
+guessed at.
+
+No client-side changes needed, same as the original 49-item pass - `BackpackGui` already handles any
+`Quantity`-bearing Tool correctly regardless of which items carry one.
+
+## Alchemy ingredients and crafted foods didn't stack (2026-07-29)
+
+Reported directly: "Items related to alchemy don't stack correctly." Two genuinely separate bugs,
+both now fixed - one in the give-side plumbing (raw ingredients never had any stacking logic at
+all), one in the consume-side plumbing (a script that already half-expected stacking but never got
+wired up correctly).
+
+**Raw ingredients (Vile Seed, Scroom, Potato, Trote, Desert Mist, ~24 others in
+`list_alchemy.luau`'s `module.ingredients` table) never stacked, full stop** - unlike every `Storage`
+item, ingredients are synthesized fresh from a shared `Alchemy/Tools/Ingredient` template plus a
+per-type hand model (`Alchemy/Models/<Name>`), a completely different code path
+(`ToolHandler.GiveAlchemy`'s `Ingredient` branch) that was never touched by the `StackableItems` →
+`NonStackableItems` rework at all, since it isn't reached via `ServerStorage.Storage`. Confirmed
+every ingredient's properties (`rarity`/`color`/`hot`/`silver`/`tooltip`) are static per *type*, not
+randomized per pickup, so there's no per-instance-data conflict blocking this the way `Dye Packet`/
+`Torch` have - safe to stack all of them. Fixed by adding the identical get-existing-or-clone-and-
+initialize-`Quantity` treatment already used everywhere else, to both:
+- `ToolHandler.GiveAlchemy`'s `Ingredient` branch (`ServerScriptService/ToolHandler.luau`) - checks
+  `Character`/`Backpack` for an existing same-named ingredient Tool before cloning a new one.
+- The respawn restore loop's ingredient branch (`CharacterHandler/init.server.luau`, the `else` arm
+  of the `if ic and not ic:FindFirstChild("isIngredient")` check) - now clones **one** ingredient
+  Tool with `Quantity` set to the tallied CSV count, instead of one clone per occurrence, matching
+  the exact same fix already applied to the `Storage`-item arm in the original pass.
+
+**`ServerStorage/Alchemy/Tools/Ingredient/Script.server.luau` (the ingredient Tool's own
+consumption logic - depositing into the Alchemy crucible, or eating one raw via the `Herbivore`
+skill) turned out to already contain partial `Quantity`-aware code** - `local quantityVal =
+tool:FindFirstChild("Quantity")` captured at the top of the file, then in both the crucible-deposit
+and Herbivore-eat branches: `if quantityVal and quantityVal.Value > 1 then quantityVal.Value =
+quantityVal.Value - 1 else ToolHandler.RemoveTool(...) end`. This was dormant/inert before this
+session - since nothing ever created a `Quantity` value on an ingredient Tool, `quantityVal` was
+always `nil` and this always fell to the `else` branch (immediate destroy), which is exactly why
+ingredients read as "never stacking" even though this script looks like someone already started
+building stacking support for it. Now that ingredients actually carry a `Quantity` value, this
+dormant code became live - and it turned out to have a real bug of its own: **the manual
+`quantityVal.Value -= 1` branch never called `Commands.RemoveFromInventory`, so it silently
+desynced the physical stack count from `PlayerData.Inventory.Value`'s CSV string** (the stack would
+correctly shrink, but the CSV would keep every entry until the very last unit was consumed) - which
+would have caused **more copies than actually owned to reappear on the next respawn**, since the
+restore loop rebuilds purely from CSV entry counts. The Herbivore-eat branch additionally had the
+same double-destroy shape found throughout this whole rework (`tool:Destroy()` immediately before
+`ToolHandler.RemoveTool(...)`, which already handles destruction). Both branches were simplified to
+a single `toolHandler.RemoveTool(plr, tool)` call each - that function already does the correct
+decrement-or-destroy-and-keep-CSV-in-sync behavior, making the hand-rolled `quantityVal` math
+entirely redundant. The now-unused `local quantityVal = tool:FindFirstChild("Quantity")` declaration
+was removed along with its only two call sites.
+
+**Also fixed while here - the 4 Cooked Mushroom items** (`Cooked Scroom`/`Cooked Glowshroom`/
+`Cooked Periashroom`/`Cooked Zombie Scroom`, all under `ServerStorage/Alchemy/Tools/`): these are
+crucible-*crafted outputs* (real `list_alchemy.luau` recipes, e.g. `["Cooked Scroom"] = {recipe =
+{"Scroom"}}`), not raw ingredients, so they already went through `GiveAlchemy`'s non-Ingredient
+branch and were already correctly stacking on the *give* side. But per the original 49-item pass,
+their own consumption scripts had a **pre-existing bug flagged-but-not-fixed at the time**: eating
+one calls a bare `script.Parent:Destroy()` with **no `RemoveFromInventory` call anywhere in the
+file**. Originally left alone as "don't bundle an unrelated fix in" - but since this session is
+specifically about alchemy items not stacking correctly, and a bare unconditional destroy is
+precisely that failure mode (eating 1 of a stack of 5 would have wiped all 5), it was fixed the same
+way `Scroll of Mori` was reconsidered and fixed last round: added a proper
+`RemoveFromInventory(game.Players:GetPlayerFromCharacter(char), script.Parent.Name)` call in place
+of the raw destroy, identically across all 4 files (confirmed byte-identical aside from one trivial
+comment).
+
+**Also found and fixed while re-checking dialogues - Nero's Desert Mist quest** (`dialogues.Nero.v1`
+/ the "Here you go" choice, `WorldHandler/Dialogues/DialogueHandler/ModuleScript.luau`): same
+double-destroy shape as Adralik/Alana/Reynauld/Grimtooth from the two previous rounds - found via
+`Character`/`Backpack`, destroyed directly, then separately called `RemoveFromInventory`. This one
+was missed in the prior dialogue audits because "Desert Mist" isn't a `ServerStorage/Storage` folder
+name (it's an alchemy ingredient, which wasn't in scope for stacking until this session) - simplified
+to a single `commands.RemoveFromInventory(p,"Desert Mist")` call, same fix shape as every other
+turn-in bug found this session.
+
+**Noted, not touched**: the working tree's `NonStackableItems.luau` had its plain `["Meat"] = true`
+entry removed independently of this session's own edits (all the Poisonous Meat tiers + Uncooked/
+cooked-quality Meat + Vint remain excluded) - taken as-is, not reverted, since whoever made that
+change presumably has a reason plain Meat doesn't need the same exclusion its poisoned siblings do.

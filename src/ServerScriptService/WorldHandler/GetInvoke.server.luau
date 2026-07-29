@@ -345,7 +345,6 @@ Requests.Drop.OnServerEvent:Connect(function(p, Path)
 		if Path:FindFirstChild("Droppable") then
 			task.spawn(DropBag, Path, Path.Name, Character)
 			Commands["RemoveFromInventory"](p,Path.Name)
-			Path:Destroy()
 		end
 	end
 end)

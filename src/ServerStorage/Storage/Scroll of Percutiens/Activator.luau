@@ -15,7 +15,6 @@ function v1.Active(v2)
 	if no == true or table.find(string.split(playerdata[v2.Name].Godspell.Value,","),"Percutiens") or playerdata[v2.Name].Artifact.Value ~= "Philo" then
 		return
 	end
-	no = true
 	if playerdata[v2.Name].Godspell.Value ~= "" then
 		local soulsnap = string.split(playerdata[v2.Name].Godspell.Value,",")
 		local soulsnaps = {}
@@ -30,13 +29,11 @@ function v1.Active(v2)
 		require(game.ServerScriptService.Modules.Commands).UpdateGodSpells(game.Players:GetPlayerFromCharacter(v2))
 		require(game.ServerScriptService.Modules.Commands).RemoveFromInventory(v2,script.Parent.Name)
 		require(game.ServerScriptService.Modules.Commands).Learn(v2)
-		script.Parent:Destroy()
 	else
 		playerdata[v2.Name].Godspell.Value = "Percutiens,"
 		require(game.ServerScriptService.Modules.Commands).UpdateGodSpells(game.Players:GetPlayerFromCharacter(v2))
 		require(game.ServerScriptService.Modules.Commands).RemoveFromInventory(v2,script.Parent.Name)
 		require(game.ServerScriptService.Modules.Commands).Learn(v2)
-		script.Parent:Destroy()
 	end
 end
 return v1

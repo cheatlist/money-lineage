@@ -49,7 +49,7 @@ script.Parent.Activated:Connect(function()
 		wait(.8)
 		
 		char.Stomach.Value = char.Stomach.Value + 10
-		script.Parent:Destroy()
+		require(game.ServerScriptService.Modules.Commands).RemoveFromInventory(game.Players:GetPlayerFromCharacter(char), script.Parent.Name)
 	elseif char:FindFirstChild("NoEat") then
 		local anim = char.Humanoid:LoadAnimation(script.Parent.Animation)
 		anim:Play()

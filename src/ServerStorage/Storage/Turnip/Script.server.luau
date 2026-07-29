@@ -33,9 +33,8 @@ Tool.Activated:Connect(function()
 		return
 	end
 	canuse = false
-	u3.RemoveFromInventory(game.Players:GetPlayerFromCharacter(p1),"Turnip")
+	u3.RemoveFromInventory(game.Players:GetPlayerFromCharacter(p1),"Turnip",0.65)
 	p1.Humanoid:LoadAnimation(Tool.Animation):Play()
 	wait(0.175)
 	Tool.Handle.Sound:Play()
-	task.delay(.65, Tool.Destroy, Tool)
 end)

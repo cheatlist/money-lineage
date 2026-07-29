@@ -56,7 +56,5 @@ script.Parent.Activated:Connect(function()
 	data.Skills.Value = table.concat(skills,",");
 	require(game.ServerScriptService.Modules.Commands).Learn(p2);
 	require(game.ServerScriptService.Modules.Commands).RemoveFromInventory(p2,"Rift Gem");
-	pcall(function()
-		script.Parent:Destroy();
-	end)
+
 end);

@@ -40,6 +40,5 @@ function v1.Active(v2,v3)
 		return
 	end
 	require(game.ServerScriptService.Modules.Commands).RemoveFromInventory(v3,script.Parent.Name)
-	script.Parent:Destroy()
 end
 return v1

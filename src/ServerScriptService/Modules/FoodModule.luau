@@ -67,7 +67,6 @@ function module.eatAnything(player, character, data, itemName)
 	end
 
 	require(game.ServerScriptService.Modules.Commands).RemoveFromInventory(player, itemName)
-	item:Destroy()
 	character.Stomach.Value = math.clamp(character.Stomach.Value + 10, 0, character.Humanoid.MaxHealth)
 	return true
 end

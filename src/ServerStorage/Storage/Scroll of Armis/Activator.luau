@@ -22,7 +22,6 @@ function v1.Active(v2)
 		return
 	end
 	local player = game.Players:GetPlayerFromCharacter(v2)
-	no = true
 	local allski = string.split(playerdata[v2.Name].Spells.Value, ",")
 	local soulsnaps = {}
 	for i,v in pairs(allski) do
@@ -49,6 +48,5 @@ function v1.Active(v2)
 	end
 	--playerdata[v2.Name].Skills.Value = playerdata[v2.Name].Skills.Value..",Armis"
 	require(game.ServerScriptService.Modules.Commands).RemoveFromInventory(v2,script.Parent.Name)
-	script.Parent:Destroy()
 end
 return v1
